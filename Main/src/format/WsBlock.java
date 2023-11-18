@@ -1,0 +1,103 @@
+/**
+ * @author Guanyuming He
+ */
+package format;
+
+/**
+ * I plan to process whitespaces as "blocks".
+ * That is, I only care about the length (not the number of characters, but how long it should look) 
+ * and positions of such blocks and don't care what are the actual characters (spaces, tabs, etc.)
+ * 
+ * I decide that 
+ *      1. A space occupies 1 unit unconditionally.
+ *      2. A tab always looks as if it pushes the next character to the next position divisible by 4.
+ *          e.g. a tab at position 0, 1, 2, or 3 will cause the next character to show at position 4.
+ *      3. I will process the format line by line so I will ignore all \n or \n\r characters.
+ *  
+ * @implNote According to the Java language specification,
+ * https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.6,
+ * A white space is one of
+ * 		ASCII SP (space), HT (\t), FF (\f) 
+ * 		or a line terminator, which is
+ * 			a \n,
+ * 			a \r,
+ * 			or a \n\r.
+ * Therefore, I only need to care about these characters.
+ */
+public class WsBlock extends FormatToken 
+{
+
+	public WsBlock
+	(
+			String characters, 
+			int position, int act_pos, 
+			int line, int index_in_line
+	) 
+	{
+		super
+		(
+			characters, position, act_pos, line, index_in_line,
+			calculate_length(characters, line, position)
+		);
+	}
+	
+	/**
+	 * Calculates how long the format token should look by the information given.
+	 * @param characters
+	 * @param line
+	 * @param position
+	 * @return the length calculated.
+	 */
+	public static int calculate_length(String characters, int line, int position) 
+	{
+		int length = 0;
+		for (int i = 0; i < characters.length(); ++i)
+		{
+			char c = characters.charAt(i);
+			switch(c)
+			{
+			case ' ':
+				length += 1;
+				break;
+			case '\t':
+				// the current position of the \t
+				int cur_pos = position + length;
+				length += (4 - (cur_pos % 4));
+				break;
+			default:
+				// No other whitespace characters occupy space
+				break;
+			}
+		}
+		
+		return length;
+	}
+	
+	/**
+	 * Checks if str consists of only white space characters, excluding line terminators,
+	 * as specified by the Java language specification,
+	 * https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.6
+	 * @param str
+	 * @return true if so.
+	 */
+	public static boolean is_ws_and_not_lt(String str)
+	{
+		for(int i = 0; i < str.length(); ++i)
+		{
+			char c = str.charAt(i);
+			switch(c)
+			{
+			case ' ':
+				continue;
+			case '\t':
+				continue;
+			case '\f':
+				continue;
+			default:
+				return false;
+			}
+		}
+		
+		return true;
+	}
+}
