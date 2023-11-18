@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import format.WsBlock;
+import edu.guanyfyp.format.WsBlock;
 
 /**
  * Tests all methods of the class WsBlock
@@ -23,11 +23,13 @@ class TestWsBlock
 	{
 		// One space
 		final String spaces1 = " ";
+		var block1 = new WsBlock(spaces1, 2, 2, 3, 2);
 		// Multiple spaces
 		final String spaces2 = "       ";
+		var block2 = new WsBlock(spaces2, 4, 2, 5, 1);
 		
-		assertEquals(1, WsBlock.calculate_length(spaces1, 2, 3));
-		assertEquals(spaces2.length(), WsBlock.calculate_length(spaces2, 4, 5));
+		assertEquals(spaces1.length(), block1.visual_length);
+		assertEquals(spaces2.length(), block2.visual_length);
 	}
 	
 	/**
@@ -36,15 +38,24 @@ class TestWsBlock
 	@Test
 	void testCalculateLengthSpacesAndTabs() 
 	{
+		final String oneTab = "\t";
+		var block1 = new WsBlock(oneTab, 0, 0, 3, 0);
+		var block2 = new WsBlock(oneTab, 5, 1, 4, 1);
+		var block3 = new WsBlock(oneTab, 10, 2, 5, 1);
+		var block4 = new WsBlock(oneTab, 15, 3, 6, 2);
+		
 		// See if the length is correctly calculated with respect to the position of the tabs
-		assertEquals(4, WsBlock.calculate_length("\t", 0, 0));
-		assertEquals(3, WsBlock.calculate_length("\t", 1, 1));
-		assertEquals(2, WsBlock.calculate_length("\t", 2, 2));
-		assertEquals(1, WsBlock.calculate_length("\t", 3, 3));
+		assertEquals(4, block1.visual_length);
+		assertEquals(3, block2.visual_length);
+		assertEquals(2, block3.visual_length);
+		assertEquals(1, block4.visual_length);
+		
+		var block5 = new WsBlock("\t\t\t\t", 5, 2, 1, 1);
+		var block6 = new WsBlock("\t\t\t\t\t", 8, 3, 8, 2);
 		
 		// See if subsequent tabs are all of 4 lengths
-		assertEquals(3 + 3*4, WsBlock.calculate_length("\t\t\t\t", 4, 1));
-		assertEquals(5*4, WsBlock.calculate_length("\t\t\t\t\t", 9, 8));
+		assertEquals(3 + 3*4, block5.visual_length);
+		assertEquals(5*4, block6.visual_length);
 		
 		// See if mixture of spaces and tabs will be calculated correctly
 	}

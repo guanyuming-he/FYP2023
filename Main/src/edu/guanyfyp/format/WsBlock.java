@@ -1,7 +1,11 @@
 /**
  * @author Guanyuming He
  */
-package format;
+package edu.guanyfyp.format;
+
+import javax.management.RuntimeErrorException;
+
+import edu.guanyfyp.SyntaxContext;
 
 /**
  * I plan to process whitespaces as "blocks".
@@ -26,61 +30,26 @@ package format;
  */
 public class WsBlock extends FormatToken 
 {
-
+		
 	public WsBlock
 	(
-			String characters, 
-			int position, int act_pos, 
-			int line, int index_in_line
+		String characters, 
+		int visual_pos, int actual_pos, int line, int index_in_line
 	) 
 	{
-		super
-		(
-			characters, position, act_pos, line, index_in_line,
-			calculate_length(characters, line, position)
-		);
+		super(characters, visual_pos, actual_pos, line, index_in_line);
+		// TODO Auto-generated constructor stub
 	}
-	
+
 	/**
-	 * Calculates how long the format token should look by the information given.
-	 * @param characters
-	 * @param line
-	 * @param position
-	 * @return the length calculated.
-	 */
-	public static int calculate_length(String characters, int line, int position) 
-	{
-		int length = 0;
-		for (int i = 0; i < characters.length(); ++i)
-		{
-			char c = characters.charAt(i);
-			switch(c)
-			{
-			case ' ':
-				length += 1;
-				break;
-			case '\t':
-				// the current position of the \t
-				int cur_pos = position + length;
-				length += (4 - (cur_pos % 4));
-				break;
-			default:
-				// No other whitespace characters occupy space
-				break;
-			}
-		}
-		
-		return length;
-	}
-	
-	/**
+	 * Used for testing.
 	 * Checks if str consists of only white space characters, excluding line terminators,
 	 * as specified by the Java language specification,
 	 * https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.6
 	 * @param str
 	 * @return true if so.
 	 */
-	public static boolean is_ws_and_not_lt(String str)
+	public static boolean is_truly_ws(String str)
 	{
 		for(int i = 0; i < str.length(); ++i)
 		{
@@ -99,5 +68,37 @@ public class WsBlock extends FormatToken
 		}
 		
 		return true;
+	}
+
+	@Override
+	protected int calculate_visual_length() 
+	{
+		int length = 0;
+		for (int i = 0; i < characters.length(); ++i)
+		{
+			char c = characters.charAt(i);
+			switch(c)
+			{
+			case ' ':
+				length += 1;
+				break;
+			case '\t':
+				// the current position of the \t
+				int cur_pos = visual_pos + length;
+				length += (4 - (cur_pos % 4));
+				break;
+			default:
+				// No other whitespace characters occupy space
+				break;
+			}
+		}
+		
+		return length;
+	}
+
+	@Override
+	protected float calculate_format_score(SyntaxContext ctx) 
+	{
+		throw new RuntimeException("Not implemented.");		
 	}
 }
