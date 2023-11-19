@@ -43,6 +43,14 @@ public class SourceFile
     // Each element of the outmost array represents a line in the source file.
     // Each element inside a line array is a token.
     private final ArrayList<ArrayList<FormatToken>> format_tokens;
+    /**
+     * This method is used for tests only. Never use it elsewhere.
+     * @return this.format_tokens
+     */
+    public ArrayList<ArrayList<FormatToken>> __test_get_format_tokens()
+    {
+    	return format_tokens;
+    }    
     
     /**
      * Channel numbers of the lexer tokens
@@ -61,7 +69,7 @@ public class SourceFile
      * @throws IOException on reading error.
      * @throws UnsupportedOperationException if the source code contains some syntax error.
      */
-    SourceFile(String file_path) throws IOException, UnsupportedOperationException
+    public SourceFile(String file_path) throws IOException, UnsupportedOperationException
     {
     	// Initialise fields
     	format_tokens = new ArrayList<>();
@@ -88,16 +96,40 @@ public class SourceFile
 			// Use a loop to iterate through them
 			for(Token t : lexer_token_list)
 			{
-				// Check if it's getting into the next line.
-				if(t.getLine() != cur_line)
+				// Do not accept empty tokens
+				if(t.getText().isEmpty()) 
 				{
-					// Push the tokens in the current line.
-					// And creates a new container for tokens in the next line.
-					format_tokens.add(cur_line_tokens);
-					cur_line_tokens = new ArrayList<FormatToken>();
+					continue;
+				}
+				// Do not accept the final EOF token
+				if(t.getType() == Token.EOF)
+				{
+					continue;
+				}
+				
+				// Check if it's getting into another line.
+				int tLine = t.getLine();
+				if(cur_line != tLine)
+				{
+					// This should be true
+					assert cur_line < tLine;
+					
+					// There may be lines that have no tokens since I ignore line separators.
+					// Therefore, do this until I reach the next non-empty line.
+					while(cur_line < tLine)
+					{
+						// Push the tokens in the current line.
+						// And creates a new container for tokens in the next line.
+						format_tokens.add(cur_line_tokens);
+						cur_line_tokens = new ArrayList<FormatToken>();
+						
+						// go to the next line.
+						++cur_line;
+					}
+					// Now, cur_line = tLine
+					assert cur_line == tLine;
 					
 					// Refresh variables
-					cur_line = t.getLine();
 					visual_pos = 0;
 					cur_line_token_number = 0;
 				}
@@ -110,7 +142,7 @@ public class SourceFile
 					new CodeBlock
 					(
 						t.getText(), // characters
-						visual_pos, t.getStartIndex(), 
+						visual_pos, t.getCharPositionInLine(), 
 						cur_line, 
 						cur_line_token_number // index of the token in the line
 					);
@@ -125,7 +157,7 @@ public class SourceFile
 					new WsBlock
 					(
 						t.getText(), // characters
-						visual_pos, t.getStartIndex(), 
+						visual_pos, t.getCharPositionInLine(), 
 						cur_line, 
 						cur_line_token_number // index of the token in the line
 					);
@@ -136,7 +168,7 @@ public class SourceFile
 					new CommentBlock
 					(
 						t.getText(), // characters
-						visual_pos, t.getStartIndex(), 
+						visual_pos, t.getCharPositionInLine(), 
 						cur_line, 
 						cur_line_token_number, // index of the token in the line
 						false // not JavaDoc
@@ -148,7 +180,7 @@ public class SourceFile
 					new CommentBlock
 					(
 						t.getText(), // characters
-						visual_pos, t.getStartIndex(), 
+						visual_pos, t.getCharPositionInLine(), 
 						cur_line, 
 						cur_line_token_number, // index of the token in the line
 						true // JavaDoc
@@ -164,6 +196,8 @@ public class SourceFile
 				visual_pos += ft.visual_length;
 				++cur_line_token_number;
 			}
+			// Now the cur_line_tokens that is for the last line has yet to be added.
+			format_tokens.add(cur_line_tokens);
 		}
 		
 		// TODO: Parse the program and fill missing fields of the format tokens
@@ -181,5 +215,150 @@ public class SourceFile
     FormatResult analyze()
     {
 		throw new RuntimeException("Not implemented");
+    }
+    
+//////////////////////////// Accessors /////////////////////////
+    // The tokens can only be accessed through the following methods.
+    /**
+     * If in the line there is a token at index.
+     * @param line line number, starting from 1
+     * @param index starting from 0.
+     * @return
+     */
+    boolean hasFormatToken(int line, int index)
+    {
+    	int line_ind = line - 1;
+    	if (line_ind < 0 || line_ind >= format_tokens.size())
+    	{
+    		return false;
+    	}
+    	var line_array = format_tokens.get(line_ind);
+    	if(index < 0 || index >= line_array.size())
+    	{
+    		return false;
+    	}
+    	
+    	return true;
+    }
+    
+    /**
+     * Gets the index^th (starting from 0) FormatToken in the line (starting from 1).
+     * @param line line number, starting from 1
+     * @param index starting from 0.
+     * @return the token or null if such a token does not exist.
+     */
+    FormatToken getFormatToken(int line, int index)
+    {
+    	/*
+    	 * Does not invoke hasFormatToken as hasFormatToken
+    	 * gets a copy of the line_array, which I need to use here as well,
+    	 * so it would be done twice that way.
+    	 */
+    	
+    	int line_ind = line - 1;
+    	if (line_ind < 0 || line_ind >= format_tokens.size())
+    	{
+    		return null;
+    	}
+    	var line_array = format_tokens.get(line_ind);
+    	if(index < 0 || index >= line_array.size())
+    	{
+    		return null;
+    	}
+    	
+    	return line_array.get(index);
+    }
+    
+    /**
+     * As a FormatToken contains its complete position information by design,
+     * I can get tokens based on a given one.
+     * This method gets the token immediately before the given one.
+     * 
+     * @param given the token given.
+     * @return the token immediately before given (the method goes back to previous lines if necessary)
+     * or null if there is no token before it.
+     */
+    FormatToken getPrevFormatToken(FormatToken given)
+    {
+    	int line = given.line;
+    	int index = given.index_in_line - 1;
+    	
+    	// If the token is the first in the line
+    	if(index < 0)
+    	{
+    		// This should be true.
+    		assert index == -1;
+    		
+    		// Keep going back until the previous line is non-empty
+    		// or until I have reached the first line.
+    		while(line > 1)
+    		{
+        		--line;
+        		
+        		var line_array = format_tokens.get(line-1);
+        		if(line_array.isEmpty())
+        		{
+        			continue;
+        		}
+        		
+        		// now the line is not empty
+        		// return the last token in the line.
+        		return line_array.get(line_array.size()-1);
+    		}
+    		
+    		// now line = 1 but it's still empty
+    		return null;    		
+    	}
+    	
+    	// Otherwise, the prev token is still in the line.
+    	return format_tokens.get(line-1).get(index);
+    }
+    
+    /**
+     * As a FormatToken contains its complete position information by design,
+     * I can get tokens based on a given one.
+     * This method gets the token immediately after the given one.
+     * 
+     * @param given the token given.
+     * @return the token immediately after given (the method goes forth to further lines if necessary)
+     * or null if there is no token after it.
+     */
+    FormatToken getNextFormatToken(FormatToken given)
+    {
+    	int line = given.line;
+    	int index = given.index_in_line + 1;
+    	
+    	int line_index = line-1;
+    	var cur_line_array = format_tokens.get(line_index);
+    	
+    	// If the token is the last in the line
+    	if(index >= cur_line_array.size())
+    	{
+    		// This should be true.
+    		assert index == cur_line_array.size();
+    		
+    		// Keep going back until the previous line is non-empty
+    		// or until I have reached the first line.
+    		while(line_index+1 < format_tokens.size())
+    		{
+        		++line_index;
+        		
+        		var line_array = format_tokens.get(line_index);
+        		if(line_array.isEmpty())
+        		{
+        			continue;
+        		}
+        		
+        		// now the line is not empty
+        		// return the first token in the line.
+        		return line_array.get(0);
+    		}
+    		
+    		// now line_index = size-1 but it's still empty
+    		return null;    		
+    	}
+    	
+    	// Otherwise, the next token is still in the line.
+    	return cur_line_array.get(index);
     }
 }

@@ -57,7 +57,7 @@ class TestWsBlock
 		assertEquals(3 + 3*4, block5.visual_length);
 		assertEquals(5*4, block6.visual_length);
 		
-		// See if mixture of spaces and tabs will be calculated correctly
+		// TODO: See if mixture of spaces and tabs will be calculated correctly
 	}
 
 }
