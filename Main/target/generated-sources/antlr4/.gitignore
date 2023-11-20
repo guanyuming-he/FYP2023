@@ -1,2 +1,6 @@
 /JavaLexer.java
 /JavaLexer.tokens
+/JavaParser.java
+/JavaParser.tokens
+/JavaParserBaseListener.java
+/JavaParserListener.java

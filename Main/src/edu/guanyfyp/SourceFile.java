@@ -14,6 +14,7 @@ import java.util.List;
 import edu.guanyfyp.format.CodeBlock;
 import edu.guanyfyp.format.CommentBlock;
 import edu.guanyfyp.format.FormatToken;
+import edu.guanyfyp.format.JavaDocCommentBlock;
 import edu.guanyfyp.format.WsBlock;
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser;
@@ -170,20 +171,18 @@ public class SourceFile
 						t.getText(), // characters
 						visual_pos, t.getCharPositionInLine(), 
 						cur_line, 
-						cur_line_token_number, // index of the token in the line
-						false // not JavaDoc
+						cur_line_token_number // index of the token in the line
 					);
 					break;	
 					
 				case JAVADOC_CHANNEL:
 					ft =
-					new CommentBlock
+					new JavaDocCommentBlock
 					(
 						t.getText(), // characters
 						visual_pos, t.getCharPositionInLine(), 
 						cur_line, 
-						cur_line_token_number, // index of the token in the line
-						true // JavaDoc
+						cur_line_token_number // index of the token in the line
 					);
 					break;	
 					
