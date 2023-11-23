@@ -137,7 +137,6 @@ public abstract class FormatToken
 	 */
 	public int getNumCharacters() { return characters.length(); }
 	
-	
 ////////////////////////// From Object ///////////////////////////////	
 	@Override
 	public String toString()
@@ -172,5 +171,19 @@ public abstract class FormatToken
 		return line == o.line && index_in_line == o.index_in_line;
 	}
 	
+///////////////////////// For tests //////////////////////////////////
+	/**
+	 * @param other
+	 * @return true iff all fields (except the format score) are the same with the fields of other
+	 */
+	public boolean __test_equals(FormatToken other) {
+		return 
+			this.characters.equals(other.characters) &&
+			this.visual_pos == other.visual_pos &&
+			this.actual_pos == other.actual_pos &&
+			this.line == other.line &&
+			this.index_in_line == other.index_in_line &&
+			this.visual_length == other.visual_length;
+	}
 }
 

@@ -1,0 +1,9 @@
+public class B extends A {
+    int a;
+    int b;
+    public B(int a, int b) {
+        super(a);
+        this.a = a;
+        this.b = b;
+    }
+}
