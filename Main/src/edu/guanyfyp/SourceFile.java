@@ -288,13 +288,14 @@ public class SourceFile
     		// This should be true.
     		assert index == -1;
     		
+        	int line_ind = line-1;
     		// Keep going back until the previous line is non-empty
     		// or until I have reached the first line.
-    		while(line > 1)
+    		while(line_ind >= 1)
     		{
-        		--line;
+        		--line_ind;
         		
-        		var line_array = format_tokens.get(line-1);
+        		var line_array = format_tokens.get(line_ind);
         		if(line_array.isEmpty())
         		{
         			continue;
@@ -306,6 +307,7 @@ public class SourceFile
     		}
     		
     		// now line = 1 but it's still empty
+    		// or the token is already the first one.
     		return null;    		
     	}
     	

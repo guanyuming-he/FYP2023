@@ -532,4 +532,115 @@ class TestSourceFile
 		assertTrue(s1.getFormatToken(10, 8) instanceof CodeBlock);
 		assertTrue(s1.getFormatToken(16, 0) instanceof CodeBlock);
 	}
+	
+	/**
+	 * Tests if getPrevFormatToken can correctly return the previous token
+	 * if there is one
+	 */
+	@Test
+	void testGetPrevFormatTokenExists()
+	{
+		final String file_path_1 = "test_data/prev_next_test_exists.txt";
+		var s1 = createSourceFileNoError(file_path_1);
+		
+		// When in the same line there is some token before it.
+		assertEquals
+		(
+			"public",
+			s1.getPrevFormatToken(s1.getFormatToken(11, 1)).characters
+		);
+		
+		// When there is some in the previous line
+		assertEquals
+		(
+			"// ...",
+			s1.getPrevFormatToken(s1.getFormatToken(13, 0)).characters
+		);
+		
+		// When there is some in a not immediately previous line.
+		assertEquals
+		(
+			"// Exists",
+			s1.getPrevFormatToken(s1.getFormatToken(4, 0)).characters
+		);
+	}
+	
+	/**
+	 * Tests if getPrevFormatToken can correctly return null
+	 * if there isn't one.
+	 */
+	@Test
+	void testGetPrevFormatTokenNotExist()
+	{
+		// When the token is the first in the first line.
+		final String file_path_1 = "test_data/empty_lines2.txt";
+		var s1 = createSourceFileNoError(file_path_1);
+		
+		var s1_tokens = s1.__test_get_format_tokens();
+		assertEquals(null, s1.getPrevFormatToken(s1_tokens.get(0).get(0)));
+		
+		// When the token isn't in the first line, but all
+		// previous lines are empty.
+		final String file_path_2 = "test_data/prev_next_test.txt";
+		var s2 = createSourceFileNoError(file_path_2);
+
+		assertEquals(null, s2.getPrevFormatToken(s2.getFormatToken(4, 0)));
+	}
+	
+	/**
+	 * Tests if getNextFormatToken can correctly return the next token
+	 * if there is one
+	 */
+	@Test
+	void testGetNextFormatTokenExists()
+	{
+		final String file_path_1 = "test_data/prev_next_test_exists.txt";
+		var s1 = createSourceFileNoError(file_path_1);
+		
+		// When in the same line there is some token after it.
+		assertEquals
+		(
+			"class",
+			s1.getNextFormatToken(s1.getFormatToken(11, 1)).characters
+		);
+		
+		// When there is some in the previous line
+		assertEquals
+		(
+			"}",
+			s1.getNextFormatToken(s1.getFormatToken(18, 1)).characters
+		);
+		
+		// When there is some in a not immediately previous line.
+		assertEquals
+		(
+			"// Exists.",
+			s1.getNextFormatToken(s1.getFormatToken(19, 0)).characters
+		);
+	}
+	
+	/**
+	 * Tests if getNextFormatToken can correctly return null
+	 * if there isn't one.
+	 */
+	@Test
+	void testGetNextFormatTokenNotExist()
+	{
+		// When the token is the last in the last line.
+		final String file_path_1 = "test_data/empty_lines2.txt";
+		var s1 = createSourceFileNoError(file_path_1);
+		
+		var s1_tokens = s1.__test_get_format_tokens();
+		assertEquals(null, s1.getNextFormatToken(s1_tokens.get(s1_tokens.size()-1).get(0)));
+		
+		// When the token isn't in the last line, but all
+		// following lines are empty.
+		
+		// Add a few empty lines.
+		for(int i = 0; i < 5; ++i)
+		{
+			s1_tokens.add(new ArrayList<FormatToken>());
+		}
+		assertEquals(null, s1.getNextFormatToken(s1.getFormatToken(16, 0)));
+	}
 }

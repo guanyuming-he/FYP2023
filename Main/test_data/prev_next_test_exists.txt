@@ -1,0 +1,22 @@
+// Exists
+
+
+/**
+ * @author Guany
+ */
+
+ /**
+  * Some class
+  */
+public class ABC {
+    // ...
+    int abc = 1;
+
+
+    private int ABc() {
+        return abc;
+    }
+}
+
+
+// Exists.
