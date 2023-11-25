@@ -246,7 +246,7 @@ public class SourceFile
      * @param index starting from 0.
      * @return the token or null if such a token does not exist.
      */
-    FormatToken getFormatToken(int line, int index)
+    public FormatToken getFormatToken(int line, int index)
     {
     	/*
     	 * Does not invoke hasFormatToken as hasFormatToken
@@ -277,7 +277,7 @@ public class SourceFile
      * @return the token immediately before given (the method goes back to previous lines if necessary)
      * or null if there is no token before it.
      */
-    FormatToken getPrevFormatToken(FormatToken given)
+    public FormatToken getPrevFormatToken(FormatToken given)
     {
     	int line = given.line;
     	int index = given.index_in_line - 1;
@@ -322,7 +322,7 @@ public class SourceFile
      * @return the token immediately after given (the method goes forth to further lines if necessary)
      * or null if there is no token after it.
      */
-    FormatToken getNextFormatToken(FormatToken given)
+    public FormatToken getNextFormatToken(FormatToken given)
     {
     	int line = given.line;
     	int index = given.index_in_line + 1;

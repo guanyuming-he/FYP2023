@@ -1,0 +1,40 @@
+/**
+ * @author Guanyuming He
+ * Has a bit of everything.
+ */
+
+package edu.xjtlu.guany;
+
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * Some comments for the class.
+ */
+public class MixtureClass extends ABC 
+{
+	
+	// A field
+    public final int m = 0;
+    /* Some key */
+    private static final String SOME_KEY = 
+        "I know this isn\'t a key. \n"
+	    + "It is just a test string.";
+    
+////////////////////// Methods ///////////////////////
+
+    /**
+     * Some method
+     * @param param
+     * @return something
+     */
+    protected boolean someMethod(List<Integer> list)
+    {
+    	for(int i = 0; i < list.size(); ++i) {
+        // Do something
+        	int a /* ... */ = 3;
+        }
+
+        return true;
+    }
+}

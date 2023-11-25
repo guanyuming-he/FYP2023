@@ -199,9 +199,9 @@ ELLIPSIS:           '...';
 // Skip line separators,
 // while only hide ws and comments from the parser
 WS:                 [ \t\f]+        -> channel(1);
+JAVA_DOC_COMMENT:   '/**' .*? '*/'  -> channel(3);
 COMMENT:            '/*' .*? '*/'   -> channel(2);
 LINE_COMMENT:       '//' ~[\r\n]*   -> channel(2);
-JAVA_DOC_COMMENT:   '/**' .*? '*/'  -> channel(3);
 LINE_SEPARATOR:     [\n\r]+         -> skip;
 
 // Identifiers
