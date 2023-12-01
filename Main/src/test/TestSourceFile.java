@@ -208,8 +208,8 @@ class TestSourceFile
 			(new JavaDocCommentBlock
 				(
 					"/**\r\n"
-					+ " * @author Guanyuming He\r\n"
 					+ " * Has a bit of everything.\r\n"
+					+ " * @author Guanyuming He\r\n"
 					+ " */", 
 					0, 0, 1, 0
 				)

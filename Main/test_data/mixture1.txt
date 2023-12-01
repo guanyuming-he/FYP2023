@@ -1,6 +1,6 @@
 /**
- * @author Guanyuming He
  * Has a bit of everything.
+ * @author Guanyuming He
  */
 
 package edu.xjtlu.guany;
