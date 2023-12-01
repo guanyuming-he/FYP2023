@@ -56,8 +56,8 @@ class TestSourceFile
 		var s1 = createSourceFileNoError(file_path_1);
 		var s2 = createSourceFileNoError(file_path_2);
 		
-		assertEquals(4, s1.__test_get_format_tokens().size());
-		assertEquals(9, s2.__test_get_format_tokens().size());
+		assertEquals(4, s1.get_format_tokens().size());
+		assertEquals(9, s2.get_format_tokens().size());
 	}
 	
 	/**
@@ -73,10 +73,10 @@ class TestSourceFile
 		var s2 = createSourceFileNoError(file_path_2);
 		
 		// Nothing. The file is empty
-		assertEquals(1, s1.__test_get_format_tokens().size());
-		assertTrue(s1.__test_get_format_tokens().get(0).isEmpty());
+		assertEquals(1, s1.get_format_tokens().size());
+		assertTrue(s1.get_format_tokens().get(0).isEmpty());
 		// Some lines...
-		assertEquals(16, s2.__test_get_format_tokens().size());
+		assertEquals(16, s2.get_format_tokens().size());
 	}
 
 /////////////////////////////// Tokens ////////////////////////////
@@ -120,7 +120,7 @@ class TestSourceFile
 	void assertTokenLinesEqual
 	(
 		ArrayList<ArrayList<FormatToken>> expected, 
-		ArrayList<ArrayList<FormatToken>> actual
+		List<List<FormatToken>> actual
 	) 
 	{
 		assertEquals
@@ -149,7 +149,7 @@ class TestSourceFile
 		final String file_path_1 = "test_data/no_empty_lines1.txt";
 		var s1 = createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.__test_get_format_tokens();
+		var s1_tokens = s1.get_format_tokens();
 		ArrayList<ArrayList<FormatToken>> expected_tokens = new ArrayList<>();
 		{
 			ArrayList<FormatToken> line1 = new ArrayList<>();
@@ -200,7 +200,7 @@ class TestSourceFile
 		final String file_path_2 = "test_data/mixture1.txt";
 		var s2 = createSourceFileNoError(file_path_2);
 		
-		var s2_tokens = s2.__test_get_format_tokens();
+		var s2_tokens = s2.get_format_tokens();
 		ArrayList<ArrayList<FormatToken>> expected_tokens = new ArrayList<>();
 		{
 			ArrayList<FormatToken> line1 = new ArrayList<>();
@@ -522,7 +522,7 @@ class TestSourceFile
 		final String file_path_1 = "test_data/empty_lines2.txt";
 		var s1 = createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.__test_get_format_tokens();
+		var s1_tokens = s1.get_format_tokens();
 		
 		assertTrue(s1.getFormatToken(1, 0) instanceof JavaDocCommentBlock);
 		assertTrue(s1.getFormatToken(8, 1) instanceof WsBlock);
@@ -576,7 +576,7 @@ class TestSourceFile
 		final String file_path_1 = "test_data/empty_lines2.txt";
 		var s1 = createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.__test_get_format_tokens();
+		var s1_tokens = s1.get_format_tokens();
 		assertEquals(null, s1.getPrevFormatToken(s1_tokens.get(0).get(0)));
 		
 		// When the token isn't in the first line, but all
@@ -630,17 +630,14 @@ class TestSourceFile
 		final String file_path_1 = "test_data/empty_lines2.txt";
 		var s1 = createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.__test_get_format_tokens();
+		var s1_tokens = s1.get_format_tokens();
 		assertEquals(null, s1.getNextFormatToken(s1_tokens.get(s1_tokens.size()-1).get(0)));
 		
 		// When the token isn't in the last line, but all
 		// following lines are empty.
+		final String file_path_2 = "test_data/next_no_token_test.txt";
+		var s2 = createSourceFileNoError(file_path_2);
 		
-		// Add a few empty lines.
-		for(int i = 0; i < 5; ++i)
-		{
-			s1_tokens.add(new ArrayList<FormatToken>());
-		}
-		assertEquals(null, s1.getNextFormatToken(s1.getFormatToken(16, 0)));
+		assertEquals(null, s2.getNextFormatToken(s2.getFormatToken(9, 0)));
 	}
 }

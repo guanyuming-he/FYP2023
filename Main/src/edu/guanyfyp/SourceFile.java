@@ -9,6 +9,7 @@ import org.antlr.v4.runtime.tree.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import edu.guanyfyp.format.CodeBlock;
@@ -43,12 +44,13 @@ public class SourceFile
     // All the tokens for format checking.
     // Each element of the outmost array represents a line in the source file.
     // Each element inside a line array is a token.
-    private final ArrayList<ArrayList<FormatToken>> format_tokens;
+	// The field in the end will be immutable, and each inner list will also be.
+    private final List<List<FormatToken>> format_tokens;
     /**
-     * This method is used for tests only. Never use it elsewhere.
+     * Because the format_tokens is immutable, one can get it.
      * @return this.format_tokens
      */
-    public ArrayList<ArrayList<FormatToken>> __test_get_format_tokens()
+    public List<List<FormatToken>> get_format_tokens()
     {
     	return format_tokens;
     }    
@@ -72,8 +74,8 @@ public class SourceFile
      */
     public SourceFile(String file_path) throws IOException, UnsupportedOperationException
     {
-    	// Initialise fields
-    	format_tokens = new ArrayList<>();
+    	// Initialise temp fields
+    	List<List<FormatToken>> temp_format_tokens = new ArrayList<>();
     	
     	// Parse the source file with ANTLR4
     	CharStream inputStream = CharStreams.fromFileName(file_path);
@@ -119,9 +121,9 @@ public class SourceFile
 					// Therefore, do this until I reach the next non-empty line.
 					while(cur_line < tLine)
 					{
-						// Push the tokens in the current line.
+						// Push the tokens in the current line in the immutable version.
 						// And creates a new container for tokens in the next line.
-						format_tokens.add(cur_line_tokens);
+						temp_format_tokens.add(Collections.unmodifiableList(cur_line_tokens));
 						cur_line_tokens = new ArrayList<FormatToken>();
 						
 						// go to the next line.
@@ -196,7 +198,10 @@ public class SourceFile
 				++cur_line_token_number;
 			}
 			// Now the cur_line_tokens that is for the last line has yet to be added.
-			format_tokens.add(cur_line_tokens);
+			temp_format_tokens.add(Collections.unmodifiableList(cur_line_tokens));
+			
+			// Finally, turn format_tokens immutable
+			format_tokens = Collections.unmodifiableList(temp_format_tokens);
 		}
 		
 		// TODO: Parse the program and fill missing fields of the format tokens
