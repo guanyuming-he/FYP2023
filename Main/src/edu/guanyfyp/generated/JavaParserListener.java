@@ -1,6 +1,6 @@
-// Generated from JavaParser.g4 by ANTLR 4.13.1
 package edu.guanyfyp.generated;
 
+// Generated from JavaParser.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -738,56 +738,6 @@ public interface JavaParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRequiresModifier(JavaParser.RequiresModifierContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#recordDeclaration}.
-	 * @param ctx the parse tree
-	 */
-	void enterRecordDeclaration(JavaParser.RecordDeclarationContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#recordDeclaration}.
-	 * @param ctx the parse tree
-	 */
-	void exitRecordDeclaration(JavaParser.RecordDeclarationContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#recordHeader}.
-	 * @param ctx the parse tree
-	 */
-	void enterRecordHeader(JavaParser.RecordHeaderContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#recordHeader}.
-	 * @param ctx the parse tree
-	 */
-	void exitRecordHeader(JavaParser.RecordHeaderContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#recordComponentList}.
-	 * @param ctx the parse tree
-	 */
-	void enterRecordComponentList(JavaParser.RecordComponentListContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#recordComponentList}.
-	 * @param ctx the parse tree
-	 */
-	void exitRecordComponentList(JavaParser.RecordComponentListContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#recordComponent}.
-	 * @param ctx the parse tree
-	 */
-	void enterRecordComponent(JavaParser.RecordComponentContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#recordComponent}.
-	 * @param ctx the parse tree
-	 */
-	void exitRecordComponent(JavaParser.RecordComponentContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#recordBody}.
-	 * @param ctx the parse tree
-	 */
-	void enterRecordBody(JavaParser.RecordBodyContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#recordBody}.
-	 * @param ctx the parse tree
-	 */
-	void exitRecordBody(JavaParser.RecordBodyContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link JavaParser#block}.
 	 * @param ctx the parse tree

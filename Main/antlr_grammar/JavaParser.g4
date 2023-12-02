@@ -34,21 +34,21 @@ parser grammar JavaParser;
 options { tokenVocab=JavaLexer; }
 
 compilationUnit
-    : packageDeclaration? (importDeclaration | ';')* (typeDeclaration | ';')*
+    : packageDeclaration? (importDeclaration | SEMI)* (typeDeclaration | SEMI)*
     | moduleDeclaration EOF
     ;
 
 packageDeclaration
-    : annotation* PACKAGE qualifiedName ';'
+    : annotation* PACKAGE qualifiedName SEMI
     ;
 
 importDeclaration
-    : IMPORT STATIC? qualifiedName ('.' '*')? ';'
+    : IMPORT STATIC? qualifiedName (DOT MUL)? SEMI
     ;
 
 typeDeclaration
     : classOrInterfaceModifier*
-      (classDeclaration | enumDeclaration | interfaceDeclaration | annotationTypeDeclaration | recordDeclaration)
+      (classDeclaration | enumDeclaration | interfaceDeclaration | annotationTypeDeclaration)
     ;
 
 modifier
@@ -68,8 +68,6 @@ classOrInterfaceModifier
     | ABSTRACT
     | FINAL    // FINAL for class only -- does not apply to interfaces
     | STRICTFP
-    | SEALED // Java17
-    | NON_SEALED // Java17
     ;
 
 variableModifier
@@ -81,12 +79,11 @@ classDeclaration
     : CLASS identifier typeParameters?
       (EXTENDS typeType)?
       (IMPLEMENTS typeList)?
-      (PERMITS typeList)? // Java17
       classBody
     ;
 
 typeParameters
-    : '<' typeParameter (',' typeParameter)* '>'
+    : LT typeParameter (COMMA typeParameter)* GT
     ;
 
 typeParameter
@@ -94,15 +91,15 @@ typeParameter
     ;
 
 typeBound
-    : typeType ('&' typeType)*
+    : typeType (BITAND typeType)*
     ;
 
 enumDeclaration
-    : ENUM identifier (IMPLEMENTS typeList)? '{' enumConstants? ','? enumBodyDeclarations? '}'
+    : ENUM identifier (IMPLEMENTS typeList)? LBRACE enumConstants? COMMA? enumBodyDeclarations? RBRACE
     ;
 
 enumConstants
-    : enumConstant (',' enumConstant)*
+    : enumConstant (COMMA enumConstant)*
     ;
 
 enumConstant
@@ -110,7 +107,7 @@ enumConstant
     ;
 
 enumBodyDeclarations
-    : ';' classBodyDeclaration*
+    : SEMI classBodyDeclaration*
     ;
 
 interfaceDeclaration
@@ -118,22 +115,21 @@ interfaceDeclaration
     ;
 
 classBody
-    : '{' classBodyDeclaration* '}'
+    : LBRACE classBodyDeclaration* RBRACE
     ;
 
 interfaceBody
-    : '{' interfaceBodyDeclaration* '}'
+    : LBRACE interfaceBodyDeclaration* RBRACE
     ;
 
 classBodyDeclaration
-    : ';'
+    : SEMI
     | STATIC? block
     | modifier* memberDeclaration
     ;
 
 memberDeclaration
-    : recordDeclaration //Java17
-    | methodDeclaration
+    : methodDeclaration
     | genericMethodDeclaration
     | fieldDeclaration
     | constructorDeclaration
@@ -150,14 +146,14 @@ memberDeclaration
    for invalid return type after parsing.
  */
 methodDeclaration
-    : typeTypeOrVoid identifier formalParameters ('[' ']')*
+    : typeTypeOrVoid identifier formalParameters (LBRACK RBRACK)*
       (THROWS qualifiedNameList)?
       methodBody
     ;
 
 methodBody
     : block
-    | ';'
+    | SEMI
     ;
 
 typeTypeOrVoid
@@ -182,17 +178,16 @@ compactConstructorDeclaration
     ;
 
 fieldDeclaration
-    : typeType variableDeclarators ';'
+    : typeType variableDeclarators SEMI
     ;
 
 interfaceBodyDeclaration
     : modifier* interfaceMemberDeclaration
-    | ';'
+    | SEMI
     ;
 
 interfaceMemberDeclaration
-    : recordDeclaration // Java17
-    | constDeclaration
+    : constDeclaration
     | interfaceMethodDeclaration
     | genericInterfaceMethodDeclaration
     | interfaceDeclaration
@@ -202,11 +197,11 @@ interfaceMemberDeclaration
     ;
 
 constDeclaration
-    : typeType constantDeclarator (',' constantDeclarator)* ';'
+    : typeType constantDeclarator (COMMA constantDeclarator)* SEMI
     ;
 
 constantDeclarator
-    : identifier ('[' ']')* '=' variableInitializer
+    : identifier (LBRACK RBRACK)* ASSIGN variableInitializer
     ;
 
 // Early versions of Java allows brackets after the method name, eg.
@@ -232,19 +227,19 @@ genericInterfaceMethodDeclaration
     ;
 
 interfaceCommonBodyDeclaration
-    : annotation* typeTypeOrVoid identifier formalParameters ('[' ']')* (THROWS qualifiedNameList)? methodBody
+    : annotation* typeTypeOrVoid identifier formalParameters (LBRACK RBRACK)* (THROWS qualifiedNameList)? methodBody
     ;
 
 variableDeclarators
-    : variableDeclarator (',' variableDeclarator)*
+    : variableDeclarator (COMMA variableDeclarator)*
     ;
 
 variableDeclarator
-    : variableDeclaratorId ('=' variableInitializer)?
+    : variableDeclaratorId (ASSIGN variableInitializer)?
     ;
 
 variableDeclaratorId
-    : identifier ('[' ']')*
+    : identifier (LBRACK RBRACK)*
     ;
 
 variableInitializer
@@ -253,35 +248,35 @@ variableInitializer
     ;
 
 arrayInitializer
-    : '{' (variableInitializer (',' variableInitializer)* ','? )? '}'
+    : LBRACE (variableInitializer (COMMA variableInitializer)* COMMA? )? RBRACE
     ;
 
 classOrInterfaceType
-    : (identifier typeArguments? '.')* typeIdentifier typeArguments?
+    : (identifier typeArguments? DOT)* typeIdentifier typeArguments?
     ;
 
 typeArgument
     : typeType
-    | annotation* '?' ((EXTENDS | SUPER) typeType)?
+    | annotation* QUESTION ((EXTENDS | SUPER) typeType)?
     ;
 
 qualifiedNameList
-    : qualifiedName (',' qualifiedName)*
+    : qualifiedName (COMMA qualifiedName)*
     ;
 
 formalParameters
-    : '(' ( receiverParameter?
-          | receiverParameter (',' formalParameterList)?
+    : LPAREN ( receiverParameter?
+          | receiverParameter (COMMA formalParameterList)?
           | formalParameterList?
-          ) ')'
+          ) RPAREN
     ;
 
 receiverParameter
-    : typeType (identifier '.')* THIS
+    : typeType (identifier DOT)* THIS
     ;
 
 formalParameterList
-    : formalParameter (',' formalParameter)* (',' lastFormalParameter)?
+    : formalParameter (COMMA formalParameter)* (COMMA lastFormalParameter)?
     | lastFormalParameter
     ;
 
@@ -290,12 +285,12 @@ formalParameter
     ;
 
 lastFormalParameter
-    : variableModifier* typeType annotation* '...' variableDeclaratorId
+    : variableModifier* typeType annotation* ELLIPSIS variableDeclaratorId
     ;
 
 // local variable type inference
 lambdaLVTIList
-    : lambdaLVTIParameter (',' lambdaLVTIParameter)*
+    : lambdaLVTIParameter (COMMA lambdaLVTIParameter)*
     ;
 
 lambdaLVTIParameter
@@ -303,7 +298,7 @@ lambdaLVTIParameter
     ;
 
 qualifiedName
-    : identifier ('.' identifier)*
+    : identifier (DOT identifier)*
     ;
 
 literal
@@ -330,19 +325,19 @@ floatLiteral
 
 // ANNOTATIONS
 altAnnotationQualifiedName
-    : (identifier DOT)* '@' identifier
+    : (identifier DOT)* AT identifier
     ;
 
 annotation
-    : ('@' qualifiedName | altAnnotationQualifiedName) ('(' ( elementValuePairs | elementValue )? ')')?
+    : (AT qualifiedName | altAnnotationQualifiedName) (LPAREN ( elementValuePairs | elementValue )? RPAREN)?
     ;
 
 elementValuePairs
-    : elementValuePair (',' elementValuePair)*
+    : elementValuePair (COMMA elementValuePair)*
     ;
 
 elementValuePair
-    : identifier '=' elementValue
+    : identifier ASSIGN elementValue
     ;
 
 elementValue
@@ -352,29 +347,28 @@ elementValue
     ;
 
 elementValueArrayInitializer
-    : '{' (elementValue (',' elementValue)*)? ','? '}'
+    : LBRACE (elementValue (COMMA elementValue)*)? COMMA? RBRACE
     ;
 
 annotationTypeDeclaration
-    : '@' INTERFACE identifier annotationTypeBody
+    : AT INTERFACE identifier annotationTypeBody
     ;
 
 annotationTypeBody
-    : '{' annotationTypeElementDeclaration* '}'
+    : LBRACE annotationTypeElementDeclaration* RBRACE
     ;
 
 annotationTypeElementDeclaration
     : modifier* annotationTypeElementRest
-    | ';' // this is not allowed by the grammar, but apparently allowed by the actual compiler
+    | SEMI // this is not allowed by the grammar, but apparently allowed by the actual compiler
     ;
 
 annotationTypeElementRest
-    : typeType annotationMethodOrConstantRest ';'
-    | classDeclaration ';'?
-    | interfaceDeclaration ';'?
-    | enumDeclaration ';'?
-    | annotationTypeDeclaration ';'?
-    | recordDeclaration ';'? // Java17
+    : typeType annotationMethodOrConstantRest SEMI
+    | classDeclaration SEMI?
+    | interfaceDeclaration SEMI?
+    | enumDeclaration SEMI?
+    | annotationTypeDeclaration SEMI?
     ;
 
 annotationMethodOrConstantRest
@@ -383,7 +377,7 @@ annotationMethodOrConstantRest
     ;
 
 annotationMethodRest
-    : identifier '(' ')' defaultValue?
+    : identifier LPAREN RPAREN defaultValue?
     ;
 
 annotationConstantRest
@@ -401,15 +395,15 @@ moduleDeclaration
     ;
 
 moduleBody
-    : '{' moduleDirective* '}'
+    : LBRACE moduleDirective* RBRACE
     ;
 
 moduleDirective
-	: REQUIRES requiresModifier* qualifiedName ';'
-	| EXPORTS qualifiedName (TO qualifiedName)? ';'
-	| OPENS qualifiedName (TO qualifiedName)? ';'
-	| USES qualifiedName ';'
-	| PROVIDES qualifiedName WITH qualifiedName ';'
+	: REQUIRES requiresModifier* qualifiedName SEMI
+	| EXPORTS qualifiedName (TO qualifiedName)? SEMI
+	| OPENS qualifiedName (TO qualifiedName)? SEMI
+	| USES qualifiedName SEMI
+	| PROVIDES qualifiedName WITH qualifiedName SEMI
 	;
 
 requiresModifier
@@ -419,42 +413,21 @@ requiresModifier
 
 // RECORDS - Java 17
 
-recordDeclaration
-    : RECORD identifier typeParameters? recordHeader
-      (IMPLEMENTS typeList)?
-      recordBody
-    ;
-
-recordHeader
-    : '(' recordComponentList? ')'
-    ;
-
-recordComponentList
-    : recordComponent (',' recordComponent)*
-    ;
-
-recordComponent
-    : typeType identifier
-    ;
-
-recordBody
-    : '{' (classBodyDeclaration | compactConstructorDeclaration)*  '}'
-    ;
 
 // STATEMENTS / BLOCKS
 
 block
-    : '{' blockStatement* '}'
+    : LBRACE blockStatement* RBRACE
     ;
 
 blockStatement
-    : localVariableDeclaration ';'
+    : localVariableDeclaration SEMI
     | localTypeDeclaration
     | statement
     ;
 
 localVariableDeclaration
-    : variableModifier* (VAR identifier '=' expression | typeType variableDeclarators)
+    : variableModifier* (VAR identifier ASSIGN expression | typeType variableDeclarators)
     ;
 
 identifier
@@ -495,37 +468,37 @@ typeIdentifier  // Identifiers that are not restricted for type declarations
 
 localTypeDeclaration
     : classOrInterfaceModifier*
-      (classDeclaration | interfaceDeclaration | recordDeclaration)
+      (classDeclaration | interfaceDeclaration)
     ;
 
 statement
     : blockLabel=block
-    | ASSERT expression (':' expression)? ';'
+    | ASSERT expression (COLON expression)? SEMI
     | IF parExpression statement (ELSE statement)?
-    | FOR '(' forControl ')' statement
+    | FOR LPAREN forControl RPAREN statement
     | WHILE parExpression statement
-    | DO statement WHILE parExpression ';'
+    | DO statement WHILE parExpression SEMI
     | TRY block (catchClause+ finallyBlock? | finallyBlock)
     | TRY resourceSpecification block catchClause* finallyBlock?
-    | SWITCH parExpression '{' switchBlockStatementGroup* switchLabel* '}'
+    | SWITCH parExpression LBRACE switchBlockStatementGroup* switchLabel* RBRACE
     | SYNCHRONIZED parExpression block
-    | RETURN expression? ';'
-    | THROW expression ';'
-    | BREAK identifier? ';'
-    | CONTINUE identifier? ';'
-    | YIELD expression ';' // Java17
+    | RETURN expression? SEMI
+    | THROW expression SEMI
+    | BREAK identifier? SEMI
+    | CONTINUE identifier? SEMI
+    | YIELD expression SEMI // Java17
     | SEMI
-    | statementExpression=expression ';'
-    | switchExpression ';'? // Java17
-    | identifierLabel=identifier ':' statement
+    | statementExpression=expression SEMI
+    | switchExpression SEMI? // Java17
+    | identifierLabel=identifier COLON statement
     ;
 
 catchClause
-    : CATCH '(' variableModifier* catchType identifier ')' block
+    : CATCH LPAREN variableModifier* catchType identifier RPAREN block
     ;
 
 catchType
-    : qualifiedName ('|' qualifiedName)*
+    : qualifiedName (BITOR qualifiedName)*
     ;
 
 finallyBlock
@@ -533,15 +506,15 @@ finallyBlock
     ;
 
 resourceSpecification
-    : '(' resources ';'? ')'
+    : LPAREN resources SEMI? RPAREN
     ;
 
 resources
-    : resource (';' resource)*
+    : resource (SEMI resource)*
     ;
 
 resource
-    : variableModifier* ( classOrInterfaceType variableDeclaratorId | VAR identifier ) '=' expression
+    : variableModifier* ( classOrInterfaceType variableDeclaratorId | VAR identifier ) ASSIGN expression
     | qualifiedName
     ;
 
@@ -553,13 +526,13 @@ switchBlockStatementGroup
     ;
 
 switchLabel
-    : CASE (constantExpression=expression | enumConstantName=IDENTIFIER | typeType varName=identifier) ':'
-    | DEFAULT ':'
+    : CASE (constantExpression=expression | enumConstantName=IDENTIFIER | typeType varName=identifier) COLON
+    | DEFAULT COLON
     ;
 
 forControl
     : enhancedForControl
-    | forInit? ';' expression? ';' forUpdate=expressionList?
+    | forInit? SEMI expression? SEMI forUpdate=expressionList?
     ;
 
 forInit
@@ -568,17 +541,17 @@ forInit
     ;
 
 enhancedForControl
-    : variableModifier* (typeType | VAR) variableDeclaratorId ':' expression
+    : variableModifier* (typeType | VAR) variableDeclaratorId COLON expression
     ;
 
 // EXPRESSIONS
 
 parExpression
-    : '(' expression ')'
+    : LPAREN expression RPAREN
     ;
 
 expressionList
-    : expression (',' expression)*
+    : expression (COMMA expression)*
     ;
 
 methodCall
@@ -589,8 +562,8 @@ expression
     // Expression order in accordance with https://introcs.cs.princeton.edu/java/11precedence/
     // Level 16, Primary, array and member access
     : primary
-    | expression '[' expression ']'
-    | expression bop='.'
+    | expression LBRACK expression RBRACK
+    | expression bop=DOT
       (
          identifier
        | methodCall
@@ -601,38 +574,38 @@ expression
       )
     // Method calls and method references are part of primary, and hence level 16 precedence
     | methodCall
-    | expression '::' typeArguments? identifier
-    | typeType '::' (typeArguments? identifier | NEW)
-    | classType '::' typeArguments? NEW
+    | expression COLONCOLON typeArguments? identifier
+    | typeType COLONCOLON (typeArguments? identifier | NEW)
+    | classType COLONCOLON typeArguments? NEW
 
     | switchExpression // Java17
 
     // Level 15 Post-increment/decrement operators
-    | expression postfix=('++' | '--')
+    | expression postfix=(INC | DEC)
 
     // Level 14, Unary operators
-    | prefix=('+'|'-'|'++'|'--'|'~'|'!') expression
+    | prefix=(ADD|SUB|INC|DEC|TILDE|BANG) expression
 
     // Level 13 Cast and object creation
-    | '(' annotation* typeType ('&' typeType)* ')' expression
+    | LPAREN annotation* typeType (BITAND typeType)* RPAREN expression
     | NEW creator
 
     // Level 12 to 1, Remaining operators
-    | expression bop=('*'|'/'|'%') expression  // Level 12, Multiplicative operators
-    | expression bop=('+'|'-') expression  // Level 11, Additive operators
-    | expression ('<' '<' | '>' '>' '>' | '>' '>') expression  // Level 10, Shift operators
-    | expression bop=('<=' | '>=' | '>' | '<') expression  // Level 9, Relational operators
+    | expression bop=(MUL|DIV|MOD) expression  // Level 12, Multiplicative operators
+    | expression bop=(ADD|SUB) expression  // Level 11, Additive operators
+    | expression (LT LT | GT GT GT | GT GT) expression  // Level 10, Shift operators
+    | expression bop=(LE | GE | GT | LT) expression  // Level 9, Relational operators
     | expression bop=INSTANCEOF (typeType | pattern)
-    | expression bop=('==' | '!=') expression  // Level 8, Equality Operators
-    | expression bop='&' expression  // Level 7, Bitwise AND
-    | expression bop='^' expression  // Level 6, Bitwise XOR
-    | expression bop='|' expression  // Level 5, Bitwise OR
-    | expression bop='&&' expression  // Level 4, Logic AND
-    | expression bop='||' expression  // Level 3, Logic OR
-    | <assoc=right> expression bop='?' expression ':' expression  // Level 2, Ternary
+    | expression bop=(EQUAL | NOTEQUAL) expression  // Level 8, Equality Operators
+    | expression bop=BITAND expression  // Level 7, Bitwise AND
+    | expression bop=CARET expression  // Level 6, Bitwise XOR
+    | expression bop=BITOR expression  // Level 5, Bitwise OR
+    | expression bop=AND expression  // Level 4, Logic AND
+    | expression bop=OR expression  // Level 3, Logic OR
+    | <assoc=right> expression bop=QUESTION expression COLON expression  // Level 2, Ternary
     // Level 1, Assignment
     | <assoc=right> expression
-      bop=('=' | '+=' | '-=' | '*=' | '/=' | '&=' | '|=' | '^=' | '>>=' | '>>>=' | '<<=' | '%=')
+      bop=(ASSIGN | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN | DIV_ASSIGN | AND_ASSIGN | OR_ASSIGN | XOR_ASSIGN | RSHIFT_ASSIGN | URSHIFT_ASSIGN | LSHIFT_ASSIGN | MOD_ASSIGN)
       expression
 
     // Level 0, Lambda Expression
@@ -646,15 +619,15 @@ pattern
 
 // Java8
 lambdaExpression
-    : lambdaParameters '->' lambdaBody
+    : lambdaParameters ARROW lambdaBody
     ;
 
 // Java8
 lambdaParameters
     : identifier
-    | '(' formalParameterList? ')'
-    | '(' identifier (',' identifier)* ')'
-    | '(' lambdaLVTIList? ')'
+    | LPAREN formalParameterList? RPAREN
+    | LPAREN identifier (COMMA identifier)* RPAREN
+    | LPAREN lambdaLVTIList? RPAREN
     ;
 
 // Java8
@@ -664,18 +637,18 @@ lambdaBody
     ;
 
 primary
-    : '(' expression ')'
+    : LPAREN expression RPAREN
     | THIS
     | SUPER
     | literal
     | identifier
-    | typeTypeOrVoid '.' CLASS
+    | typeTypeOrVoid DOT CLASS
     | nonWildcardTypeArguments (explicitGenericInvocationSuffix | THIS arguments)
     ;
 
 // Java17
 switchExpression
-    : SWITCH parExpression '{' switchLabeledRule* '}'
+    : SWITCH parExpression LBRACE switchLabeledRule* RBRACE
     ;
 
 // Java17
@@ -686,9 +659,9 @@ switchLabeledRule
 
 // Java17
 guardedPattern
-    : '(' guardedPattern ')'
-    | variableModifier* typeType annotation* identifier ('&&' expression)*
-    | guardedPattern '&&' expression
+    : LPAREN guardedPattern RPAREN
+    | variableModifier* typeType annotation* identifier (AND expression)*
+    | guardedPattern AND expression
     ;
 
 // Java17
@@ -698,7 +671,7 @@ switchRuleOutcome
     ;
 
 classType
-    : (classOrInterfaceType '.')? annotation* identifier typeArguments?
+    : (classOrInterfaceType DOT)? annotation* identifier typeArguments?
     ;
 
 creator
@@ -707,7 +680,7 @@ creator
     ;
 
 createdName
-    : identifier typeArgumentsOrDiamond? ('.' identifier typeArgumentsOrDiamond?)*
+    : identifier typeArgumentsOrDiamond? (DOT identifier typeArgumentsOrDiamond?)*
     | primitiveType
     ;
 
@@ -716,8 +689,8 @@ innerCreator
     ;
 
 arrayCreatorRest
-    : ('[' ']')+ arrayInitializer
-    | ('[' expression ']')+ ('[' ']')*
+    : (LBRACK RBRACK)+ arrayInitializer
+    | (LBRACK expression RBRACK)+ (LBRACK RBRACK)*
     ;
 
 classCreatorRest
@@ -729,25 +702,25 @@ explicitGenericInvocation
     ;
 
 typeArgumentsOrDiamond
-    : '<' '>'
+    : LT GT
     | typeArguments
     ;
 
 nonWildcardTypeArgumentsOrDiamond
-    : '<' '>'
+    : LT GT
     | nonWildcardTypeArguments
     ;
 
 nonWildcardTypeArguments
-    : '<' typeList '>'
+    : LT typeList GT
     ;
 
 typeList
-    : typeType (',' typeType)*
+    : typeType (COMMA typeType)*
     ;
 
 typeType
-    : annotation* (classOrInterfaceType | primitiveType) (annotation* '[' ']')*
+    : annotation* (classOrInterfaceType | primitiveType) (annotation* LBRACK RBRACK)*
     ;
 
 primitiveType
@@ -762,12 +735,12 @@ primitiveType
     ;
 
 typeArguments
-    : '<' typeArgument (',' typeArgument)* '>'
+    : LT typeArgument (COMMA typeArgument)* GT
     ;
 
 superSuffix
     : arguments
-    | '.' typeArguments? identifier arguments?
+    | DOT typeArguments? identifier arguments?
     ;
 
 explicitGenericInvocationSuffix
@@ -776,5 +749,5 @@ explicitGenericInvocationSuffix
     ;
 
 arguments
-    : '(' expressionList? ')'
+    : LPAREN expressionList? RPAREN
     ;

@@ -150,9 +150,9 @@ public class SourceFile
 						cur_line_token_number // index of the token in the line
 					);
 					
-					// TODO: At this stage certain code block types can be deduced
-					// (e.g. literals)
+					// At this stage certain code block types are already deduced by the lexer.
 					// Assign such types now to reduce further deductions.
+					((CodeBlock)ft).setTypeFromLexerTokenType(t.getType());
 					break;
 					
 				case WHITESPACE_CHANNEL:

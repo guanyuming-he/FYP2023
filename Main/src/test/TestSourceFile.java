@@ -387,7 +387,7 @@ class TestSourceFile
 			ArrayList<FormatToken> line25 = new ArrayList<>();
 			
 			ArrayList<FormatToken> line26 = new ArrayList<>();
-			line26.add(new JavaDocCommentBlock("    ", 0, 0, 26, 0));
+			line26.add(new WsBlock("    ", 0, 0, 26, 0));
 			line26.add(new JavaDocCommentBlock("/**\r\n"
 					+ "     * Some method\r\n"
 					+ "     * @param param\r\n"
