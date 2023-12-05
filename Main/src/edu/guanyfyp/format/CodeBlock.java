@@ -55,7 +55,9 @@ public class CodeBlock extends FormatToken
 		ENUM_NAME,
 		CONSTRUCTOR_NAME,
 		METHOD_NAME,
+		// variable of some class
 		FIELD_NAME,
+		// variable of some function
 		VARIABLE_NAME,
 		
 		// Operators

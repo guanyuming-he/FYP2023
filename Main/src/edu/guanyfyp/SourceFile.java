@@ -55,6 +55,12 @@ public class SourceFile
     	return format_tokens;
     }    
     
+    private final ContextBuilder syntax_context_builder;
+    public ContextBuilder get_syntax_context_builder()
+    {
+    	return syntax_context_builder;
+    }
+    
     /**
      * Channel numbers of the lexer tokens
      */
@@ -204,11 +210,19 @@ public class SourceFile
 			format_tokens = Collections.unmodifiableList(temp_format_tokens);
 		}
 		
-		// TODO: Parse the program and fill missing fields of the format tokens
+		// Parse the program and fill missing attributes of the format tokens
 		{
 			// Reset the token stream because I retrieved all tokens once.
 			tokens.seek(0);
+			
+			// Parse the program and get a parse tree
 			JavaParser parser = new JavaParser(tokens);
+			ParseTree parse_tree = parser.compilationUnit();
+			
+			// Walk the parse tree and build the syntax context by using ContextBuilder
+			ParseTreeWalker tree_walker = new ParseTreeWalker();
+			this.syntax_context_builder = new ContextBuilder(this);
+			tree_walker.walk(syntax_context_builder, parse_tree);
 		}
     }
 

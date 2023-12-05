@@ -1,0 +1,27 @@
+/**
+ * abc
+ */
+public class ABC
+{
+    // ...
+    int a, b, c = 0;
+
+    public ABC()
+    {
+
+    }
+
+    /**
+     * ...
+     * @param x
+     */
+    void abc(int x)
+    {
+
+    }
+
+    public enum EABC
+    {
+
+    }
+}

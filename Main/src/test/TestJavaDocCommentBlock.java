@@ -16,7 +16,7 @@ import edu.guanyfyp.format.JavaDocCommentBlock.AttrTag;
 /**
  * Tests how this class handles JavaDoc
  */
-class testJavaDocCommentBlock 
+class TestJavaDocCommentBlock 
 {
 
 	/**

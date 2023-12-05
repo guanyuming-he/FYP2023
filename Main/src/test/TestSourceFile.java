@@ -31,7 +31,7 @@ class TestSourceFile
 	 * if the creation fails.
 	 * @return the SourceFile created, or null if the creation fails.
 	 */
-	SourceFile createSourceFileNoError(String file_path) 
+	public static SourceFile createSourceFileNoError(String file_path) 
 	{	
 		SourceFile s = null;
 		try {

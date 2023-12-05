@@ -13,7 +13,7 @@ import edu.guanyfyp.generated.JavaLexer;
 /**
  * Test if this class works correctly.
  */
-class testCodeBlock 
+class TestCodeBlock 
 {
 
 	/**
