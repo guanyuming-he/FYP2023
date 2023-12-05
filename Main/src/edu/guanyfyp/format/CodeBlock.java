@@ -51,6 +51,9 @@ public class CodeBlock extends FormatToken
 		// but remains to be classified by the parser
 		IDENTIFIER_UNCLASSIFIED,
 		CLASS_NAME,
+		INTERFACE_NAME,
+		ENUM_NAME,
+		CONSTRUCTOR_NAME,
 		METHOD_NAME,
 		FIELD_NAME,
 		VARIABLE_NAME,

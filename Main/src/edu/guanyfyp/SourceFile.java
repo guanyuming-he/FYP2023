@@ -274,6 +274,28 @@ public class SourceFile
     }
     
     /**
+     * Returns the FormatToken that corresponds to the Antlr token
+     * @param token whose line number and character position in line will be used
+     * @return the FormatToken
+     */
+    public FormatToken getFormatToken(Token token)
+    {
+    	int line_ind = token.getLine();
+    	var line_array = format_tokens.get(line_ind);
+    	for(var ft : line_array)
+    	{
+    		if(ft.actual_pos == token.getCharPositionInLine())
+    		{
+    			return ft;
+    		}
+    	}
+    	
+    	// Should never reach here
+    	assert false;
+    	return null;
+    }
+    
+    /**
      * As a FormatToken contains its complete position information by design,
      * I can get tokens based on a given one.
      * This method gets the token immediately before the given one.
