@@ -5,7 +5,7 @@ package edu.guanyfyp.format;
 
 import javax.management.RuntimeErrorException;
 
-import edu.guanyfyp.SyntaxContext;
+import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
  * I plan to process whitespaces as "blocks".

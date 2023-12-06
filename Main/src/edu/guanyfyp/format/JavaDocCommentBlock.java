@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.misc.Pair;
 
-import edu.guanyfyp.SyntaxContext;
+import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
  * Comment block exclusively for JavaDoc.
@@ -354,7 +354,7 @@ public final class JavaDocCommentBlock extends CommentBlock
 	/**
 	 * Determines which kind of code block the javadoc precedes
 	 * and sets its preceding field accordingly.
-	 * @param context
+	 * @param context the syntax context around this token.
 	 */
 	public void setPreceding(SyntaxContext context)
 	{

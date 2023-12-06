@@ -3,7 +3,7 @@
  */
 package edu.guanyfyp.format;
 
-import edu.guanyfyp.SyntaxContext;
+import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
  * Block for all comments

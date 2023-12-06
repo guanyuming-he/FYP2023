@@ -3,7 +3,7 @@
  */
 package edu.guanyfyp.format;
 
-import edu.guanyfyp.SyntaxContext;
+import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
  * A FormatToken represents how a token affects the format (or appearance) of the source code

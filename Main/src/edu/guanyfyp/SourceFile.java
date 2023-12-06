@@ -19,6 +19,7 @@ import edu.guanyfyp.format.JavaDocCommentBlock;
 import edu.guanyfyp.format.WsBlock;
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser;
+import edu.guanyfyp.syntax.SyntaxStructureBuilder;
 
 /**
  * Represents a source code file.
@@ -55,8 +56,8 @@ public class SourceFile
     	return format_tokens;
     }    
     
-    private final ContextBuilder syntax_context_builder;
-    public ContextBuilder get_syntax_context_builder()
+    private final SyntaxStructureBuilder syntax_context_builder;
+    public SyntaxStructureBuilder get_syntax_context_builder()
     {
     	return syntax_context_builder;
     }
@@ -221,7 +222,7 @@ public class SourceFile
 			
 			// Walk the parse tree and build the syntax context by using ContextBuilder
 			ParseTreeWalker tree_walker = new ParseTreeWalker();
-			this.syntax_context_builder = new ContextBuilder(this);
+			this.syntax_context_builder = new SyntaxStructureBuilder(this);
 			tree_walker.walk(syntax_context_builder, parse_tree);
 		}
     }
