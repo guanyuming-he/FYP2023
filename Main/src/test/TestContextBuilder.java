@@ -31,29 +31,29 @@ class TestContextBuilder {
 		
 		// class ABC
 		assertTrue(additional_tokens_attributes.containsKey(5));
-		assertEquals(CodeBlock.Type.CLASS_NAME, additional_tokens_attributes.get(5));
+		assertEquals(CodeBlock.Type.CLASS_NAME, additional_tokens_attributes.get(5).getType());
 		
 		// int a
 		assertTrue(additional_tokens_attributes.containsKey(12));
-		assertEquals(CodeBlock.Type.FIELD_NAME, additional_tokens_attributes.get(12));
+		assertEquals(CodeBlock.Type.FIELD_NAME, additional_tokens_attributes.get(12).getType());
 		// int b
 		assertTrue(additional_tokens_attributes.containsKey(15));
-		assertEquals(CodeBlock.Type.FIELD_NAME, additional_tokens_attributes.get(15));
+		assertEquals(CodeBlock.Type.FIELD_NAME, additional_tokens_attributes.get(15).getType());
 		// int c
 		assertTrue(additional_tokens_attributes.containsKey(18));
-		assertEquals(CodeBlock.Type.FIELD_NAME, additional_tokens_attributes.get(18));
+		assertEquals(CodeBlock.Type.FIELD_NAME, additional_tokens_attributes.get(18).getType());
 		
 		// Constructor ABC
 		assertTrue(additional_tokens_attributes.containsKey(27));
-		assertEquals(CodeBlock.Type.CONSTRUCTOR_NAME, additional_tokens_attributes.get(27));
+		assertEquals(CodeBlock.Type.CONSTRUCTOR_NAME, additional_tokens_attributes.get(27).getType());
 		
 		// method abc
 		assertTrue(additional_tokens_attributes.containsKey(39));
-		assertEquals(CodeBlock.Type.METHOD_NAME, additional_tokens_attributes.get(39));
+		assertEquals(CodeBlock.Type.METHOD_NAME, additional_tokens_attributes.get(39).getType());
 		
 		// enum EABC
 		assertTrue(additional_tokens_attributes.containsKey(54));
-		assertEquals(CodeBlock.Type.ENUM_NAME, additional_tokens_attributes.get(54));
+		assertEquals(CodeBlock.Type.ENUM_NAME, additional_tokens_attributes.get(54).getType());
 	}
 
 }

@@ -699,46 +699,6 @@ public interface JavaParserListener extends ParseTreeListener {
 	 */
 	void exitDefaultValue(JavaParser.DefaultValueContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link JavaParser#moduleDeclaration}.
-	 * @param ctx the parse tree
-	 */
-	void enterModuleDeclaration(JavaParser.ModuleDeclarationContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#moduleDeclaration}.
-	 * @param ctx the parse tree
-	 */
-	void exitModuleDeclaration(JavaParser.ModuleDeclarationContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#moduleBody}.
-	 * @param ctx the parse tree
-	 */
-	void enterModuleBody(JavaParser.ModuleBodyContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#moduleBody}.
-	 * @param ctx the parse tree
-	 */
-	void exitModuleBody(JavaParser.ModuleBodyContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#moduleDirective}.
-	 * @param ctx the parse tree
-	 */
-	void enterModuleDirective(JavaParser.ModuleDirectiveContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#moduleDirective}.
-	 * @param ctx the parse tree
-	 */
-	void exitModuleDirective(JavaParser.ModuleDirectiveContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link JavaParser#requiresModifier}.
-	 * @param ctx the parse tree
-	 */
-	void enterRequiresModifier(JavaParser.RequiresModifierContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link JavaParser#requiresModifier}.
-	 * @param ctx the parse tree
-	 */
-	void exitRequiresModifier(JavaParser.RequiresModifierContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link JavaParser#block}.
 	 * @param ctx the parse tree
 	 */

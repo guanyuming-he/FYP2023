@@ -3,7 +3,12 @@
  */
 package edu.guanyfyp.format;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import edu.guanyfyp.generated.JavaLexer;
+import edu.guanyfyp.generated.JavaParser.AnnotationContext;
 import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
@@ -109,8 +114,10 @@ public class CodeBlock extends FormatToken
 		METHOD_NAME,
 		// variable of some class
 		FIELD_NAME,
-		// variable of some function
+		// variable of other things
 		VARIABLE_NAME,
+		// parameter of some method
+		PARAMETER_NAME,
 		
 		// Operators
 		OPERATOR_UNCLASSIFIED,
@@ -129,37 +136,86 @@ public class CodeBlock extends FormatToken
 			this.type = Type.UNKNOWN;
 			this.OOP_modifiers = 0;
 			this.other_modifiers = 0;
+			this.annotationModifiers = new ArrayList<>();
 		}
 		/**
-		 * copy constructor
-		 * @param other
+		 * (deep) copy constructor
+		 * @param other who will be deep-copied
 		 */
 		public AdditionalAttributes(AdditionalAttributes other)
 		{
 			this.type = other.type;
 			this.OOP_modifiers = other.OOP_modifiers;
 			this.other_modifiers = other.other_modifiers;
+			this.annotationModifiers = new ArrayList<AnnotationContext>(other.annotationModifiers);
 		}
 		
+		/**
+		 * Construct directly from the field variables.
+		 * @param type
+		 * @param OOP_modifiers
+		 * @param other_modifiers
+		 * @param annotation_modifiers will be deep-copied
+		 */
 		public AdditionalAttributes
 		(
 			CodeBlock.Type type,
 			int OOP_modifiers,
-			int other_modifiers
+			int other_modifiers,
+			List<AnnotationContext> annotation_modifiers
 		)
 		{
 			this.type = type;
 			this.OOP_modifiers = OOP_modifiers;
 			this.other_modifiers = other_modifiers;
+			this.annotationModifiers = new ArrayList<AnnotationContext>(annotation_modifiers);
+		}
+		
+		/**
+		 * Deep-copies other to this.
+		 * @param other
+		 */
+		public void assign(AdditionalAttributes other)
+		{
+			this.type = other.type;
+			this.OOP_modifiers = other.OOP_modifiers;
+			this.other_modifiers = other.other_modifiers;
+			this.annotationModifiers = new ArrayList<AnnotationContext>(other.annotationModifiers);
+		}
+		
+		/**
+		 * shallow-copies other to this.
+		 * @param other
+		 */
+		public void move(AdditionalAttributes other)
+		{
+			this.type = other.type;
+			this.OOP_modifiers = other.OOP_modifiers;
+			this.other_modifiers = other.other_modifiers;
+			this.annotationModifiers = other.annotationModifiers;
 		}
 		
 		// The type of the code token.
 		// Not final because the information may not be available at creation.
 		private CodeBlock.Type type;
+		
+		/*
+		 * In java, modifiers are generally divided into two classes:
+		 * Keyword modifiers and annotation modifiers.
+		 * The following two are keyword modifiers
+		 */
+		
 		// modifiers related to OOP
 		private int OOP_modifiers;
 		// other modifiers
 		private int other_modifiers;
+		
+		// This is the list of annotation modifiers
+		private List<AnnotationContext> annotationModifiers;
+		public void addAnnotationModifier(AnnotationContext annotation)
+		{
+			annotationModifiers.add(annotation);
+		}
 		
 		/**
 		 * modifiers related to access and inheritance

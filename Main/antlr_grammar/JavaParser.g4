@@ -35,7 +35,6 @@ options { tokenVocab=JavaLexer; }
 
 compilationUnit
     : packageDeclaration? (importDeclaration | SEMI)* (typeDeclaration | SEMI)*
-    | moduleDeclaration EOF
     ;
 
 packageDeclaration
@@ -387,32 +386,6 @@ annotationConstantRest
 defaultValue
     : DEFAULT elementValue
     ;
-
-// MODULES - Java9
-
-moduleDeclaration
-    : OPEN? MODULE qualifiedName moduleBody
-    ;
-
-moduleBody
-    : LBRACE moduleDirective* RBRACE
-    ;
-
-moduleDirective
-	: REQUIRES requiresModifier* qualifiedName SEMI
-	| EXPORTS qualifiedName (TO qualifiedName)? SEMI
-	| OPENS qualifiedName (TO qualifiedName)? SEMI
-	| USES qualifiedName SEMI
-	| PROVIDES qualifiedName WITH qualifiedName SEMI
-	;
-
-requiresModifier
-	: TRANSITIVE
-	| STATIC
-	;
-
-// RECORDS - Java 17
-
 
 // STATEMENTS / BLOCKS
 

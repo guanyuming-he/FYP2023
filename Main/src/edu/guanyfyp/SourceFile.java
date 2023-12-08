@@ -4,6 +4,7 @@
 package edu.guanyfyp;
 
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.*;
 
 import java.io.IOException;
@@ -54,7 +55,15 @@ public class SourceFile
     public List<List<FormatToken>> get_format_tokens()
     {
     	return format_tokens;
-    }    
+    }
+    
+    /**
+     * To support fast random access of the format tokens,
+     * this table that maps
+     * token index -> {line index (starting from 0), token line index (from 0)}
+     * is built.
+     */
+    private final ArrayList<Pair<Integer, Integer>> format_token_random_access_table;
     
     private final SyntaxStructureBuilder syntax_context_builder;
     public SyntaxStructureBuilder get_syntax_context_builder()
@@ -159,7 +168,7 @@ public class SourceFile
 					
 					// At this stage certain code block types are already deduced by the lexer.
 					// Assign such types now to reduce further deductions.
-					((CodeBlock)ft).setTypeFromLexerTokenType(t.getType());
+					((CodeBlock)ft).additional_attr.setTypeFromLexerTokenType(t.getType());
 					break;
 					
 				case WHITESPACE_CHANNEL:
@@ -208,7 +217,20 @@ public class SourceFile
 			temp_format_tokens.add(Collections.unmodifiableList(cur_line_tokens));
 			
 			// Finally, turn format_tokens immutable
-			format_tokens = Collections.unmodifiableList(temp_format_tokens);
+			format_tokens = Collections.unmodifiableList(temp_format_tokens);		
+		}
+		
+		// build the random access table
+		{
+			format_token_random_access_table = new ArrayList<Pair<Integer,Integer>>();
+			for(int i = 0; i < format_tokens.size(); ++i)
+			{
+				var line = format_tokens.get(i);
+				for(int j = 0; j < line.size(); ++j)
+				{
+					format_token_random_access_table.add(new Pair<Integer, Integer>(i, j));
+				}
+			}
 		}
 		
 		// Parse the program and fill missing attributes of the format tokens
@@ -224,6 +246,9 @@ public class SourceFile
 			ParseTreeWalker tree_walker = new ParseTreeWalker();
 			this.syntax_context_builder = new SyntaxStructureBuilder(this);
 			tree_walker.walk(syntax_context_builder, parse_tree);
+			
+			// Apply the additional token attributes after the syntax and partial semantic analysis
+			syntax_context_builder.apply_additional_token_attributes();
 		}
     }
 
@@ -289,25 +314,25 @@ public class SourceFile
     }
     
     /**
+     * Random access to the format tokens
+     * @param index the index of the token with respect to the whole tokens stream 
+     * (starting from 0)
+     * @return the token corresponding to the index
+     */
+    public FormatToken getFormatToken(int index)
+    {
+    	var pair = format_token_random_access_table.get(index);
+    	return format_tokens.get(pair.a).get(pair.b);
+    }
+    
+    /**
      * Returns the FormatToken that corresponds to the Antlr token
-     * @param token whose line number and character position in line will be used
+     * @param token whose token index will be used
      * @return the FormatToken
      */
     public FormatToken getFormatToken(Token token)
     {
-    	int line_ind = token.getLine();
-    	var line_array = format_tokens.get(line_ind);
-    	for(var ft : line_array)
-    	{
-    		if(ft.actual_pos == token.getCharPositionInLine())
-    		{
-    			return ft;
-    		}
-    	}
-    	
-    	// Should never reach here
-    	assert false;
-    	return null;
+    	return getFormatToken(token.getTokenIndex());
     }
     
     /**
