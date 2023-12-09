@@ -640,4 +640,33 @@ class TestSourceFile
 		
 		assertEquals(null, s2.getNextFormatToken(s2.getFormatToken(9, 0)));
 	}
+	
+	/**
+	 * Tests if the constructor throws an exception on encountering a syntax error 
+	 */
+	@Test
+	void testThrowsOnSyntaxError()
+	{
+		// Can't test all kinds of syntax errors
+		// but here syntax_error2 can be recovered by Antlr,
+		// while the other two cannot.
+		
+		assertThrows
+		(
+			UnsupportedOperationException.class, 
+			() -> {new SourceFile("test_data/syntax_error1.txt");}
+		);
+		
+		assertThrows
+		(
+			UnsupportedOperationException.class, 
+			() -> {new SourceFile("test_data/syntax_error2.txt");}
+		);
+		
+		assertThrows
+		(
+			UnsupportedOperationException.class, 
+			() -> {new SourceFile("test_data/syntax_error3.txt");}
+		);
+	}
 }

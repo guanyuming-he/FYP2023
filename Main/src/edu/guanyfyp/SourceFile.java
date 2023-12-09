@@ -21,6 +21,7 @@ import edu.guanyfyp.format.WsBlock;
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser;
 import edu.guanyfyp.syntax.SyntaxStructureBuilder;
+import edu.guanyfyp.syntax.ThrowExceptionErrorListener;
 
 /**
  * Represents a source code file.
@@ -240,7 +241,22 @@ public class SourceFile
 			
 			// Parse the program and get a parse tree
 			JavaParser parser = new JavaParser(tokens);
-			ParseTree parse_tree = parser.compilationUnit();
+			// Use my own error listener to ALWAYS throw a exception
+			// on a syntax error
+			parser.removeErrorListeners(); // remove the default one
+			parser.addErrorListener(new ThrowExceptionErrorListener());
+			
+			// On syntax error,
+			// throw an UnsupportedOperationException with the error message
+			ParseTree parse_tree = null;
+			try
+			{
+				parse_tree = parser.compilationUnit();
+			}
+			catch(RuntimeException e)
+			{
+				throw new UnsupportedOperationException(e.getMessage());
+			}
 			
 			// Walk the parse tree and build the syntax context by using ContextBuilder
 			ParseTreeWalker tree_walker = new ParseTreeWalker();

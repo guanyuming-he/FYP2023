@@ -1,0 +1,47 @@
+/**
+ * Has a bit of everything,
+ * but more declarations and modifiers
+ * @author Guanyuming He
+ */
+
+package edu.xjtlu.guany;
+
+/**
+ * Some comments for the class.
+ */
+public abstract class MixtureClass extends ABC 
+{
+	public static final class AClass
+    {
+        private int a; 
+    }
+
+    public enum Enumeration
+    {
+        ABC,
+        DEF,
+    }
+
+    public abstract void anAbstractFunction();
+
+	// A field
+    public final int m = 0;
+    
+    /**
+     * Some method
+     * @param param
+     * @return something
+     */
+    @Override
+    protected boolean someMethod(List<Integer> list, int b, int c)
+    {
+        int d = 0;
+
+    	for(int i = 0; i < list.size(); ++i) {
+        // Do something
+        	int a /* ... */ = 3;
+        }
+
+        return true;
+    }
+}

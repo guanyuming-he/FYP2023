@@ -114,6 +114,8 @@ public class CodeBlock extends FormatToken
 		METHOD_NAME,
 		// variable of some class
 		FIELD_NAME,
+		// variable defined inside a for-loop head
+		FOR_VARIABLE_NAME,
 		// variable of other things
 		VARIABLE_NAME,
 		// parameter of some method

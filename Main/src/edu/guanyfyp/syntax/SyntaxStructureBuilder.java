@@ -16,6 +16,7 @@ import edu.guanyfyp.format.FormatToken;
 import edu.guanyfyp.generated.JavaParser;
 import edu.guanyfyp.generated.JavaParserBaseListener;
 import edu.guanyfyp.generated.JavaParser.AnnotationContext;
+import edu.guanyfyp.generated.JavaParser.ForInitContext;
 
 /**
  * Builds a SyntaxContext by walking the parse tree
@@ -269,7 +270,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 					}
 					
 					Token token = fp.variableDeclaratorId().identifier().getStart();
-					set_additional_attributes_for_the_code(CodeBlock.Type.VARIABLE_NAME, token.getTokenIndex());
+					set_additional_attributes_for_the_code(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
 				}
 			}
 			
@@ -284,7 +285,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 				}
 				
 				Token token = lfp.variableDeclaratorId().identifier().getStart();
-				set_additional_attributes_for_the_code(CodeBlock.Type.VARIABLE_NAME, token.getTokenIndex());
+				set_additional_attributes_for_the_code(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
 			}
 		}
 	}
@@ -305,6 +306,17 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			add_pending_modifier(modifier);
 		}
 		
+		// decide if it is a local variable or a for-loop variable
+		CodeBlock.Type local_or_for;
+		if(ctx.getParent() instanceof ForInitContext)
+		{
+			local_or_for = CodeBlock.Type.FOR_VARIABLE_NAME;
+		}
+		else
+		{
+			local_or_for = CodeBlock.Type.VARIABLE_NAME;
+		}
+		
 		// variableModifier* (VAR identifier ASSIGN expression | typeType variableDeclarators)
 		// See if this is a var declaration or explicit declaration
 		if(ctx.identifier() != null)
@@ -313,7 +325,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			
 			// The local variable name token
 			Token token = ctx.identifier().getStart();
-			set_additional_attributes_for_the_code(CodeBlock.Type.VARIABLE_NAME, token.getTokenIndex());
+			set_additional_attributes_for_the_code(local_or_for, token.getTokenIndex());
 		}
 		else
 		{
@@ -325,7 +337,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 				Token token = variable_declarator.variableDeclaratorId().identifier().getStart();
 				
 				// don't reset
-				set_additional_attributes_for_the_code(CodeBlock.Type.VARIABLE_NAME, token.getTokenIndex(), false);
+				set_additional_attributes_for_the_code(local_or_for, token.getTokenIndex(), false);
 			}
 			// don't forget to reset pending_modifiers in the end
 			reset_pending_attributes();
