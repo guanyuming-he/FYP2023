@@ -3,8 +3,6 @@
  */
 package edu.guanyfyp.syntax;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-
 import java.util.HashMap;
 import java.util.Map;
 
