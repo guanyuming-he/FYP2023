@@ -26,71 +26,71 @@ class TestCodeBlock
 		CodeBlock cb = new CodeBlock("abc", 0, 0, 0, 0);
 		
 		// Some keywords
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.ABSTRACT);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.IMPLEMENTS);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.INT);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.CHAR);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.CLASS);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.PUBLIC);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.IMPORT);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.VAR);
-		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additional_attr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.ABSTRACT);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.IMPLEMENTS);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.INT);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.CHAR);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.CLASS);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.PUBLIC);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.IMPORT);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.VAR);
+		assertEquals(CodeBlock.Type.KEYWORD_UNCLASSIFIED, cb.additionalAttr.getType());
 		
 		
 		// Literals
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.DECIMAL_LITERAL);
-		assertEquals(CodeBlock.Type.NUMBER_LITERAL, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.BINARY_LITERAL);
-		assertEquals(CodeBlock.Type.NUMBER_LITERAL, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.CHAR_LITERAL);
-		assertEquals(CodeBlock.Type.STRING_LITERAL, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.NULL_LITERAL);
-		assertEquals(CodeBlock.Type.NULL_LITERAL, cb.additional_attr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.DECIMAL_LITERAL);
+		assertEquals(CodeBlock.Type.NUMBER_LITERAL, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.BINARY_LITERAL);
+		assertEquals(CodeBlock.Type.NUMBER_LITERAL, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.CHAR_LITERAL);
+		assertEquals(CodeBlock.Type.STRING_LITERAL, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.NULL_LITERAL);
+		assertEquals(CodeBlock.Type.NULL_LITERAL, cb.additionalAttr.getType());
 		
 		// Separators (punctuations)
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.RBRACK);
-		assertEquals(CodeBlock.Type.R_SBRACKET, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.LBRACE);
-		assertEquals(CodeBlock.Type.L_CBRACKET, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.SEMI);
-		assertEquals(CodeBlock.Type.SEMICOLON, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.DOT);
-		assertEquals(CodeBlock.Type.DOT, cb.additional_attr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.RBRACK);
+		assertEquals(CodeBlock.Type.R_SBRACKET, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.LBRACE);
+		assertEquals(CodeBlock.Type.L_CBRACKET, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.SEMI);
+		assertEquals(CodeBlock.Type.SEMICOLON, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.DOT);
+		assertEquals(CodeBlock.Type.DOT, cb.additionalAttr.getType());
 		
 		// Some operators
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.COLON);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.NOTEQUAL);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.DIV);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.ADD_ASSIGN);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.MOD);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.RSHIFT_ASSIGN);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additional_attr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.COLON);
+		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.NOTEQUAL);
+		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.DIV);
+		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.ADD_ASSIGN);
+		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.MOD);
+		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.RSHIFT_ASSIGN);
+		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
 		
 		// Identifier
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.IDENTIFIER);
-		assertEquals(CodeBlock.Type.IDENTIFIER_UNCLASSIFIED, cb.additional_attr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.IDENTIFIER);
+		assertEquals(CodeBlock.Type.IDENTIFIER_UNCLASSIFIED, cb.additionalAttr.getType());
 		
 		// Misc
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.ELLIPSIS);
-		assertEquals(CodeBlock.Type.OTHERS, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.AT);
-		assertEquals(CodeBlock.Type.OTHERS, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.ARROW);
-		assertEquals(CodeBlock.Type.OTHERS, cb.additional_attr.getType());
-		cb.additional_attr.setTypeFromLexerTokenType(JavaLexer.COLONCOLON);
-		assertEquals(CodeBlock.Type.OTHERS, cb.additional_attr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.ELLIPSIS);
+		assertEquals(CodeBlock.Type.OTHERS, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.AT);
+		assertEquals(CodeBlock.Type.OTHERS, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.ARROW);
+		assertEquals(CodeBlock.Type.OTHERS, cb.additionalAttr.getType());
+		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.COLONCOLON);
+		assertEquals(CodeBlock.Type.OTHERS, cb.additionalAttr.getType());
 	}
 
 }

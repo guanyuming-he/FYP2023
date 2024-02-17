@@ -46,21 +46,21 @@ public abstract class FormatToken
 	public final String characters;
 	// The appeared position of the first character in the line.
 	// i.e. the number of characters before the first character of this token in the line
-	public final int visual_pos;
+	public final int visualPos;
 	// The actual position of the first character in the line.
-	public final int actual_pos;
+	public final int actualPos;
 	// The number of the line that the token is in.
 	public final int line;
-	// If index_in_line = n, then the token is the n^th token in the line.
+	// If it = n, then the token is the n^th token in the line.
 	// Used to navigation among tokens.
-	public final int index_in_line;
+	public final int indexInLine;
 	// How long the token looks like in a text editor.
-	public final int visual_length;
+	public final int visualLength;
 	
 	// Indicates how good the single token's format is,
 	// taking its context into consideration.
-	protected float format_score = -1.0f;
-	public float get_format_score() { return format_score; }
+	protected float formatScore = -1.0f;
+	public float getFormatScore() { return formatScore; }
 	
 	/**
 	 * Direct assignment of all fields
@@ -80,11 +80,11 @@ public abstract class FormatToken
 	)
 	{
 		this.characters = characters;
-		this.visual_pos = visual_pos;
-		this.actual_pos = actual_pos;
+		this.visualPos = visual_pos;
+		this.actualPos = actual_pos;
 		this.line = line;
-		this.index_in_line = index_in_line;
-		this.visual_length = length;
+		this.indexInLine = index_in_line;
+		this.visualLength = length;
 	}
 	
 	/**
@@ -104,11 +104,11 @@ public abstract class FormatToken
 	)
 	{
 		this.characters = characters;
-		this.visual_pos = visual_pos;
-		this.actual_pos = actual_pos;
+		this.visualPos = visual_pos;
+		this.actualPos = actual_pos;
 		this.line = line;
-		this.index_in_line = index_in_line;
-		this.visual_length = calculate_visual_length();
+		this.indexInLine = index_in_line;
+		this.visualLength = calculateVisualLength();
 	}
 	
 	
@@ -119,7 +119,7 @@ public abstract class FormatToken
 	 * @implNote The default implementation returns the number of characters
 	 * @return the visual lengths calculated
 	 */
-	protected int calculate_visual_length()
+	protected int calculateVisualLength()
 	{
 		return this.getNumCharacters();
 	}
@@ -129,7 +129,7 @@ public abstract class FormatToken
 	 * @param ctx the context that the token is in.
 	 * @return the format_score calculated.
 	 */
-	protected abstract float calculate_format_score(SyntaxContext ctx);
+	protected abstract float calculateFormatScore(SyntaxContext ctx);
 	
 /////////////////////////// Accessors ///////////////////////////////////
 	/**
@@ -141,8 +141,8 @@ public abstract class FormatToken
 	@Override
 	public String toString()
 	{
-		return "Token " + characters + "of length " + Integer.toString(visual_length) +
-				" at " + Integer.toString(visual_pos) +
+		return "Token " + characters + "of length " + Integer.toString(visualLength) +
+				" at " + Integer.toString(visualPos) +
 				", line " + Integer.toString(line);
 	}
 	
@@ -153,7 +153,7 @@ public abstract class FormatToken
 	@Override
 	public int hashCode()
 	{
-		return 2^19 * line + index_in_line;
+		return 2^19 * line + indexInLine;
 	}
 	
 	@Override
@@ -168,7 +168,7 @@ public abstract class FormatToken
 		// There can only be one token at a position.
 		// For different files, I will manage tokens of a single file together
 		// and not let tokens of other files intervene the process.
-		return line == o.line && index_in_line == o.index_in_line;
+		return line == o.line && indexInLine == o.indexInLine;
 	}
 	
 ///////////////////////// For tests //////////////////////////////////
@@ -179,11 +179,11 @@ public abstract class FormatToken
 	public boolean __test_equals(FormatToken other) {
 		return 
 			this.characters.equals(other.characters) &&
-			this.visual_pos == other.visual_pos &&
-			this.actual_pos == other.actual_pos &&
+			this.visualPos == other.visualPos &&
+			this.actualPos == other.actualPos &&
 			this.line == other.line &&
-			this.index_in_line == other.index_in_line &&
-			this.visual_length == other.visual_length;
+			this.indexInLine == other.indexInLine &&
+			this.visualLength == other.visualLength;
 	}
 }
 

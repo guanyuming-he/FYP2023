@@ -31,5 +31,5 @@ public final class SyntaxStructure
 	/**
 	 * The global scope, also the root of the scope tree.
 	 */
-	ScopeNode global_scope;
+	ScopeNode globalScope;
 }

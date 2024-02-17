@@ -28,12 +28,12 @@ class TestJavaDocCommentBlock
 		// Only tag name is here
 		
 		Tag t1 = new Tag("@whatever");
-		assertEquals("whatever", t1.tag_name);
-		assertTrue(t1.tag_text.isEmpty());
+		assertEquals("whatever", t1.tagName);
+		assertTrue(t1.tagText.isEmpty());
 		
 		Tag t2 = new Tag("@author");
-		assertEquals("author", t2.tag_name);
-		assertTrue(t2.tag_text.isEmpty());
+		assertEquals("author", t2.tagName);
+		assertTrue(t2.tagText.isEmpty());
 	}
 	
 	/**
@@ -43,12 +43,12 @@ class TestJavaDocCommentBlock
 	void testParseTagOneLine() 
 	{	
 		Tag t1 = new Tag("@whatever abcd");
-		assertEquals("whatever", t1.tag_name);
-		assertEquals("abcd", t1.tag_text);
+		assertEquals("whatever", t1.tagName);
+		assertEquals("abcd", t1.tagText);
 		
 		Tag t2 = new Tag("@author Guanyuming He ");
-		assertEquals("author", t2.tag_name);
-		assertEquals("Guanyuming He ", t2.tag_text);
+		assertEquals("author", t2.tagName);
+		assertEquals("Guanyuming He ", t2.tagText);
 	}
 
 	/**
@@ -64,11 +64,11 @@ class TestJavaDocCommentBlock
 			"@author Guanyuming He\r\n"
 			+ "Copyright (C) 2023\r\n"
 		);
-		assertEquals("author", t1.tag_name);
+		assertEquals("author", t1.tagName);
 		assertEquals
 		(
 				"Guanyuming He"
-				+ "Copyright (C) 2023", t1.tag_text
+				+ "Copyright (C) 2023", t1.tagText
 		);
 		
 		
@@ -78,12 +78,12 @@ class TestJavaDocCommentBlock
 				+ "dj9182hnre 12308hn1lk2\r\n"
 				+ "12u8340b nel1"
 		);
-		assertEquals("implNote", t2.tag_name);
+		assertEquals("implNote", t2.tagName);
 		assertEquals
 		(
 				"blahblah... j8d92ihe1892"
 				+ "dj9182hnre 12308hn1lk2"
-				+ "12u8340b nel1", t2.tag_text
+				+ "12u8340b nel1", t2.tagText
 		);
 	}
 	
@@ -96,8 +96,8 @@ class TestJavaDocCommentBlock
 		// Only attribute is here
 			
 		AttrTag t1 = new AttrTag("@param abc");
-		assertEquals("abc", t1.attr_name);
-		assertTrue(t1.attr_text.isEmpty());
+		assertEquals("abc", t1.attrName);
+		assertTrue(t1.attrText.isEmpty());
 		
 		// Line breaks should be removed
 		AttrTag t2 = new AttrTag
@@ -105,8 +105,8 @@ class TestJavaDocCommentBlock
 			"@throws \n"
 			+ "shitCode"
 		);
-		assertEquals("shitCode", t2.attr_name);
-		assertTrue(t2.attr_text.isEmpty());
+		assertEquals("shitCode", t2.attrName);
+		assertTrue(t2.attrText.isEmpty());
 	}
 	
 	/**
@@ -116,13 +116,13 @@ class TestJavaDocCommentBlock
 	void testParseAttrTagOneLine() 
 	{	
 		AttrTag t1 = new AttrTag("@whatever abcd efgh");
-		assertEquals("abcd", t1.attr_name);
-		assertEquals("efgh", t1.attr_text);
+		assertEquals("abcd", t1.attrName);
+		assertEquals("efgh", t1.attrText);
 		
 		// multiple spaces
 		AttrTag t2 = new AttrTag("@param it the number of items");
-		assertEquals("it", t2.attr_name);
-		assertEquals("the number of items", t2.attr_text);
+		assertEquals("it", t2.attrName);
+		assertEquals("the number of items", t2.attrText);
 	}
 
 	/**
@@ -139,10 +139,10 @@ class TestJavaDocCommentBlock
 			"@author Guanyuming_He\r\n"
 			+ " Copyright (C) 2023\r\n"
 		);
-		assertEquals("Guanyuming_He", t1.attr_name);
+		assertEquals("Guanyuming_He", t1.attrName);
 		assertEquals
 		(
-				"Copyright (C) 2023", t1.attr_text
+				"Copyright (C) 2023", t1.attrText
 		);
 		
 		
@@ -152,12 +152,12 @@ class TestJavaDocCommentBlock
 				+ "wheithiowniofi2j39jp ih18h3in\n"
 				+ "j80qhjdin ij0981n"
 		);
-		assertEquals("abc", t2.attr_name);
+		assertEquals("abc", t2.attrName);
 		assertEquals
 		(
 				"This is def "
 				+ "wheithiowniofi2j39jp ih18h3in"
-				+ "j80qhjdin ij0981n", t2.attr_text
+				+ "j80qhjdin ij0981n", t2.attrText
 		);
 	}
 	
@@ -169,7 +169,7 @@ class TestJavaDocCommentBlock
 	void testParseJavaDocEmptyOrBlank()
 	{
 		var b1 = new JavaDocCommentBlock("/***/", 0, 0, 0, 0);
-		assertTrue(b1.main_text.isEmpty());
+		assertTrue(b1.mainText.isEmpty());
 		assertTrue(b1.tags.isEmpty());
 		
 		// The comment is this:
@@ -182,7 +182,7 @@ class TestJavaDocCommentBlock
 			+ " * \r\n" 
 			+ " */", 0, 0, 0, 0
 		);
-		assertTrue(b2.main_text.isEmpty());
+		assertTrue(b2.mainText.isEmpty());
 		assertTrue(b2.tags.isEmpty());
 		
 		var b3 = new JavaDocCommentBlock
@@ -191,7 +191,7 @@ class TestJavaDocCommentBlock
 			+ " *                  \r\n" 
 			+ " */", 0, 0, 0, 0
 		);
-		assertEquals("                 ", b3.main_text);
+		assertEquals("                 ", b3.mainText);
 		assertTrue(b3.tags.isEmpty());
 	}
 	
@@ -209,7 +209,7 @@ class TestJavaDocCommentBlock
 		var b1 = new JavaDocCommentBlock("/**\r\n"
 				+ " * abcde\r\n"
 				+ " */", 0, 0, 0, 0);
-		assertEquals("abcde", b1.main_text);
+		assertEquals("abcde", b1.mainText);
 		assertTrue(b1.tags.isEmpty());
 		
 		// The comment is this:
@@ -222,7 +222,7 @@ class TestJavaDocCommentBlock
 			+ "		 * abcde pknsd190n 12mjd.\r\n"
 			+ "		 */", 0, 0, 0, 0
 		);
-		assertEquals("abcde pknsd190n 12mjd.", b2.main_text);
+		assertEquals("abcde pknsd190n 12mjd.", b2.mainText);
 		assertTrue(b2.tags.isEmpty());
 		
 		// The comment is this:
@@ -247,7 +247,7 @@ class TestJavaDocCommentBlock
 			+ "		 * w9je91n2h0 d12.\r\n"
 			+ "		 */", 0, 0, 0, 0
 		);
-		assertEquals("abcde pknsd190n 12mjd. jwu091nn89i.m90jo1w9je91n2h0 d12.", b3.main_text);
+		assertEquals("abcde pknsd190n 12mjd. jwu091nn89i.m90jo1w9je91n2h0 d12.", b3.mainText);
 		assertTrue(b3.tags.isEmpty());
 	}
 	
@@ -264,7 +264,7 @@ class TestJavaDocCommentBlock
 				+ " * @author Guanyuming He\r\n"
 				+ " * @param abc def\r\n"
 				+ " */", 0, 0, 0, 0);
-		assertEquals("abcde pknsd190n 12mjd. jwu091nn89i.", b1.main_text);
+		assertEquals("abcde pknsd190n 12mjd. jwu091nn89i.", b1.mainText);
 		
 		var expectedTags = List.of
 		(
@@ -273,8 +273,8 @@ class TestJavaDocCommentBlock
 		);
 		assertEquals(expectedTags, b1.tags);
 		
-		assertEquals(List.of(Integer.valueOf(1)), b1.param_tags);
-		assertTrue(b1.throws_tags.isEmpty());
+		assertEquals(List.of(Integer.valueOf(1)), b1.paramTags);
+		assertTrue(b1.throwsTags.isEmpty());
 		
 		var b2 = new JavaDocCommentBlock("/**\r\n"
 				+ " * abc\r\n"
@@ -286,7 +286,7 @@ class TestJavaDocCommentBlock
 				+ " * @throws Exception when \r\n"
 				+ " * this and that and this and that\r\n"
 				+ " */", 0, 0, 0, 0);
-		assertEquals("abc", b2.main_text);
+		assertEquals("abc", b2.mainText);
 		
 		var expectedTags2 = List.of
 		(
@@ -297,7 +297,7 @@ class TestJavaDocCommentBlock
 		);
 		assertEquals(expectedTags2, b2.tags);
 		
-		assertEquals(List.of(Integer.valueOf(1),Integer.valueOf(2)), b2.param_tags);
-		assertEquals(List.of(Integer.valueOf(3)), b2.throws_tags);
+		assertEquals(List.of(Integer.valueOf(1),Integer.valueOf(2)), b2.paramTags);
+		assertEquals(List.of(Integer.valueOf(3)), b2.throwsTags);
 	}
 }

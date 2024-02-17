@@ -49,7 +49,7 @@ public class WsBlock extends FormatToken
 	 * @param str
 	 * @return true if so.
 	 */
-	public static boolean is_truly_ws(String str)
+	public static boolean isTrulyWs(String str)
 	{
 		for(int i = 0; i < str.length(); ++i)
 		{
@@ -71,7 +71,7 @@ public class WsBlock extends FormatToken
 	}
 
 	@Override
-	protected int calculate_visual_length() 
+	protected int calculateVisualLength() 
 	{
 		int length = 0;
 		for (int i = 0; i < characters.length(); ++i)
@@ -84,7 +84,7 @@ public class WsBlock extends FormatToken
 				break;
 			case '\t':
 				// the current position of the \t
-				int cur_pos = visual_pos + length;
+				int cur_pos = visualPos + length;
 				length += (4 - (cur_pos % 4));
 				break;
 			default:
@@ -97,7 +97,7 @@ public class WsBlock extends FormatToken
 	}
 
 	@Override
-	protected float calculate_format_score(SyntaxContext ctx) 
+	protected float calculateFormatScore(SyntaxContext ctx) 
 	{
 		throw new RuntimeException("Not implemented.");		
 	}

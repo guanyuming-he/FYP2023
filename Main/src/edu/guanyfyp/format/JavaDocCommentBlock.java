@@ -67,19 +67,20 @@ public final class JavaDocCommentBlock extends CommentBlock
 			}
 			
 			// Now, dump all line breaks
-			tag_name = temp_tag_name.replaceAll("[\r\n]+", "");
-			tag_text = temp_tag_text.replaceAll("[\r\n]+", "");
+			tagName = temp_tag_name.replaceAll("[\r\n]+", "");
+			tagText = temp_tag_text.replaceAll("[\r\n]+", "");
 			
 		}
 		
 		public Tag(String tn, String tt)
 		{
-			tag_name = tn;
-			tag_text = tt;
+			tagName = tn;
+			tagText = tt;
 		}
 		
-		public final String tag_name;
-		public final String tag_text;
+		// These two are public as they are final.
+		public final String tagName;
+		public final String tagText;
 		
 		@Override
 		public boolean equals(Object o)
@@ -90,8 +91,8 @@ public final class JavaDocCommentBlock extends CommentBlock
 			}
 			
 			Tag t = (Tag)o;
-			return t.tag_name.equals(tag_name) &&
-					t.tag_text.endsWith(tag_text);
+			return t.tagName.equals(tagName) &&
+					t.tagText.endsWith(tagText);
 		}
 		
 	}
@@ -110,22 +111,26 @@ public final class JavaDocCommentBlock extends CommentBlock
 			super(org_text);
 			
 			// tt := attr_name " " attr_text	
-			int space_ind = this.tag_text.indexOf(" ");
+			int space_ind = this.tagText.indexOf(" ");
 			if(space_ind == -1)
 			{
 				// No space in the text
-				attr_name = this.tag_text;
-				attr_text = "";
+				attrName = this.tagText;
+				attrText = "";
 			}
 			else
 			{
-				attr_name = this.tag_text.substring(0, space_ind);
+				attrName = this.tagText.substring(0, space_ind);
 				// Since space must be a character in the tag_text,
 				// space_ind + 1 won't be bigger than the end and the method won't throw an exception.
-				attr_text = this.tag_text.substring(space_ind + 1);
+				attrText = this.tagText.substring(space_ind + 1);
 			}
 		}
 		
+		/**
+		 * @param tn tag name
+		 * @param tt tag text
+		 */
 		public AttrTag(String tn, String tt) 
 		{
 			super(tn, tt);
@@ -135,20 +140,20 @@ public final class JavaDocCommentBlock extends CommentBlock
 			if(space_ind == -1)
 			{
 				// No space in the text
-				attr_name = tt;
-				attr_text = "";
+				attrName = tt;
+				attrText = "";
 			}
 			else
 			{
-				attr_name = tt.substring(0, space_ind);
+				attrName = tt.substring(0, space_ind);
 				// Since space must be a character in the tt,
 				// space_ind + 1 won't be bigger than the end and the method won't throw an exception.
-				attr_text = tt.substring(space_ind + 1);
+				attrText = tt.substring(space_ind + 1);
 			}
 		}
 		
-		public final String attr_name;
-		public final String attr_text;
+		public final String attrName;
+		public final String attrText;
 		
 		@Override
 		public boolean equals(Object o)
@@ -160,8 +165,8 @@ public final class JavaDocCommentBlock extends CommentBlock
 			
 			AttrTag t = (AttrTag)o;
 			return super.equals(o) &&
-					t.attr_name.equals(attr_name) &&
-					t.attr_text.equals(attr_text);
+					t.attrName.equals(attrName) &&
+					t.attrText.equals(attrText);
 		}
 	}
 	
@@ -178,11 +183,11 @@ public final class JavaDocCommentBlock extends CommentBlock
 	
 	// All important tags that are specially treated in this system.
 	// The fields are all lists of indices of tags in the field tags.
-	public final List<Integer> param_tags;
-	public final List<Integer> throws_tags;
+	public final List<Integer> paramTags;
+	public final List<Integer> throwsTags;
 	
 	// The text before the tags
-	public final String main_text;
+	public final String mainText;
 
 	/**
 	 * @param characters
@@ -287,18 +292,18 @@ public final class JavaDocCommentBlock extends CommentBlock
 						// Try to parse the tag text.
 						Tag tag = new Tag(accumulated_text);
 						// Decide what to do based on the tag name
-						switch(tag.tag_name)
+						switch(tag.tagName)
 						{
 						case "param":
-							temp_tags.add(new AttrTag(tag.tag_name, tag.tag_text));
+							temp_tags.add(new AttrTag(tag.tagName, tag.tagText));
 							temp_param_tags.add(temp_tags.size()-1);
 							break;
 						case "throws":
-							temp_tags.add(new AttrTag(tag.tag_name, tag.tag_text));
+							temp_tags.add(new AttrTag(tag.tagName, tag.tagText));
 							temp_throws_tags.add(temp_tags.size()-1);
 							break;
 						default:
-							temp_tags.add(new Tag(tag.tag_name, tag.tag_text));
+							temp_tags.add(new Tag(tag.tagName, tag.tagText));
 						}
 					}
 					
@@ -326,26 +331,26 @@ public final class JavaDocCommentBlock extends CommentBlock
 				// Try to parse the tag text.
 				Tag tag = new Tag(accumulated_text);
 				// Decide what to do based on the tag name
-				switch(tag.tag_name)
+				switch(tag.tagName)
 				{
 				case "param":
-					temp_tags.add(new AttrTag(tag.tag_name, tag.tag_text));
+					temp_tags.add(new AttrTag(tag.tagName, tag.tagText));
 					temp_param_tags.add(temp_tags.size()-1);
 					break;
 				case "throws":
-					temp_tags.add(new AttrTag(tag.tag_name, tag.tag_text));
+					temp_tags.add(new AttrTag(tag.tagName, tag.tagText));
 					temp_throws_tags.add(temp_tags.size()-1);
 					break;
 				default:
-					temp_tags.add(new Tag(tag.tag_name, tag.tag_text));
+					temp_tags.add(new Tag(tag.tagName, tag.tagText));
 				}
 			}
 			
 			// Finally, assign all final fields
 			this.tags = Collections.unmodifiableList(temp_tags);
-			this.param_tags = Collections.unmodifiableList(temp_param_tags);
-			this.throws_tags = Collections.unmodifiableList(temp_throws_tags);
-			this.main_text = main_text_builder.toString();
+			this.paramTags = Collections.unmodifiableList(temp_param_tags);
+			this.throwsTags = Collections.unmodifiableList(temp_throws_tags);
+			this.mainText = main_text_builder.toString();
 		}
 		
 		preceding = Preceding.OTHER;
@@ -358,6 +363,6 @@ public final class JavaDocCommentBlock extends CommentBlock
 	 */
 	public void setPreceding(SyntaxContext context)
 	{
-		
+		throw new RuntimeException("Not implemented.");
 	}
 }

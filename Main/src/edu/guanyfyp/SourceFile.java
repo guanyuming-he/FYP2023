@@ -48,14 +48,14 @@ public class SourceFile
     // Each element of the outmost array represents a line in the source file.
     // Each element inside a line array is a token.
 	// The field in the end will be immutable, and each inner list will also be.
-    private final List<List<FormatToken>> format_tokens;
+    private final List<List<FormatToken>> formatTokens;
     /**
      * Because the format_tokens is immutable, one can get it.
      * @return this.format_tokens
      */
     public List<List<FormatToken>> get_format_tokens()
     {
-    	return format_tokens;
+    	return formatTokens;
     }
     
     /**
@@ -64,12 +64,12 @@ public class SourceFile
      * token index -> {line index (starting from 0), token line index (from 0)}
      * is built.
      */
-    private final ArrayList<Pair<Integer, Integer>> format_token_random_access_table;
+    private final ArrayList<Pair<Integer, Integer>> formatTokenRandomAccessTable;
     
-    private final SyntaxStructureBuilder syntax_context_builder;
-    public SyntaxStructureBuilder get_syntax_context_builder()
+    private final SyntaxStructureBuilder syntaxContextBuilder;
+    public SyntaxStructureBuilder getSyntaxContextBuilder()
     {
-    	return syntax_context_builder;
+    	return syntaxContextBuilder;
     }
     
     /**
@@ -169,7 +169,7 @@ public class SourceFile
 					
 					// At this stage certain code block types are already deduced by the lexer.
 					// Assign such types now to reduce further deductions.
-					((CodeBlock)ft).additional_attr.setTypeFromLexerTokenType(t.getType());
+					((CodeBlock)ft).additionalAttr.setTypeFromLexerTokenType(t.getType());
 					break;
 					
 				case WHITESPACE_CHANNEL:
@@ -211,25 +211,25 @@ public class SourceFile
 				
 				// Update the variables
 				cur_line_tokens.add(ft);
-				visual_pos += ft.visual_length;
+				visual_pos += ft.visualLength;
 				++cur_line_token_number;
 			}
 			// Now the cur_line_tokens that is for the last line has yet to be added.
 			temp_format_tokens.add(Collections.unmodifiableList(cur_line_tokens));
 			
 			// Finally, turn format_tokens immutable
-			format_tokens = Collections.unmodifiableList(temp_format_tokens);		
+			formatTokens = Collections.unmodifiableList(temp_format_tokens);		
 		}
 		
 		// build the random access table
 		{
-			format_token_random_access_table = new ArrayList<Pair<Integer,Integer>>();
-			for(int i = 0; i < format_tokens.size(); ++i)
+			formatTokenRandomAccessTable = new ArrayList<Pair<Integer,Integer>>();
+			for(int i = 0; i < formatTokens.size(); ++i)
 			{
-				var line = format_tokens.get(i);
+				var line = formatTokens.get(i);
 				for(int j = 0; j < line.size(); ++j)
 				{
-					format_token_random_access_table.add(new Pair<Integer, Integer>(i, j));
+					formatTokenRandomAccessTable.add(new Pair<Integer, Integer>(i, j));
 				}
 			}
 		}
@@ -260,11 +260,11 @@ public class SourceFile
 			
 			// Walk the parse tree and build the syntax context by using ContextBuilder
 			ParseTreeWalker tree_walker = new ParseTreeWalker();
-			this.syntax_context_builder = new SyntaxStructureBuilder(this);
-			tree_walker.walk(syntax_context_builder, parse_tree);
+			this.syntaxContextBuilder = new SyntaxStructureBuilder(this);
+			tree_walker.walk(syntaxContextBuilder, parse_tree);
 			
 			// Apply the additional token attributes after the syntax and partial semantic analysis
-			syntax_context_builder.apply_additional_token_attributes();
+			syntaxContextBuilder.applyAdditionalTokenAttributes();
 		}
     }
 
@@ -288,11 +288,11 @@ public class SourceFile
     boolean hasFormatToken(int line, int index)
     {
     	int line_ind = line - 1;
-    	if (line_ind < 0 || line_ind >= format_tokens.size())
+    	if (line_ind < 0 || line_ind >= formatTokens.size())
     	{
     		return false;
     	}
-    	var line_array = format_tokens.get(line_ind);
+    	var line_array = formatTokens.get(line_ind);
     	if(index < 0 || index >= line_array.size())
     	{
     		return false;
@@ -316,11 +316,11 @@ public class SourceFile
     	 */
     	
     	int line_ind = line - 1;
-    	if (line_ind < 0 || line_ind >= format_tokens.size())
+    	if (line_ind < 0 || line_ind >= formatTokens.size())
     	{
     		return null;
     	}
-    	var line_array = format_tokens.get(line_ind);
+    	var line_array = formatTokens.get(line_ind);
     	if(index < 0 || index >= line_array.size())
     	{
     		return null;
@@ -337,8 +337,8 @@ public class SourceFile
      */
     public FormatToken getFormatToken(int index)
     {
-    	var pair = format_token_random_access_table.get(index);
-    	return format_tokens.get(pair.a).get(pair.b);
+    	var pair = formatTokenRandomAccessTable.get(index);
+    	return formatTokens.get(pair.a).get(pair.b);
     }
     
     /**
@@ -363,7 +363,7 @@ public class SourceFile
     public FormatToken getPrevFormatToken(FormatToken given)
     {
     	int line = given.line;
-    	int index = given.index_in_line - 1;
+    	int index = given.indexInLine - 1;
     	
     	// If the token is the first in the line
     	if(index < 0)
@@ -378,7 +378,7 @@ public class SourceFile
     		{
         		--line_ind;
         		
-        		var line_array = format_tokens.get(line_ind);
+        		var line_array = formatTokens.get(line_ind);
         		if(line_array.isEmpty())
         		{
         			continue;
@@ -395,7 +395,7 @@ public class SourceFile
     	}
     	
     	// Otherwise, the prev token is still in the line.
-    	return format_tokens.get(line-1).get(index);
+    	return formatTokens.get(line-1).get(index);
     }
     
     /**
@@ -410,10 +410,10 @@ public class SourceFile
     public FormatToken getNextFormatToken(FormatToken given)
     {
     	int line = given.line;
-    	int index = given.index_in_line + 1;
+    	int index = given.indexInLine + 1;
     	
     	int line_index = line-1;
-    	var cur_line_array = format_tokens.get(line_index);
+    	var cur_line_array = formatTokens.get(line_index);
     	
     	// If the token is the last in the line
     	if(index >= cur_line_array.size())
@@ -423,11 +423,11 @@ public class SourceFile
     		
     		// Keep going back until the previous line is non-empty
     		// or until I have reached the first line.
-    		while(line_index+1 < format_tokens.size())
+    		while(line_index+1 < formatTokens.size())
     		{
         		++line_index;
         		
-        		var line_array = format_tokens.get(line_index);
+        		var line_array = formatTokens.get(line_index);
         		if(line_array.isEmpty())
         		{
         			continue;

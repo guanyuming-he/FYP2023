@@ -27,7 +27,7 @@ public class CommentBlock extends FormatToken
 	}
 
 	@Override
-	protected float calculate_format_score(SyntaxContext ctx) 
+	protected float calculateFormatScore(SyntaxContext ctx) 
 	{
 		throw new RuntimeException("Not implemented.");		
 	}

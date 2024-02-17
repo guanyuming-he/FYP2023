@@ -25,8 +25,8 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 
 	public SyntaxStructureBuilder(SourceFile sf) 
 	{
-		this.source_file = sf;
-		this.additional_token_attributes = new HashMap<>();
+		this.sourceFile = sf;
+		this.additionalTokenAttributes = new HashMap<>();
 	}
 
 	
@@ -35,26 +35,26 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	 * Reference to the SourceFile that produced this listener.
 	 * The listener will attach more information to the tokens of the source_file.
 	 */
-	private final SourceFile source_file;
+	private final SourceFile sourceFile;
 	/**
 	 * The syntax structure the listener will build during a walk.
 	 * It should be complete after a walk.
 	 */
-	private final SyntaxStructure syntax_structure = new SyntaxStructure();
-	public SyntaxStructure get_syntax_structure()
+	private final SyntaxStructure syntaxStructure = new SyntaxStructure();
+	public SyntaxStructure getSyntaxStructure()
 	{
-		return syntax_structure;
+		return syntaxStructure;
 	}
 	
 	
 	// A list of additional attributes for the format tokens is built during a walk.
 	// token index (in the token stream, getTokenIndex()) -> additional information
 	// Because the tokens that the parser processes are only CodeBlocks,
-	// only this Type information is needed.
-	private final HashMap<Integer, CodeBlock.AdditionalAttributes> additional_token_attributes;
-	public HashMap<Integer, CodeBlock.AdditionalAttributes> get_additional_token_attributes()
+	// only this Type's information is needed.
+	private final HashMap<Integer, CodeBlock.AdditionalAttributes> additionalTokenAttributes;
+	public HashMap<Integer, CodeBlock.AdditionalAttributes> getAdditionalTokenAttributes()
 	{
-		return additional_token_attributes;
+		return additionalTokenAttributes;
 	}
 	
 	/**
@@ -62,14 +62,14 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	 * to apply the obtained additional attributes to the format tokens
 	 * in the SourceFile
 	 */
-	public void apply_additional_token_attributes()
+	public void applyAdditionalTokenAttributes()
 	{
-		var indices = additional_token_attributes.keySet();
+		var indices = additionalTokenAttributes.keySet();
 		for(int ind : indices)
 		{
-			CodeBlock cb = (CodeBlock)source_file.getFormatToken(ind);
+			CodeBlock cb = (CodeBlock)sourceFile.getFormatToken(ind);
 			// move the additional attributes to the code block's
-			cb.additional_attr.move(additional_token_attributes.get(ind));
+			cb.additionalAttr.move(additionalTokenAttributes.get(ind));
 		}
 	}
 	
@@ -87,14 +87,15 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	 * 
 	 * On a legal piece of Java code, this reset process should work without problems.
 	 */
-	private AdditionalAttributes pending_attributes = new AdditionalAttributes();
+	private AdditionalAttributes pendingAttributes = new AdditionalAttributes();
+	
 	/**
 	 * Resets pending_modifiers to having no additional information
 	 * i.e. to a new AdditionalAttributes();
 	 */
-	private void reset_pending_attributes() 
+	private void resetPendingAttributes() 
 	{ 
-		pending_attributes = new AdditionalAttributes();
+		pendingAttributes = new AdditionalAttributes();
 	}
 	
 ///////////////////////////// Helpers /////////////////////////////////
@@ -108,7 +109,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		// If it is an annotation modifier.
 		if (modifier instanceof AnnotationContext)
 		{
-			pending_attributes.addAnnotationModifier((AnnotationContext)modifier);
+			pendingAttributes.addAnnotationModifier((AnnotationContext)modifier);
 			return;
 		}
 		
@@ -118,53 +119,53 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		// I only care about these keyword modifiers in this project.
 		// Other keywords are ignored.
 		case "public" -> 
-			pending_attributes.set_OOP_modifier(AdditionalAttributes.OOP_MODIFIER_PUBLIC);
+			pendingAttributes.setOopModifier(AdditionalAttributes.OOP_MODIFIER_PUBLIC);
 		case "protected" ->
-			pending_attributes.set_OOP_modifier(AdditionalAttributes.OOP_MODIFIER_PROTECTED);
+			pendingAttributes.setOopModifier(AdditionalAttributes.OOP_MODIFIER_PROTECTED);
 		case "private" ->
-			pending_attributes.set_OOP_modifier(AdditionalAttributes.OOP_MODIFIER_PRIVATE);
+			pendingAttributes.setOopModifier(AdditionalAttributes.OOP_MODIFIER_PRIVATE);
 		case "static" -> 
-			pending_attributes.set_other_modifier(AdditionalAttributes.MODIFIER_STATIC);
+			pendingAttributes.setOtherModifiers(AdditionalAttributes.MODIFIER_STATIC);
 		case "abstract" ->
-			pending_attributes.set_OOP_modifier(AdditionalAttributes.OOP_MODIFIER_ABSTRACT);
+			pendingAttributes.setOopModifier(AdditionalAttributes.OOP_MODIFIER_ABSTRACT);
 		case "final" ->
-			pending_attributes.set_other_modifier(AdditionalAttributes.MODIFIER_FINAL);
+			pendingAttributes.setOtherModifiers(AdditionalAttributes.MODIFIER_FINAL);
 		case "strictfp" -> 
-			pending_attributes.set_other_modifier(AdditionalAttributes.MODIFIER_STRICTFP);
+			pendingAttributes.setOtherModifiers(AdditionalAttributes.MODIFIER_STRICTFP);
 		}
 	}
 	
 	/**
 	 * Sets the additional modifiers for the corresponding code block
-	 * @see The comment for pending_type_modifiers
+	 * @see The comment for pendingTypeModifiers
 	 * 
 	 * @param type the type of the CodeBlock (e.g. class, interface, enum)
 	 * @param tokenInd the index of the token of the code piece
 	 * @param reset whether to reset the pending attributes at the end
 	 */
-	private void set_additional_attributes_for_the_code
+	private void setAdditionalTokenAttributesForTheCode
 	(
 		CodeBlock.Type type, int tokenInd,
 		boolean reset
 	)
 	{
 		// Sets the type of the code block
-		pending_attributes.setType(type);
+		pendingAttributes.setType(type);
 		// Adds the attributes to the list
-		additional_token_attributes.put(tokenInd, pending_attributes);
+		additionalTokenAttributes.put(tokenInd, pendingAttributes);
 		// Resets the attributes to a new and blank object, 
 		// if the parameter orders so
-		if(reset) reset_pending_attributes();
+		if(reset) resetPendingAttributes();
 	}
 	
 	/**
-	 * the same as calling set_additional_attributes_for_the_code(type, tokenInd, true)
+	 * the same as calling setAdditionalTokenAttributesForTheCode(type, tokenInd, true)
 	 * @param type
 	 * @param tokenInd
 	 */
-	private void set_additional_attributes_for_the_code(CodeBlock.Type type, int tokenInd)
+	private void setAdditionalTokenAttributesForTheCode(CodeBlock.Type type, int tokenInd)
 	{
-		set_additional_attributes_for_the_code(type, tokenInd, true);
+		setAdditionalTokenAttributesForTheCode(type, tokenInd, true);
 	}
 	
 	
@@ -250,7 +251,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			for(var par : identifiers)
 			{
 				Token token = par.getStart();
-				set_additional_attributes_for_the_code(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
+				setAdditionalTokenAttributesForTheCode(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
 			}
 		}
 		
@@ -270,7 +271,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 					}
 					
 					Token token = fp.variableDeclaratorId().identifier().getStart();
-					set_additional_attributes_for_the_code(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
+					setAdditionalTokenAttributesForTheCode(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
 				}
 			}
 			
@@ -285,7 +286,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 				}
 				
 				Token token = lfp.variableDeclaratorId().identifier().getStart();
-				set_additional_attributes_for_the_code(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
+				setAdditionalTokenAttributesForTheCode(CodeBlock.Type.PARAMETER_NAME, token.getTokenIndex());
 			}
 		}
 	}
@@ -325,7 +326,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			
 			// The local variable name token
 			Token token = ctx.identifier().getStart();
-			set_additional_attributes_for_the_code(local_or_for, token.getTokenIndex());
+			setAdditionalTokenAttributesForTheCode(local_or_for, token.getTokenIndex());
 		}
 		else
 		{
@@ -337,10 +338,10 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 				Token token = variable_declarator.variableDeclaratorId().identifier().getStart();
 				
 				// don't reset
-				set_additional_attributes_for_the_code(local_or_for, token.getTokenIndex(), false);
+				setAdditionalTokenAttributesForTheCode(local_or_for, token.getTokenIndex(), false);
 			}
 			// don't forget to reset pending_modifiers in the end
-			reset_pending_attributes();
+			resetPendingAttributes();
 		}
 	}
 
@@ -354,7 +355,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		Token token = ctx.identifier().getStart();
 		
 		// additional attributes
-		set_additional_attributes_for_the_code(CodeBlock.Type.CLASS_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CLASS_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -367,7 +368,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		Token token = ctx.identifier().getStart();
 
 		// additional attributes
-		set_additional_attributes_for_the_code(CodeBlock.Type.ENUM_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.ENUM_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -380,7 +381,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		Token token = ctx.identifier().getStart();
 
 		// additional attributes
-		set_additional_attributes_for_the_code(CodeBlock.Type.INTERFACE_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.INTERFACE_NAME, token.getTokenIndex());
 	 }
 	
 	/**
@@ -393,7 +394,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		Token token = ctx.identifier().getStart();
 	
 		// additional attributes
-		set_additional_attributes_for_the_code(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -405,7 +406,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		// the generic method name token.
 		Token token = ctx.methodDeclaration().identifier().getStart();
 	
-		set_additional_attributes_for_the_code(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -425,7 +426,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		Token token = ctx.interfaceCommonBodyDeclaration().identifier().getStart();
 	
 		// additional attributes
-		set_additional_attributes_for_the_code(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -444,7 +445,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		// the generic method name token.
 		Token token = ctx.interfaceCommonBodyDeclaration().identifier().getStart();
 	
-		set_additional_attributes_for_the_code(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -456,7 +457,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		// the constructor name token.
 		Token token = ctx.identifier().getStart();
 	
-		set_additional_attributes_for_the_code(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -468,7 +469,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		// the generic constructor method name token.
 		Token token = ctx.constructorDeclaration().identifier().getStart();
 	
-		set_additional_attributes_for_the_code(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
+		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
 	}
 	
 	/**
@@ -486,9 +487,9 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			Token token = variable_declarator.variableDeclaratorId().identifier().getStart();
 			
 			// Don't reset
-			set_additional_attributes_for_the_code(CodeBlock.Type.FIELD_NAME, token.getTokenIndex(), false);
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.FIELD_NAME, token.getTokenIndex(), false);
 		}
 		// don't forget to reset pending_modifiers in the end
-		reset_pending_attributes();
+		resetPendingAttributes();
 	}
 }

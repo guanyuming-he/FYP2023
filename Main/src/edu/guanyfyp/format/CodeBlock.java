@@ -38,7 +38,7 @@ public class CodeBlock extends FormatToken
 		(
 			characters, position, act_pos, line, index_in_line
 		);	
-		this.additional_attr = new AdditionalAttributes();
+		this.additionalAttr = new AdditionalAttributes();
 	}
 	
 	/**
@@ -61,11 +61,11 @@ public class CodeBlock extends FormatToken
 		(
 			characters, position, act_pos, line, index_in_line
 		);	
-		this.additional_attr = additional_attributes;
+		this.additionalAttr = additional_attributes;
 	}
 
 	@Override
-	protected float calculate_format_score(SyntaxContext ctx)
+	protected float calculateFormatScore(SyntaxContext ctx)
 	{
 		throw new RuntimeException("Not implemented.");		
 	}
@@ -136,8 +136,8 @@ public class CodeBlock extends FormatToken
 		public AdditionalAttributes()
 		{
 			this.type = Type.UNKNOWN;
-			this.OOP_modifiers = 0;
-			this.other_modifiers = 0;
+			this.oopModifiers = 0;
+			this.otherModifiers = 0;
 			this.annotationModifiers = new ArrayList<>();
 		}
 		/**
@@ -147,8 +147,8 @@ public class CodeBlock extends FormatToken
 		public AdditionalAttributes(AdditionalAttributes other)
 		{
 			this.type = other.type;
-			this.OOP_modifiers = other.OOP_modifiers;
-			this.other_modifiers = other.other_modifiers;
+			this.oopModifiers = other.oopModifiers;
+			this.otherModifiers = other.otherModifiers;
 			this.annotationModifiers = new ArrayList<AnnotationContext>(other.annotationModifiers);
 		}
 		
@@ -168,8 +168,8 @@ public class CodeBlock extends FormatToken
 		)
 		{
 			this.type = type;
-			this.OOP_modifiers = OOP_modifiers;
-			this.other_modifiers = other_modifiers;
+			this.oopModifiers = OOP_modifiers;
+			this.otherModifiers = other_modifiers;
 			this.annotationModifiers = new ArrayList<AnnotationContext>(annotation_modifiers);
 		}
 		
@@ -180,8 +180,8 @@ public class CodeBlock extends FormatToken
 		public void assign(AdditionalAttributes other)
 		{
 			this.type = other.type;
-			this.OOP_modifiers = other.OOP_modifiers;
-			this.other_modifiers = other.other_modifiers;
+			this.oopModifiers = other.oopModifiers;
+			this.otherModifiers = other.otherModifiers;
 			this.annotationModifiers = new ArrayList<AnnotationContext>(other.annotationModifiers);
 		}
 		
@@ -192,8 +192,8 @@ public class CodeBlock extends FormatToken
 		public void move(AdditionalAttributes other)
 		{
 			this.type = other.type;
-			this.OOP_modifiers = other.OOP_modifiers;
-			this.other_modifiers = other.other_modifiers;
+			this.oopModifiers = other.oopModifiers;
+			this.otherModifiers = other.otherModifiers;
 			this.annotationModifiers = other.annotationModifiers;
 		}
 		
@@ -208,9 +208,9 @@ public class CodeBlock extends FormatToken
 		 */
 		
 		// modifiers related to OOP
-		private int OOP_modifiers;
+		private int oopModifiers;
 		// other modifiers
-		private int other_modifiers;
+		private int otherModifiers;
 		
 		// This is the list of annotation modifiers
 		private List<AnnotationContext> annotationModifiers;
@@ -441,39 +441,39 @@ public class CodeBlock extends FormatToken
 		}
 		
 		// modifier methods
-		public void set_OOP_modifier(int mod)
+		public void setOopModifier(int mod)
 		{
-			OOP_modifiers |= mod;
+			oopModifiers |= mod;
 		}
-		public void set_other_modifier(int mod)
+		public void setOtherModifiers(int mod)
 		{
-			other_modifiers |= mod;
+			otherModifiers |= mod;
 		}
-		public void assign_OOP_modifiers(int mod)
+		public void assignOopModifiers(int mod)
 		{
-			OOP_modifiers = mod;
+			oopModifiers = mod;
 		}
-		public void assign_other_modifiers(int mod)
+		public void assignOtherModifiers(int mod)
 		{
-			other_modifiers = mod;
+			otherModifiers = mod;
 		}
-		public int get_OOP_modifiers()
+		public int getOopModifiers()
 		{
-			return OOP_modifiers;
+			return oopModifiers;
 		}
-		public int get_other_modifiers()
+		public int getOtherModifiers()
 		{
-			return other_modifiers;
+			return otherModifiers;
 		}
-		public boolean has_OOP_modifier(int mod)
+		public boolean hasOopModifier(int mod)
 		{
-			return (OOP_modifiers & mod) != 0;
+			return (oopModifiers & mod) != 0;
 		}
-		public boolean has_other_modifier(int mod)
+		public boolean hasOtherModifier(int mod)
 		{
-			return (other_modifiers & mod) != 0;
+			return (otherModifiers & mod) != 0;
 		}
 	}
 
-	public final AdditionalAttributes additional_attr;
+	public final AdditionalAttributes additionalAttr;
 }

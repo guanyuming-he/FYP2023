@@ -35,10 +35,10 @@ public final class SyntaxScope
 			assert start_char_index < end_char_index;
 		}
 		
-		this.start_line = start_line;
-		this.start_char_index = start_char_index;
-		this.end_line = end_line;
-		this.end_char_index = end_char_index;
+		this.startLine = start_line;
+		this.startCharIndex = start_char_index;
+		this.endLine = end_line;
+		this.endCharIndex = end_char_index;
 		
 		this.names = new HashMap<String, FormatToken>();
 	}
@@ -48,14 +48,14 @@ public final class SyntaxScope
 	 * The char index is with respect to the line.
 	 * The scope starts after start_char_index.
 	 */
-	public final int start_line, start_char_index;
+	public final int startLine, startCharIndex;
 	
 	/**
 	 * The position where the scope ends.
 	 * The char index is with respect to the line.
 	 * The scope ends before end_char_index.
 	 */
-	public final int end_line, end_char_index;
+	public final int endLine, endCharIndex;
 	
 	/**
 	 * All the names defined in this scope.
@@ -70,11 +70,11 @@ public final class SyntaxScope
 	 * 
 	 * @apiNote if the name is already in the scope then the method will fail an assertion.
 	 */
-	public void add_name(String name, FormatToken token)
+	public void addName(String name, FormatToken token)
 	{
 		// During the building of a scope,
 		// a name should never be defined twice.
-		assert !has_name(name);
+		assert !hasName(name);
 		
 		names.put(name, token);
 	}
@@ -84,7 +84,7 @@ public final class SyntaxScope
 	 * @param name
 	 * @return true iff the name has been defined in the scope.
 	 */
-	public boolean has_name(String name)
+	public boolean hasName(String name)
 	{
 		return names.containsKey(name);
 	}
@@ -94,7 +94,7 @@ public final class SyntaxScope
 	 * @param name
 	 * @return the token, or null if has_name(name) returns false.
 	 */
-	public FormatToken get_name_token(String name)
+	public FormatToken getNameToken(String name)
 	{
 		return names.get(name);
 	}
@@ -105,33 +105,33 @@ public final class SyntaxScope
 	 * @param token
 	 * @return true iff so.
 	 */
-	public boolean is_token_in_scope(FormatToken token)
+	public boolean isTokenInScope(FormatToken token)
 	{
 		int t_line = token.line;
-		int t_char_pos = token.actual_pos;
+		int t_char_pos = token.actualPos;
 		
-		if(t_line < start_line || t_line > end_line)
+		if(t_line < startLine || t_line > endLine)
 		{
 			return false;
 		}
-		else if(t_line == start_line)
+		else if(t_line == startLine)
 		{
-			if(t_line != end_line) 
+			if(t_line != endLine) 
 			{
 				// t_line == start_line != end_line
-				return t_char_pos > start_char_index;
+				return t_char_pos > startCharIndex;
 			}
 			else
 			{
 				// t_line == start_line == end_line
-				return start_char_index < t_char_pos &&
-						t_char_pos < end_char_index;
+				return startCharIndex < t_char_pos &&
+						t_char_pos < endCharIndex;
 			}
 		}
-		else if(t_line == end_line)
+		else if(t_line == endLine)
 		{
 			// t_line == end_line != start_line
-			return t_char_pos < end_char_index;
+			return t_char_pos < endCharIndex;
 		}
 		else
 		{
