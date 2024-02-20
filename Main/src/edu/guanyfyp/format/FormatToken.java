@@ -3,6 +3,8 @@
  */
 package edu.guanyfyp.format;
 
+import org.antlr.v4.runtime.Token;
+
 import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
@@ -37,54 +39,39 @@ import edu.guanyfyp.syntax.SyntaxContext;
  */
 public abstract class FormatToken 
 {
-	/**
-	 * All fields are public as they won't change.
-	 * This way accessing is easier and the invariants are better protected.
-	 */
+//////////////////////// Fields //////////////////////////////
 	
-	// The actual characters of the token in the text.
-	public final String characters;
 	// The appeared position of the first character in the line.
+	// Public as it's immutable.
 	// i.e. the number of characters before the first character of this token in the line
 	public final int visualPos;
-	// The actual position of the first character in the line.
-	public final int actualPos;
-	// The number of the line that the token is in.
-	public final int line;
-	// If it = n, then the token is the n^th token in the line.
-	// Used to navigation among tokens.
-	public final int indexInLine;
-	// How long the token looks like in a text editor.
-	public final int visualLength;
+	
+	// Its corresponding ANTLR token.
+	protected final Token antlrToken;
 	
 	// Indicates how good the single token's format is,
 	// taking its context into consideration.
 	protected float formatScore = -1.0f;
 	public float getFormatScore() { return formatScore; }
 	
+	
+////////////////////// Constructors ///////////////////////////
 	/**
 	 * Direct assignment of all fields
 	 * 
-	 * @param characters The actual characters of the token in the text.
-	 * @param position The appeared position of the first character in the line.
-	 * @param act_pos The actual position of the first character in the line.
-	 * i.e. the number of characters before the first character of this token in the line
-	 * @param line The number of the line that the token is in.
-	 * @param length How long the token looks like in a text editor.
+	 * @param antlr_token The ANTLR token to create it.
+	 * @param visual_pos Its visual position, calculated by its creator.
 	 */
 	FormatToken
 	(
-		String characters, 
-		int visual_pos, int actual_pos,
-		int line, int index_in_line, int length
+		Token antlr_token,
+		int visual_pos
 	)
 	{
-		this.characters = characters;
+		this.antlrToken = antlr_token;
 		this.visualPos = visual_pos;
-		this.actualPos = actual_pos;
-		this.line = line;
-		this.indexInLine = index_in_line;
-		this.visualLength = length;
+		
+		
 	}
 	
 	/**
@@ -109,6 +96,24 @@ public abstract class FormatToken
 		this.line = line;
 		this.indexInLine = index_in_line;
 		this.visualLength = calculateVisualLength();
+	}
+	
+/////////////////////////// Observers ////////////////////////////
+	/**
+	 * @return the actual characters of this token.
+	 */
+	String characters()
+	{
+		return antlrToken.getText();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	int actualPos()
+	{
+		throw new RuntimeException("Not implemented.");
 	}
 	
 	
