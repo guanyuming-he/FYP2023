@@ -26,8 +26,8 @@ class TestSyntaxStructureBuilder {
 		
 		var src = TestSourceFile.createSourceFileNoError("test_data/many_declarations.txt");
 		
-		var context_builder = src.getSyntaxContextBuilder();
-		var additional_tokens_attributes = context_builder.getAdditionalTokenAttributes();
+		var builder = src.getSyntaxStructureBuilder();
+		var additional_tokens_attributes = builder.getAdditionalTokenAttributes();
 		
 		// class ABC
 		assertTrue(additional_tokens_attributes.containsKey(5));

@@ -66,10 +66,10 @@ public class SourceFile
      */
     private final ArrayList<Pair<Integer, Integer>> formatTokenRandomAccessTable;
     
-    private final SyntaxStructureBuilder syntaxContextBuilder;
-    public SyntaxStructureBuilder getSyntaxContextBuilder()
+    private final SyntaxStructureBuilder syntaxStructureBuilder;
+    public SyntaxStructureBuilder getSyntaxStructureBuilder()
     {
-    	return syntaxContextBuilder;
+    	return syntaxStructureBuilder;
     }
     
     /**
@@ -260,11 +260,11 @@ public class SourceFile
 			
 			// Walk the parse tree and build the syntax context by using ContextBuilder
 			ParseTreeWalker tree_walker = new ParseTreeWalker();
-			this.syntaxContextBuilder = new SyntaxStructureBuilder(this);
-			tree_walker.walk(syntaxContextBuilder, parse_tree);
+			this.syntaxStructureBuilder = new SyntaxStructureBuilder(this);
+			tree_walker.walk(syntaxStructureBuilder, parse_tree);
 			
 			// Apply the additional token attributes after the syntax and partial semantic analysis
-			syntaxContextBuilder.applyAdditionalTokenAttributes();
+			syntaxStructureBuilder.applyAdditionalTokenAttributes();
 		}
     }
 
@@ -277,15 +277,15 @@ public class SourceFile
 		throw new RuntimeException("Not implemented");
     }
     
-//////////////////////////// Accessors /////////////////////////
+//////////////////////////// Observers /////////////////////////
     // The tokens can only be accessed through the following methods.
     /**
      * If in the line there is a token at index.
      * @param line line number, starting from 1
      * @param index starting from 0.
-     * @return
+     * @return true iff so.
      */
-    boolean hasFormatToken(int line, int index)
+    public boolean hasFormatToken(int line, int index)
     {
     	int line_ind = line - 1;
     	if (line_ind < 0 || line_ind >= formatTokens.size())
@@ -444,5 +444,24 @@ public class SourceFile
     	
     	// Otherwise, the next token is still in the line.
     	return cur_line_array.get(index);
+    }
+
+    /**
+     * @param tk the token.
+     * @return true iff tk is one of the tokens in the SourceFile.
+     */
+    public boolean includes(FormatToken tk)
+    {
+    	FormatToken t = getFormatToken(tk.line, tk.indexInLine);
+    	
+    	// If I have a token at the location.
+    	if(null == t)
+    	{
+    		return false;
+    	}
+    	
+    	// I have a token at the location.
+    	// If they are the same.
+    	return t == tk;
     }
 }

@@ -44,68 +44,32 @@ public final class SyntaxScope
 	}
 	
 	/**
-	 * The position where the scope starts.
-	 * The char index is with respect to the line.
-	 * The scope starts after start_char_index.
+	 * The first token of the scope.
+	 * Usually it is a {.
 	 */
-	public final int startLine, startCharIndex;
+	public final FormatToken startToken;
 	
 	/**
-	 * The position where the scope ends.
-	 * The char index is with respect to the line.
-	 * The scope ends before end_char_index.
+	 * The last token of the scope.
+	 * Usually it is a }.
 	 */
-	public final int endLine, endCharIndex;
+	public final FormatToken endToken;
 	
 	/**
-	 * All the names defined in this scope.
+	 * The sum of the visual lengths (see FormatToken) of all tokens before
+	 * It is determined in the constructors from the position of
+	 * the ending }.
 	 */
-	private final Map<String, FormatToken> names;
+	public final int identationLevel;
 	
 	/**
-	 * During the building of this.names, call this method to 
-	 * add a name to the scope.
-	 * @param name
-	 * @param token token linked to the name.
-	 * 
-	 * @apiNote if the name is already in the scope then the method will fail an assertion.
-	 */
-	public void addName(String name, FormatToken token)
-	{
-		// During the building of a scope,
-		// a name should never be defined twice.
-		assert !hasName(name);
-		
-		names.put(name, token);
-	}
-	
-	/**
-	 * Tells if the scope has the name defined.
-	 * @param name
-	 * @return true iff the name has been defined in the scope.
-	 */
-	public boolean hasName(String name)
-	{
-		return names.containsKey(name);
-	}
-	
-	/**
-	 * Obtains the FormatToken associated with the name defined in the scope.
-	 * @param name
-	 * @return the token, or null if has_name(name) returns false.
-	 */
-	public FormatToken getNameToken(String name)
-	{
-		return names.get(name);
-	}
-	
-	
-	/**
-	 * Tells if the token given is inside this scope.
+	 * Tells if the token given is inside the range of the scope.
+	 * Note that such tokens may not necessary be of the scope.
+	 * They may be of subscopes of the scope.
 	 * @param token
 	 * @return true iff so.
 	 */
-	public boolean isTokenInScope(FormatToken token)
+	public boolean isTokenInScopeRange(FormatToken token)
 	{
 		int t_line = token.line;
 		int t_char_pos = token.actualPos;
@@ -139,4 +103,63 @@ public final class SyntaxScope
 			return true;
 		}
 	}
+
+	/**
+	 * TODO: Add class Line in package ...format.
+	 * 
+	 * Tells if the line is within the range of the scope.
+	 * Note that such tokens may not necessary be of the scope.
+	 * They may be of subscopes of the scope.
+	 * 
+	 * @param TODO: Add the parameter
+	 * @return true iff so.
+	 */
+	public boolean isLineInScopeRange()
+	{
+		throw new RuntimeException("Not implemented.");
+	}
+
+	// Names inside a scope is not important to judging code quality.
+	// Consider the most important things first.
+//		/**
+//		 * All the names defined in this scope.
+//		 */
+//		private final Map<String, FormatToken> names;
+	//	
+//		/**
+//		 * During the building of this.names, call this method to 
+//		 * add a name to the scope.
+//		 * @param name
+//		 * @param token token linked to the name.
+//		 * 
+//		 * @apiNote if the name is already in the scope then the method will fail an assertion.
+//		 */
+//		public void addName(String name, FormatToken token)
+//		{
+//			// During the building of a scope,
+//			// a name should never be defined twice.
+//			assert !hasName(name);
+//			
+//			names.put(name, token);
+//		}
+	//	
+//		/**
+//		 * Tells if the scope has the name defined.
+//		 * @param name
+//		 * @return true iff the name has been defined in the scope.
+//		 */
+//		public boolean hasName(String name)
+//		{
+//			return names.containsKey(name);
+//		}
+	//	
+//		/**
+//		 * Obtains the FormatToken associated with the name defined in the scope.
+//		 * @param name
+//		 * @return the token, or null if has_name(name) returns false.
+//		 */
+//		public FormatToken getNameToken(String name)
+//		{
+//			return names.get(name);
+//		}
 }

@@ -131,7 +131,7 @@ public abstract class FormatToken
 	 */
 	protected abstract float calculateFormatScore(SyntaxContext ctx);
 	
-/////////////////////////// Accessors ///////////////////////////////////
+/////////////////////////// Observers ///////////////////////////////////
 	/**
 	 * @return the number of characters in the token.
 	 */
@@ -174,7 +174,7 @@ public abstract class FormatToken
 ///////////////////////// For tests //////////////////////////////////
 	/**
 	 * @param other
-	 * @return true iff all fields (except the format score) are the same with the fields of other
+	 * @return true iff all fields (except the format score) are equal to the fields of other
 	 */
 	public boolean __test_equals(FormatToken other) {
 		return 
