@@ -123,6 +123,11 @@ public abstract class FormatToken
 		return antlrToken.getTokenIndex();
 	}
 	
+	/**
+	 * @return true iff the token is visible (i.e. not completely blank)
+	 */
+	public abstract boolean isVisible();
+	
 /////////////////////////// Virtual methods ////////////////////////////
 	
 	/**

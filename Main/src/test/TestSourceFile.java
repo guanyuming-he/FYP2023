@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.antlr.v4.runtime.CommonToken;
 import org.junit.jupiter.api.Test;
 
 import edu.guanyfyp.SourceFile;
@@ -17,6 +18,7 @@ import edu.guanyfyp.format.CommentBlock;
 import edu.guanyfyp.format.FormatToken;
 import edu.guanyfyp.format.JavaDocCommentBlock;
 import edu.guanyfyp.format.WsBlock;
+import test.TestUtils.FormatTokenTestProperties;
 
 /**
  * Tests the SourceFile class.
@@ -79,121 +81,6 @@ class TestSourceFile
 		assertEquals(16, s2.get_format_tokens().size());
 	}
 
-/////////////////////////////// FormatToken Testing Helpers ////////////////////////////
-	
-	public static final class FormatTokenTestProperties
-	{
-		public FormatTokenTestProperties
-		(
-			Class<?> type,
-			String characters,
-			int visualPos,
-			int actualPos,
-			int line,
-			int indexInLine
-		)
-		{
-			this.type = type;
-			this.characters = characters;
-			this.visualPos = visualPos;
-			this.actualPos = actualPos;
-			this.line = line;
-			this.indexInLine = indexInLine;
-		}
-		
-		// Type of the format token.
-		final Class<?> type;
-		final String characters;
-		final int visualPos;
-		final int actualPos;
-		final int line;
-		final int indexInLine;
-		
-		/**
-		 * Used to test if the properties of a FormatToken are all expected.
-		 * visualLength and numCharacters are not tested here, because they are calculated from characters.
-		 * And the calculations are tested individually.
-		 * 
-		 * @param t
-		 * @return true iff
-		 * t.getClass() == type &&
-					  this.characters == t.characters() &&
-					  this.visualPos == t.visualPos &&
-					  this.actualPos == t.actualPos() &&
-					  this.line == t.line() &&
-					  this.indexInLine == t.indexInLine;
-		 */
-		public boolean formatTokenEquals
-		(
-			FormatToken t
-		)
-		{
-			return t.getClass() == type &&
-					  this.characters == t.characters() &&
-					  this.visualPos == t.visualPos &&
-					  this.actualPos == t.actualPos() &&
-					  this.line == t.line() &&
-					  this.indexInLine == t.indexInLine;
-		}
-	}
-	
-
-	
-	/**
-	 * Asserts that the tokens in the line are expected.
-	 * @param expected line of expected tokens.
-	 * @param actual line of actual tokens.
-	 */
-	void assertTokenLineEquals
-	(
-		List<FormatTokenTestProperties> expected, List<FormatToken> actual,
-		int line_number // For assertion information only
-	) 
-	{
-		if (expected.size() != actual.size()) {
-			assertTrue
-			(
-				false, 
-				"The lines at " + Integer.toString(line_number) +
-				" contain different number of tokens."
-			);
-		}
-		
-		for (int i = 0; i < expected.size(); ++i) {
-			assertTrue
-			(
-				expected.get(i).formatTokenEquals(actual.get(i))
-			);
-		}
-	}
-	
-	/**
-	 * Convenient method to do this asserting procedural.
-	 * It asserts the two lines of tokens contains exactly the same lines of same tokens.
-	 * @param expected
-	 * @param actual
-	 */
-	void assertTokenLinesEqual
-	(
-		ArrayList<ArrayList<FormatTokenTestProperties>> expected, 
-		List<List<FormatToken>> actual
-	) 
-	{
-		assertEquals
-		(
-			expected.size(), actual.size(), 
-			"The two token lines have different number of lines."
-		);
-		
-		for(int i = 0; i < expected.size(); ++i) {
-			assertTokenLineEquals
-			(
-				expected.get(i), actual.get(i),
-				i+1
-			);
-		}
-	}
-	
 	/**
 	 * Tests if the source file constructor can get each token's information right.
 	 * From a file of minimal tokens.
@@ -209,7 +96,7 @@ class TestSourceFile
 		ArrayList<ArrayList<FormatTokenTestProperties>> expected_tokens = new ArrayList<>();
 		{
 			ArrayList<FormatTokenTestProperties> line1 = new ArrayList<>();
-			line1.add(new  FormatTokenTestProperties(CommentBlock.class, "// ABC", 0, 0, 1, 0));
+			line1.add(new FormatTokenTestProperties(CommentBlock.class, "// ABC", 0, 0, 1, 0));
 			expected_tokens.add(line1);
 		}
 		{
@@ -242,12 +129,13 @@ class TestSourceFile
 			expected_tokens.add(line4);
 		}
 		
-		assertTokenLinesEqual(expected_tokens, s1_tokens);	
+		TestUtils.assertTokenLinesEqual(expected_tokens, s1_tokens);	
 		
 	}
 	
 	/**
-	 * 
+	 * Tests if the source file constructor can get each token's information right.
+	 * From a file of a more complete set of tokens.
 	 */
 	@Test
 	void testCtorTokensComplete()
@@ -411,7 +299,7 @@ class TestSourceFile
 			line20.add(new FormatTokenTestProperties(CodeBlock.class, "SOME_KEY", 32, 32, 20, i++));
 			line20.add(new FormatTokenTestProperties(WsBlock.class, " ", 40, 40, 20, i++));
 			line20.add(new FormatTokenTestProperties(CodeBlock.class, "=", 41, 41, 20, i++));
-			line20.add(new FormatTokenTestProperties(CodeBlock.class, " ", 42, 42, 20, i++));
+			line20.add(new FormatTokenTestProperties(WsBlock.class, " ", 42, 42, 20, i++));
 			
 			ArrayList<FormatTokenTestProperties> line21 = new ArrayList<>();
 			line21.add(new FormatTokenTestProperties(WsBlock.class, "        ", 0, 0, 21, 0));
@@ -567,7 +455,7 @@ class TestSourceFile
 			expected_tokens.add(line40);
 		}
 		
-		assertTokenLinesEqual(expected_tokens, s2_tokens);	
+		TestUtils.assertTokenLinesEqual(expected_tokens, s2_tokens);	
 	}
 	
 	/**
@@ -588,6 +476,30 @@ class TestSourceFile
 		assertTrue(s1.getFormatToken(9, 1) instanceof CommentBlock);
 		assertTrue(s1.getFormatToken(10, 8) instanceof CodeBlock);
 		assertTrue(s1.getFormatToken(16, 0) instanceof CodeBlock);
+	}
+	
+	/**
+	 * Tests the method that returns the number of format tokens
+	 */
+	@Test
+	void testNumFormatTokens()
+	{
+		// The boundary case: 0 format tokens.
+		final String file_path_1 = "test_data/empty_lines1.txt";
+		var s1 = createSourceFileNoError(file_path_1);
+		assertEquals(0, s1.numFormatTokens(), 
+				"Should contain 0 format tokens from an empty file (excluding new lines)");
+		
+		// Other cases
+		final String file_path_2 = "test_data/empty_lines2.txt";
+		var s2 = createSourceFileNoError(file_path_2);
+		// I counted this by hand.
+		assertEquals(39, s2.numFormatTokens());
+		
+		final String file_path_3 = "test_data/no_empty_lines1.txt";
+		var s3 = createSourceFileNoError(file_path_3);
+		// I counted this by hand.
+		assertEquals(18, s3.numFormatTokens());
 	}
 	
 	/**
@@ -699,6 +611,49 @@ class TestSourceFile
 	}
 	
 	/**
+	 * Tests the random access version of getFormatToken(),
+	 * when the tokens exist.
+	 */
+	@Test
+	void testGetFormatTokenRAExists()
+	{
+		// Need a source file with some tokens.
+		final String file_path_1 = "test_data/mixture2.txt";
+		var s1 = createSourceFileNoError(file_path_1);
+		
+		// Boundary cases:
+		// the first token
+		assertEquals
+		(
+			"/**\r\n"
+			+ " * Has a bit of everything,\r\n"
+			+ " * but more declarations and modifiers\r\n"
+			+ " * @author Guanyuming He\r\n"
+			+ " */", 
+			s1.getFormatToken(0).characters()
+		);
+		// the last token
+		assertEquals
+		(
+			"}",
+			s1.getFormatToken(s1.numFormatTokens()-1).characters()
+		);
+		
+		// Other cases:
+		FormatTokenTestProperties tp1 = new FormatTokenTestProperties
+		(
+			WsBlock.class, " ", 7, 7, 7, 1
+		);
+		FormatTokenTestProperties tp2 = new FormatTokenTestProperties
+		(
+			CodeBlock.class, "abstract", 7, 7, 12, 2
+		);
+		
+		assertTrue(tp1.formatTokenEquals(s1.getFormatToken(2)));
+		assertTrue(tp2.formatTokenEquals(s1.getFormatToken(12)));
+	}
+	
+	/**
 	 * Tests if the constructor throws an exception on encountering a syntax error 
 	 */
 	@Test
@@ -727,9 +682,70 @@ class TestSourceFile
 		);
 	}
 	
+	/**
+	 * When a source file does include a format token.
+	 */
 	@Test
-	void testIncludes()
+	void testIncludesTrue()
 	{
-		fail("Not implemented.");
+		// Need a source file with some tokens,
+		// preferably on different lines.
+		
+		final String file_path_1 = "test_data/prev_next_test_exists.txt";
+		var s1 = createSourceFileNoError(file_path_1);
+		
+		// Some tokens in the middle
+		assertTrue(s1.includes(s1.getFormatToken(11, 1)));
+		assertTrue(s1.includes(s1.getFormatToken(13, 2)));
+		
+		// Some boundary cases
+		// first/last token in a line
+		assertTrue(s1.includes(s1.getFormatToken(11, 0)));
+		assertTrue(s1.includes(s1.getFormatToken(17, 4)));
+		// first/last line
+		assertTrue(s1.includes(s1.getFormatToken(1, 0)));
+		assertTrue(s1.includes(s1.getFormatToken(22, 0)));
+	}
+	
+	/**
+	 * When a source file does not include a token
+	 */
+	@Test
+	void testIncludesFalse()
+	{
+		// Need a source file with some tokens.
+		final String file_path_1 = "test_data/prev_next_test_exists.txt";
+		final var s1 = createSourceFileNoError(file_path_1);
+		
+		// Need some other to see if they include each other's
+		// (they should not, even if they are created from the same file.).
+		final var s1_prime = createSourceFileNoError(file_path_1);
+		final String file_path_2 = "test_data/mixture1.txt";
+		final var s2 = createSourceFileNoError(file_path_2);
+		
+		
+		// Boundary cases
+		// null
+		assertFalse(s1.includes(null));
+		assertFalse(s1_prime.includes(null));
+		assertFalse(s2.includes(null));
+		
+		// Other cases:
+		// format tokens from other sfs
+		assertFalse(s1.includes(s1_prime.getFormatToken(0)));
+		assertFalse(s1.includes(s1_prime.getFormatToken(3)));
+		assertFalse(s1_prime.includes(s1.getFormatToken(2)));
+		assertFalse(s1_prime.includes(s1.getFormatToken(4)));
+		assertFalse(s2.includes(s1_prime.getFormatToken(22, 0)));
+		assertFalse(s2.includes(s1_prime.getFormatToken(11, 2)));
+		assertFalse(s1_prime.includes(s2.getFormatToken(9)));
+		assertFalse(s1_prime.includes(s2.getFormatToken(14, 5)));
+		
+		// format tokens created out of nowhere:
+		final var antlrT1 = new CommonToken(0, "shit");
+		final var nowhere1 = new CodeBlock(antlrT1, 0, 0);
+		assertFalse(s1.includes(nowhere1));
+		assertFalse(s1_prime.includes(nowhere1));
+		assertFalse(s2.includes(nowhere1));
 	}
 }

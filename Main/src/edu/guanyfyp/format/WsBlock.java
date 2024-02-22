@@ -107,4 +107,13 @@ public class WsBlock extends FormatToken
 	{
 		throw new RuntimeException("Not implemented.");		
 	}
+	
+	/**
+	 * A whitespace block should always be invisible.
+	 */
+	@Override
+	public boolean isVisible()
+	{
+		return false;
+	}
 }

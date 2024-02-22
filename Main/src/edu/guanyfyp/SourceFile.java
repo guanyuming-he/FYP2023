@@ -270,8 +270,17 @@ public class SourceFile
     
 //////////////////////////// Observers /////////////////////////
     // The tokens can only be accessed through the following methods.
+    
     /**
-     * If in the line there is a token at index.
+     * @return The number of format tokens in the source file.
+     */
+    public int numFormatTokens()
+    {
+    	return formatTokenRandomAccessTable.size();
+    }
+    
+    /**
+     * If the source file has a format token at the given location.
      * @param line line number, starting from 1
      * @param index starting from 0.
      * @return true iff so.
@@ -322,24 +331,31 @@ public class SourceFile
     
     /**
      * Random access to the format tokens
+     * 
      * @param index the index of the token with respect to the whole tokens stream 
      * (starting from 0)
      * @return the token corresponding to the index
+     * @throws ArrayIndexOutOfBoundsException if index is out of bound
      */
     public FormatToken getFormatToken(int index)
     {
+    	if(index < 0 || index >= formatTokenRandomAccessTable.size())
+    	{
+    		throw new ArrayIndexOutOfBoundsException("index is out of range");
+    	}
+    	
     	var pair = formatTokenRandomAccessTable.get(index);
     	return formatTokens.get(pair.a).get(pair.b);
     }
     
     /**
      * Returns the FormatToken that corresponds to the Antlr token
-     * @param token whose token index will be used
+     * @param antlr_token whose token index will be used
      * @return the FormatToken
      */
-    public FormatToken getFormatToken(Token token)
+    public FormatToken getFormatToken(Token antlr_token)
     {
-    	return getFormatToken(token.getTokenIndex());
+    	return getFormatToken(antlr_token.getTokenIndex());
     }
     
     /**
@@ -443,6 +459,11 @@ public class SourceFile
      */
     public boolean includes(FormatToken tk)
     {
+    	if(tk == null)
+    	{
+    		return false;
+    	}
+    	
     	FormatToken t = getFormatToken(tk.line(), tk.indexInLine);
     	
     	// If I have a token at the location.
@@ -453,6 +474,8 @@ public class SourceFile
     	
     	// I have a token at the location.
     	// If they are the same.
+    	// Since a FormatToken cannot be deeply copied,
+    	// from one ANTLR token there can only be one FormatToken.
     	return t == tk;
     }
 }

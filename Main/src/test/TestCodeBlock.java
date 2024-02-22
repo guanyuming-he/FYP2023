@@ -5,6 +5,7 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.antlr.v4.runtime.CommonToken;
 import org.junit.jupiter.api.Test;
 
 import edu.guanyfyp.format.CodeBlock;
@@ -23,7 +24,9 @@ class TestCodeBlock
 	@Test
 	void testSetTypeFromLexerTokenType() 
 	{
-		CodeBlock cb = new CodeBlock("abc", 0, 0, 0, 0);
+		// A CodeBlock requires an ANTLR token to create.
+		var t = new CommonToken(0, "abc");
+		CodeBlock cb = new CodeBlock(t, 0, 0);
 		
 		// Some keywords
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.ABSTRACT);
@@ -91,6 +94,19 @@ class TestCodeBlock
 		assertEquals(CodeBlock.Type.OTHERS, cb.additionalAttr.getType());
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.COLONCOLON);
 		assertEquals(CodeBlock.Type.OTHERS, cb.additionalAttr.getType());
+	}
+	
+	/**
+	 * Visibility test
+	 */
+	@Test
+	void testVisibility()
+	{
+		// Let cb be any code block
+		var t = new CommonToken(0, "abc");
+		CodeBlock cb = new CodeBlock(t, 0, 0);
+		
+		assertTrue(cb.isVisible(), "Every code block should be visible.");
 	}
 
 }

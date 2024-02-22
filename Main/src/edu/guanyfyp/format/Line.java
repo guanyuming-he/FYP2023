@@ -31,6 +31,7 @@ public final class Line
 	 * in the line.
 	 * 
 	 * @throws IllegalArgumentException if only one of first and last is null.
+	 * @throws IllegalArgumentException if either first or last does not come from sf.
 	 * @throws IllegalArgumentException if first and last are not in the same line.
 	 * @throws IllegalArgumentException if first's index in the line is not 0.
 	 * @throws IllegalArgumentException if last's index is not the last in the line.
@@ -58,9 +59,16 @@ public final class Line
 		}
 		
 		// first != null && last != null.
+		
+		if(!sf.includes(first) || !sf.includes(last))
+		{
+			throw new IllegalArgumentException("first and last must come from the given source file.");
+		}
+		
+		// They are from the same sf.
 		// Now the line has some tokens.
 		
-		if(last.line != first.line)
+		if(last.line() != first.line())
 		{
 			throw new IllegalArgumentException("First and last must be in the same line.");
 		}
@@ -71,7 +79,7 @@ public final class Line
 		{
 			throw new IllegalArgumentException("First must be the first token in the line.");
 		}
-		if(sf.hasFormatToken(last.line, last.indexInLine+1))
+		if(sf.hasFormatToken(last.line(), last.indexInLine+1))
 		// If there is some token after last in the line
 		{
 			throw new IllegalArgumentException("Last must be the last token in the line.");

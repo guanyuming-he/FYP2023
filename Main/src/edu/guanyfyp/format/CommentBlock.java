@@ -37,4 +37,13 @@ public class CommentBlock extends FormatToken
 	{
 		throw new RuntimeException("Not implemented.");		
 	}
+	
+	/**
+	 * A comment block should always be visible.
+	 */
+	@Override
+	public boolean isVisible()
+	{
+		return true;
+	}
 }

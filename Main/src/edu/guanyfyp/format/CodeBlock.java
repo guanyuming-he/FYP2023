@@ -66,13 +66,24 @@ public class CodeBlock extends FormatToken
 		this.additionalAttr = additional_attributes;
 	}
 
+//////////////////// Abstract overrides ///////////////////////////////
+	
 	@Override
 	protected float calculateFormatScore(SyntaxContext ctx)
 	{
 		throw new RuntimeException("Not implemented.");		
 	}
 	
-////////////////////Syntax and Semantics Related ///////////////////////////////
+	/**
+	 * A code block should always be visible.
+	 */
+	@Override
+	public boolean isVisible()
+	{
+		return true;
+	}
+	
+//////////////////// Syntax and Semantics Related ///////////////////////////////
 	public enum Type
 	{
 		// Unknown for now.
