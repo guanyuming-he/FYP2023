@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 
 import edu.guanyfyp.syntax.SyntaxContext;
@@ -198,11 +199,15 @@ public final class JavaDocCommentBlock extends CommentBlock
 	 */
 	public JavaDocCommentBlock
 	(
-		String characters, 
-		int visual_pos, int actual_pos, int line, int index_in_line
+		Token antlr_token,
+		int visual_pos,
+		int index_in_line
 	) 
 	{
-		super(characters, visual_pos, actual_pos, line, index_in_line);
+		super
+		(
+			antlr_token, visual_pos, index_in_line
+		);	
 		
 		// Parses the javadoc string
 		{
@@ -218,7 +223,7 @@ public final class JavaDocCommentBlock extends CommentBlock
 			// preparation: main_text can only be assigned once.
 			StringBuilder main_text_builder = new StringBuilder();
 			
-			String lines[] = characters.split("\\r?\\n");			
+			String lines[] = characters().split("\\r?\\n");			
 			
 			// Set to true on encountering the first tag
 			boolean main_desc_ended = false;

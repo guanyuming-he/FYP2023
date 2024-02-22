@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.antlr.v4.runtime.Token;
+
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser.AnnotationContext;
 import edu.guanyfyp.syntax.SyntaxContext;
@@ -29,14 +31,14 @@ public class CodeBlock extends FormatToken
 	 */
 	public CodeBlock
 	(
-		String characters, 
-		int position, int act_pos, 
-		int line, int index_in_line
+		Token antlr_token,
+		int visual_pos,
+		int index_in_line
 	) 
 	{
 		super
 		(
-			characters, position, act_pos, line, index_in_line
+			antlr_token, visual_pos, index_in_line
 		);	
 		this.additionalAttr = new AdditionalAttributes();
 	}
@@ -51,16 +53,16 @@ public class CodeBlock extends FormatToken
 	 */
 	public CodeBlock
 	(
-		String characters, 
-		int position, int act_pos, 
-		int line, int index_in_line,
+		Token antlr_token,
+		int visual_pos,
+		int index_in_line,
 		AdditionalAttributes additional_attributes
 	) 
 	{
 		super
 		(
-			characters, position, act_pos, line, index_in_line
-		);	
+			antlr_token, visual_pos, index_in_line
+		);
 		this.additionalAttr = additional_attributes;
 	}
 

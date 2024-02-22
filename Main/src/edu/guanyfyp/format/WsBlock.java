@@ -5,6 +5,8 @@ package edu.guanyfyp.format;
 
 import javax.management.RuntimeErrorException;
 
+import org.antlr.v4.runtime.Token;
+
 import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
@@ -33,11 +35,15 @@ public class WsBlock extends FormatToken
 		
 	public WsBlock
 	(
-		String characters, 
-		int visual_pos, int actual_pos, int line, int index_in_line
+		Token antlr_token,
+		int visual_pos,
+		int index_in_line
 	) 
 	{
-		super(characters, visual_pos, actual_pos, line, index_in_line);
+		super
+		(
+			antlr_token, visual_pos, index_in_line
+		);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -71,12 +77,12 @@ public class WsBlock extends FormatToken
 	}
 
 	@Override
-	protected int calculateVisualLength() 
+	protected int calculateVisualLength(String str) 
 	{
 		int length = 0;
-		for (int i = 0; i < characters.length(); ++i)
+		for (int i = 0; i < str.length(); ++i)
 		{
-			char c = characters.charAt(i);
+			char c = str.charAt(i);
 			switch(c)
 			{
 			case ' ':

@@ -158,12 +158,9 @@ public class SourceFile
 				switch(t.getChannel())
 				{
 				case DEFAULT_CHANNEL:
-					ft = 
-					new CodeBlock
+					ft = new CodeBlock
 					(
-						t.getText(), // characters
-						visual_pos, t.getCharPositionInLine(), 
-						cur_line, 
+						t, visual_pos, 
 						cur_line_token_number // index of the token in the line
 					);
 					
@@ -176,9 +173,7 @@ public class SourceFile
 					ft = 
 					new WsBlock
 					(
-						t.getText(), // characters
-						visual_pos, t.getCharPositionInLine(), 
-						cur_line, 
+						t, visual_pos, 
 						cur_line_token_number // index of the token in the line
 					);
 					break;	
@@ -187,9 +182,7 @@ public class SourceFile
 					ft =
 					new CommentBlock
 					(
-						t.getText(), // characters
-						visual_pos, t.getCharPositionInLine(), 
-						cur_line, 
+						t, visual_pos, 
 						cur_line_token_number // index of the token in the line
 					);
 					break;	
@@ -198,9 +191,7 @@ public class SourceFile
 					ft =
 					new JavaDocCommentBlock
 					(
-						t.getText(), // characters
-						visual_pos, t.getCharPositionInLine(), 
-						cur_line, 
+						t, visual_pos, 
 						cur_line_token_number // index of the token in the line
 					);
 					break;	
@@ -362,7 +353,7 @@ public class SourceFile
      */
     public FormatToken getPrevFormatToken(FormatToken given)
     {
-    	int line = given.line;
+    	int line = given.line();
     	int index = given.indexInLine - 1;
     	
     	// If the token is the first in the line
@@ -409,7 +400,7 @@ public class SourceFile
      */
     public FormatToken getNextFormatToken(FormatToken given)
     {
-    	int line = given.line;
+    	int line = given.line();
     	int index = given.indexInLine + 1;
     	
     	int line_index = line-1;
@@ -452,7 +443,7 @@ public class SourceFile
      */
     public boolean includes(FormatToken tk)
     {
-    	FormatToken t = getFormatToken(tk.line, tk.indexInLine);
+    	FormatToken t = getFormatToken(tk.line(), tk.indexInLine);
     	
     	// If I have a token at the location.
     	if(null == t)

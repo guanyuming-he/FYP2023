@@ -45,6 +45,11 @@ public abstract class FormatToken
 	// Public as it's immutable.
 	// i.e. the number of characters before the first character of this token in the line
 	public final int visualPos;
+	// How long the FormatToken looks like.
+	public final int visualLength;
+	// The index of the token in the line, 0..n-1
+	public final int indexInLine;
+
 	
 	// Its corresponding ANTLR token.
 	protected final Token antlrToken;
@@ -57,76 +62,80 @@ public abstract class FormatToken
 	
 ////////////////////// Constructors ///////////////////////////
 	/**
-	 * Direct assignment of all fields
+	 * Creates a Format token by providing the corresponding ANTLR
+	 * token and its visual position.
 	 * 
 	 * @param antlr_token The ANTLR token to create it.
 	 * @param visual_pos Its visual position, calculated by its creator.
+	 * @param index_in_line The index of the token in the line, 0..n-1
 	 */
 	FormatToken
 	(
 		Token antlr_token,
-		int visual_pos
+		int visual_pos,
+		int index_in_line
 	)
 	{
 		this.antlrToken = antlr_token;
 		this.visualPos = visual_pos;
-		
-		
-	}
-	
-	/**
-	 * Length is calculated by calling calculate_visual_length().
-	 * All other fields are given.
-	 * @param characters The actual characters of the token in the text.
-	 * @param position The appeared position of the first character in the line.
-	 * @param act_pos The actual position of the first character in the line.
-	 * i.e. the number of characters before the first character of this token in the line
-	 * @param line The number of the line that the token is in.
-	 */
-	FormatToken
-	(
-		String characters, 
-		int visual_pos, int actual_pos,
-		int line, int index_in_line
-	)
-	{
-		this.characters = characters;
-		this.visualPos = visual_pos;
-		this.actualPos = actual_pos;
-		this.line = line;
 		this.indexInLine = index_in_line;
-		this.visualLength = calculateVisualLength();
+		this.visualLength = calculateVisualLength(antlr_token.getText());
 	}
 	
 /////////////////////////// Observers ////////////////////////////
 	/**
 	 * @return the actual characters of this token.
 	 */
-	String characters()
+	public String characters()
 	{
 		return antlrToken.getText();
 	}
+	
+	/**
+	 * @return the number of characters in the token.
+	 */
+	public int getNumCharacters() 
+	{ 
+		return characters().length(); 
+	}
 
 	/**
-	 * 
-	 * @return
+	 * @return The index of the first character of this token relative to the beginning of the line at which it occurs, 0..n-1
 	 */
-	int actualPos()
+	public int actualPos()
 	{
-		throw new RuntimeException("Not implemented.");
+		return antlrToken.getCharPositionInLine();
 	}
 	
+	/**
+	 * @return The index of the line the token is in, 1..n
+	 */
+	public int line()
+	{
+		return antlrToken.getLine();
+	}
+	
+	/**
+	 * @return The index of the token in the whole SourceFile, 0..n-1
+	 */
+	int index()
+	{
+		return antlrToken.getTokenIndex();
+	}
 	
 /////////////////////////// Virtual methods ////////////////////////////
 	
 	/**
-	 * Calculates how long the token should look like in a text editor.
-	 * @implNote The default implementation returns the number of characters
+	 * Calculates how long the token with the characters should look like visually.
+	 * 
+	 * @param str the String that this token has. I use this instead of this.characters()
+	 * because the method may be called inside constructors, where fields used by this.characters() may not be initialized yet.
+	 * @implNote The default implementation returns the number of characters.
 	 * @return the visual lengths calculated
 	 */
-	protected int calculateVisualLength()
+	protected int calculateVisualLength(String str)
 	{
-		return this.getNumCharacters();
+		return str.length();
 	}
 	
 	/**
@@ -135,32 +144,29 @@ public abstract class FormatToken
 	 * @return the format_score calculated.
 	 */
 	protected abstract float calculateFormatScore(SyntaxContext ctx);
-	
-/////////////////////////// Observers ///////////////////////////////////
-	/**
-	 * @return the number of characters in the token.
-	 */
-	public int getNumCharacters() { return characters.length(); }
-	
+		
 ////////////////////////// From Object ///////////////////////////////	
 	@Override
 	public String toString()
 	{
-		return "Token " + characters + "of length " + Integer.toString(visualLength) +
+		return "Token: " + characters() + "\nof length " + Integer.toString(visualLength) +
 				" at " + Integer.toString(visualPos) +
-				", line " + Integer.toString(line);
+				", line " + Integer.toString(line());
 	}
 	
 	/**
-	 * Works if line <= 2^19 and index_in_line < 2^12, which should nearly always be the case
+	 * Works if line <= 2^18 and actualPos() < 2^13, which should nearly always be the case
 	 * for source code to be processed by my system.
 	 */
 	@Override
 	public int hashCode()
 	{
-		return 2^19 * line + indexInLine;
+		return 2^18 * line() + actualPos();
 	}
 	
+	/**
+	 * @return true iff the two has the SAME underlying ANTLR token.
+	 */
 	@Override
 	public boolean equals(Object other)
 	{
@@ -173,22 +179,7 @@ public abstract class FormatToken
 		// There can only be one token at a position.
 		// For different files, I will manage tokens of a single file together
 		// and not let tokens of other files intervene the process.
-		return line == o.line && indexInLine == o.indexInLine;
-	}
-	
-///////////////////////// For tests //////////////////////////////////
-	/**
-	 * @param other
-	 * @return true iff all fields (except the format score) are equal to the fields of other
-	 */
-	public boolean __test_equals(FormatToken other) {
-		return 
-			this.characters.equals(other.characters) &&
-			this.visualPos == other.visualPos &&
-			this.actualPos == other.actualPos &&
-			this.line == other.line &&
-			this.indexInLine == other.indexInLine &&
-			this.visualLength == other.visualLength;
+		return antlrToken == o.antlrToken;
 	}
 }
 

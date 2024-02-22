@@ -79,16 +79,74 @@ class TestSourceFile
 		assertEquals(16, s2.get_format_tokens().size());
 	}
 
-/////////////////////////////// Tokens ////////////////////////////
+/////////////////////////////// FormatToken Testing Helpers ////////////////////////////
+	
+	public static final class FormatTokenTestProperties
+	{
+		public FormatTokenTestProperties
+		(
+			Class<?> type,
+			String characters,
+			int visualPos,
+			int actualPos,
+			int line,
+			int indexInLine
+		)
+		{
+			this.type = type;
+			this.characters = characters;
+			this.visualPos = visualPos;
+			this.actualPos = actualPos;
+			this.line = line;
+			this.indexInLine = indexInLine;
+		}
+		
+		// Type of the format token.
+		final Class<?> type;
+		final String characters;
+		final int visualPos;
+		final int actualPos;
+		final int line;
+		final int indexInLine;
+		
+		/**
+		 * Used to test if the properties of a FormatToken are all expected.
+		 * visualLength and numCharacters are not tested here, because they are calculated from characters.
+		 * And the calculations are tested individually.
+		 * 
+		 * @param t
+		 * @return true iff
+		 * t.getClass() == type &&
+					  this.characters == t.characters() &&
+					  this.visualPos == t.visualPos &&
+					  this.actualPos == t.actualPos() &&
+					  this.line == t.line() &&
+					  this.indexInLine == t.indexInLine;
+		 */
+		public boolean formatTokenEquals
+		(
+			FormatToken t
+		)
+		{
+			return t.getClass() == type &&
+					  this.characters == t.characters() &&
+					  this.visualPos == t.visualPos &&
+					  this.actualPos == t.actualPos() &&
+					  this.line == t.line() &&
+					  this.indexInLine == t.indexInLine;
+		}
+	}
+	
+
 	
 	/**
-	 * Tells if the tokens in the line are expected.
+	 * Asserts that the tokens in the line are expected.
 	 * @param expected line of expected tokens.
 	 * @param actual line of actual tokens.
 	 */
 	void assertTokenLineEquals
 	(
-		List<FormatToken> expected, List<FormatToken> actual,
+		List<FormatTokenTestProperties> expected, List<FormatToken> actual,
 		int line_number // For assertion information only
 	) 
 	{
@@ -104,9 +162,7 @@ class TestSourceFile
 		for (int i = 0; i < expected.size(); ++i) {
 			assertTrue
 			(
-				expected.get(i).__test_equals(actual.get(i)),
-				"Tokens at index " + Integer.toString(i) + " differ," +
-				" in line " + Integer.toString(line_number)
+				expected.get(i).formatTokenEquals(actual.get(i))
 			);
 		}
 	}
@@ -119,7 +175,7 @@ class TestSourceFile
 	 */
 	void assertTokenLinesEqual
 	(
-		ArrayList<ArrayList<FormatToken>> expected, 
+		ArrayList<ArrayList<FormatTokenTestProperties>> expected, 
 		List<List<FormatToken>> actual
 	) 
 	{
@@ -150,39 +206,39 @@ class TestSourceFile
 		var s1 = createSourceFileNoError(file_path_1);
 		
 		var s1_tokens = s1.get_format_tokens();
-		ArrayList<ArrayList<FormatToken>> expected_tokens = new ArrayList<>();
+		ArrayList<ArrayList<FormatTokenTestProperties>> expected_tokens = new ArrayList<>();
 		{
-			ArrayList<FormatToken> line1 = new ArrayList<>();
-			line1.add(new CommentBlock("// ABC", 0, 0, 1, 0));
+			ArrayList<FormatTokenTestProperties> line1 = new ArrayList<>();
+			line1.add(new  FormatTokenTestProperties(CommentBlock.class, "// ABC", 0, 0, 1, 0));
 			expected_tokens.add(line1);
 		}
 		{
-			ArrayList<FormatToken> line2 = new ArrayList<>();
-			line2.add(new CodeBlock("public", 0, 0, 2, 0));
-			line2.add(new WsBlock(" ", 6, 6, 2, 1));
-			line2.add(new CodeBlock("class", 7, 7, 2, 2));
-			line2.add(new WsBlock(" ", 12, 12, 2, 3));
-			line2.add(new CodeBlock("ABC", 13, 13, 2, 4));
-			line2.add(new WsBlock(" ", 16, 16, 2, 5));
-			line2.add(new CodeBlock("{", 17, 17, 2, 6));
+			ArrayList<FormatTokenTestProperties> line2 = new ArrayList<>();
+			line2.add(new FormatTokenTestProperties(CodeBlock.class, "public", 0, 0, 2, 0));
+			line2.add(new FormatTokenTestProperties(WsBlock.class, " ", 6, 6, 2, 1));
+			line2.add(new FormatTokenTestProperties(CodeBlock.class, "class", 7, 7, 2, 2));
+			line2.add(new FormatTokenTestProperties(WsBlock.class, " ", 12, 12, 2, 3));
+			line2.add(new FormatTokenTestProperties(CodeBlock.class, "ABC", 13, 13, 2, 4));
+			line2.add(new FormatTokenTestProperties(WsBlock.class, " ", 16, 16, 2, 5));
+			line2.add(new FormatTokenTestProperties(CodeBlock.class, "{", 17, 17, 2, 6));
 			expected_tokens.add(line2);
 		}
 		{
-			ArrayList<FormatToken> line3 = new ArrayList<>();
-			line3.add(new WsBlock("    ", 0, 0, 3, 0));
-			line3.add(new CodeBlock("int", 4, 4, 3, 1));
-			line3.add(new WsBlock(" ", 7, 7, 3, 2));
-			line3.add(new CodeBlock("abc", 8, 8, 3, 3));
-			line3.add(new WsBlock(" ", 11, 11, 3, 4));
-			line3.add(new CodeBlock("=", 12, 12, 3, 5));
-			line3.add(new WsBlock(" ", 13, 13, 3, 6));
-			line3.add(new CodeBlock("1", 14, 14, 3, 7));
-			line3.add(new CodeBlock(";", 15, 15, 3, 8));
+			ArrayList<FormatTokenTestProperties> line3 = new ArrayList<>();
+			line3.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 3, 0));
+			line3.add(new FormatTokenTestProperties(CodeBlock.class, "int", 4, 4, 3, 1));
+			line3.add(new FormatTokenTestProperties(WsBlock.class, " ", 7, 7, 3, 2));
+			line3.add(new FormatTokenTestProperties(CodeBlock.class, "abc", 8, 8, 3, 3));
+			line3.add(new FormatTokenTestProperties(WsBlock.class, " ", 11, 11, 3, 4));
+			line3.add(new FormatTokenTestProperties(CodeBlock.class, "=", 12, 12, 3, 5));
+			line3.add(new FormatTokenTestProperties(WsBlock.class, " ", 13, 13, 3, 6));
+			line3.add(new FormatTokenTestProperties(CodeBlock.class, "1", 14, 14, 3, 7));
+			line3.add(new FormatTokenTestProperties(CodeBlock.class, ";", 15, 15, 3, 8));
 			expected_tokens.add(line3);
 		}
 		{
-			ArrayList<FormatToken> line4 = new ArrayList<>();
-			line4.add(new CodeBlock("}", 0, 0, 4, 0));
+			ArrayList<FormatTokenTestProperties> line4 = new ArrayList<>();
+			line4.add(new FormatTokenTestProperties(CodeBlock.class, "}", 0, 0, 4, 0));
 			expected_tokens.add(line4);
 		}
 		
@@ -201,12 +257,13 @@ class TestSourceFile
 		var s2 = createSourceFileNoError(file_path_2);
 		
 		var s2_tokens = s2.get_format_tokens();
-		ArrayList<ArrayList<FormatToken>> expected_tokens = new ArrayList<>();
+		ArrayList<ArrayList<FormatTokenTestProperties>> expected_tokens = new ArrayList<>();
 		{
-			ArrayList<FormatToken> line1 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line1 = new ArrayList<>();
 			line1.add
-			(new JavaDocCommentBlock
+			(new FormatTokenTestProperties
 				(
+					JavaDocCommentBlock.class,
 					"/**\r\n"
 					+ " * Has a bit of everything.\r\n"
 					+ " * @author Guanyuming He\r\n"
@@ -216,10 +273,10 @@ class TestSourceFile
 			);
 			// Empty lines. 2--4 are resulted by the multi-line comment.
 			// 5 is just an empty line.
-			ArrayList<FormatToken> line2 = new ArrayList<>();
-			ArrayList<FormatToken> line3 = new ArrayList<>();
-			ArrayList<FormatToken> line4 = new ArrayList<>();
-			ArrayList<FormatToken> line5 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line2 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line3 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line4 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line5 = new ArrayList<>();
 			
 			expected_tokens.add(line1);
 			expected_tokens.add(line2);
@@ -229,41 +286,41 @@ class TestSourceFile
 		}
 		{
 			int i = 0;
-			ArrayList<FormatToken> line6 = new ArrayList<>();
-			line6.add(new CodeBlock("package", 0, 0, 6, i++));
-			line6.add(new WsBlock(" ", 7, 7, 6, i++));
-			line6.add(new CodeBlock("edu", 8, 8, 6, i++));
-			line6.add(new CodeBlock(".", 11, 11, 6, i++));
-			line6.add(new CodeBlock("xjtlu", 12, 12, 6, i++));
-			line6.add(new CodeBlock(".", 17, 17, 6, i++));
-			line6.add(new CodeBlock("guany", 18, 18, 6, i++));
-			line6.add(new CodeBlock(";", 23, 23, 6, i++));
+			ArrayList<FormatTokenTestProperties> line6 = new ArrayList<>();
+			line6.add(new FormatTokenTestProperties(CodeBlock.class, "package", 0, 0, 6, i++));
+			line6.add(new FormatTokenTestProperties(WsBlock.class, " ", 7, 7, 6, i++));
+			line6.add(new FormatTokenTestProperties(CodeBlock.class, "edu", 8, 8, 6, i++));
+			line6.add(new FormatTokenTestProperties(CodeBlock.class, ".", 11, 11, 6, i++));
+			line6.add(new FormatTokenTestProperties(CodeBlock.class, "xjtlu", 12, 12, 6, i++));
+			line6.add(new FormatTokenTestProperties(CodeBlock.class, ".", 17, 17, 6, i++));
+			line6.add(new FormatTokenTestProperties(CodeBlock.class, "guany", 18, 18, 6, i++));
+			line6.add(new FormatTokenTestProperties(CodeBlock.class, ";", 23, 23, 6, i++));
 			
-			ArrayList<FormatToken> line7 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line7 = new ArrayList<>();
 			
-			ArrayList<FormatToken> line8 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line8 = new ArrayList<>();
 			i = 0;
-			line8.add(new CodeBlock("import", 0, 0, 8, i++));
-			line8.add(new WsBlock(" ", 6, 6, 8, i++));
-			line8.add(new CodeBlock("java", 7, 7, 8, i++));
-			line8.add(new CodeBlock(".", 11, 11, 8, i++));
-			line8.add(new CodeBlock("io", 12, 12, 8, i++));
-			line8.add(new CodeBlock(".", 14, 14, 8, i++));
-			line8.add(new CodeBlock("IOException", 15, 15, 8, i++));
-			line8.add(new CodeBlock(";", 26, 26, 8, i++));
+			line8.add(new FormatTokenTestProperties(CodeBlock.class, "import", 0, 0, 8, i++));
+			line8.add(new FormatTokenTestProperties(WsBlock.class, " ", 6, 6, 8, i++));
+			line8.add(new FormatTokenTestProperties(CodeBlock.class, "java", 7, 7, 8, i++));
+			line8.add(new FormatTokenTestProperties(CodeBlock.class, ".", 11, 11, 8, i++));
+			line8.add(new FormatTokenTestProperties(CodeBlock.class, "io", 12, 12, 8, i++));
+			line8.add(new FormatTokenTestProperties(CodeBlock.class, ".", 14, 14, 8, i++));
+			line8.add(new FormatTokenTestProperties(CodeBlock.class, "IOException", 15, 15, 8, i++));
+			line8.add(new FormatTokenTestProperties(CodeBlock.class, ";", 26, 26, 8, i++));
 			
-			ArrayList<FormatToken> line9 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line9 = new ArrayList<>();
 			i = 0;
-			line9.add(new CodeBlock("import", 0, 0, 9, i++));
-			line9.add(new WsBlock(" ", 6, 6, 9, i++));
-			line9.add(new CodeBlock("java", 7, 7, 9, i++));
-			line9.add(new CodeBlock(".", 11, 11, 9, i++));
-			line9.add(new CodeBlock("util", 12, 12, 9, i++));
-			line9.add(new CodeBlock(".", 16, 16, 9, i++));
-			line9.add(new CodeBlock("List", 17, 17, 9, i++));
-			line9.add(new CodeBlock(";", 21, 21, 9, i++));
+			line9.add(new FormatTokenTestProperties(CodeBlock.class, "import", 0, 0, 9, i++));
+			line9.add(new FormatTokenTestProperties(WsBlock.class, " ", 6, 6, 9, i++));
+			line9.add(new FormatTokenTestProperties(CodeBlock.class, "java", 7, 7, 9, i++));
+			line9.add(new FormatTokenTestProperties(CodeBlock.class, ".", 11, 11, 9, i++));
+			line9.add(new FormatTokenTestProperties(CodeBlock.class, "util", 12, 12, 9, i++));
+			line9.add(new FormatTokenTestProperties(CodeBlock.class, ".", 16, 16, 9, i++));
+			line9.add(new FormatTokenTestProperties(CodeBlock.class, "List", 17, 17, 9, i++));
+			line9.add(new FormatTokenTestProperties(CodeBlock.class, ";", 21, 21, 9, i++));
 			
-			ArrayList<FormatToken> line10 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line10 = new ArrayList<>();
 			
 			expected_tokens.add(line6);
 			expected_tokens.add(line7);
@@ -272,10 +329,10 @@ class TestSourceFile
 			expected_tokens.add(line10);	
 		}
 		{
-			ArrayList<FormatToken> line11 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line11 = new ArrayList<>();
 			line11.add
-			(new JavaDocCommentBlock
-				(
+			(new FormatTokenTestProperties
+					(JavaDocCommentBlock.class,
 					"/**\r\n"
 					+ " * Some comments for the class.\r\n"
 					+ " */", 
@@ -283,94 +340,94 @@ class TestSourceFile
 				)
 			);
 			// Empty lines that are resulted by the multi-line comment.
-			ArrayList<FormatToken> line12 = new ArrayList<>();
-			ArrayList<FormatToken> line13 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line12 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line13 = new ArrayList<>();
 			
 			expected_tokens.add(line11);
 			expected_tokens.add(line12);
 			expected_tokens.add(line13);
 		}
 		{
-			ArrayList<FormatToken> line14 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line14 = new ArrayList<>();
 			int i = 0;
-			line14.add(new CodeBlock("public", 0, 0, 14, i++));
-			line14.add(new WsBlock(" ", 6, 6, 14, i++));
-			line14.add(new CodeBlock("class", 7, 7, 14, i++));
-			line14.add(new WsBlock(" ", 12, 12, 14, i++));
-			line14.add(new CodeBlock("MixtureClass", 13, 13, 14, i++));
-			line14.add(new WsBlock(" ", 25, 25, 14, i++));
-			line14.add(new CodeBlock("extends", 26, 26, 14, i++));
-			line14.add(new WsBlock(" ", 33, 33, 14, i++));
-			line14.add(new CodeBlock("ABC", 34, 34, 14, i++));
-			line14.add(new WsBlock(" ", 37, 37, 14, i++));
+			line14.add(new FormatTokenTestProperties(CodeBlock.class, "public", 0, 0, 14, i++));
+			line14.add(new FormatTokenTestProperties(WsBlock.class, " ", 6, 6, 14, i++));
+			line14.add(new FormatTokenTestProperties(CodeBlock.class, "class", 7, 7, 14, i++));
+			line14.add(new FormatTokenTestProperties(WsBlock.class, " ", 12, 12, 14, i++));
+			line14.add(new FormatTokenTestProperties(CodeBlock.class, "MixtureClass", 13, 13, 14, i++));
+			line14.add(new FormatTokenTestProperties(WsBlock.class, " ", 25, 25, 14, i++));
+			line14.add(new FormatTokenTestProperties(CodeBlock.class, "extends", 26, 26, 14, i++));
+			line14.add(new FormatTokenTestProperties(WsBlock.class, " ", 33, 33, 14, i++));
+			line14.add(new FormatTokenTestProperties(CodeBlock.class, "ABC", 34, 34, 14, i++));
+			line14.add(new FormatTokenTestProperties(WsBlock.class, " ", 37, 37, 14, i++));
 			
-			ArrayList<FormatToken> line15 = new ArrayList<>();
-			line15.add(new CodeBlock("{", 0, 0, 15, 0));
+			ArrayList<FormatTokenTestProperties> line15 = new ArrayList<>();
+			line15.add(new FormatTokenTestProperties(CodeBlock.class, "{", 0, 0, 15, 0));
 			// Note that here I deliberately put a tab in the empty line.
-			ArrayList<FormatToken> line16 = new ArrayList<>();
-			line16.add(new WsBlock("\t", 0, 0, 16, 0));
+			ArrayList<FormatTokenTestProperties> line16 = new ArrayList<>();
+			line16.add(new FormatTokenTestProperties(WsBlock.class, "\t", 0, 0, 16, 0));
 			
 			expected_tokens.add(line14);
 			expected_tokens.add(line15);
 			expected_tokens.add(line16);
 		}
 		{
-			ArrayList<FormatToken> line17 = new ArrayList<>();
-			line17.add(new WsBlock("\t", 0, 0, 17, 0));
-			line17.add(new CommentBlock("// A field", 4, 1, 17, 1));
+			ArrayList<FormatTokenTestProperties> line17 = new ArrayList<>();
+			line17.add(new FormatTokenTestProperties(WsBlock.class, "\t", 0, 0, 17, 0));
+			line17.add(new FormatTokenTestProperties(CommentBlock.class, "// A field", 4, 1, 17, 1));
 			
-			ArrayList<FormatToken> line18 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line18 = new ArrayList<>();
 			int i = 0;
-			line18.add(new WsBlock("    ", 0, 0, 18, i++));
-			line18.add(new CodeBlock("public", 4, 4, 18, i++));
-			line18.add(new WsBlock(" ", 10, 10, 18, i++));
-			line18.add(new CodeBlock("final", 11, 11, 18, i++));
-			line18.add(new WsBlock(" ", 16, 16, 18, i++));
-			line18.add(new CodeBlock("int", 17, 17, 18, i++));
-			line18.add(new WsBlock(" ", 20, 20, 18, i++));
-			line18.add(new CodeBlock("m", 21, 21, 18, i++));
-			line18.add(new WsBlock(" ", 22, 22, 18, i++));
-			line18.add(new CodeBlock("=", 23, 23, 18, i++));
-			line18.add(new WsBlock(" ", 24, 24, 18, i++));
-			line18.add(new CodeBlock("0", 25, 25, 18, i++));
-			line18.add(new CodeBlock(";", 26, 26, 18, i++));
+			line18.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 18, i++));
+			line18.add(new FormatTokenTestProperties(CodeBlock.class, "public", 4, 4, 18, i++));
+			line18.add(new FormatTokenTestProperties(WsBlock.class, " ", 10, 10, 18, i++));
+			line18.add(new FormatTokenTestProperties(CodeBlock.class, "final", 11, 11, 18, i++));
+			line18.add(new FormatTokenTestProperties(WsBlock.class, " ", 16, 16, 18, i++));
+			line18.add(new FormatTokenTestProperties(CodeBlock.class, "int", 17, 17, 18, i++));
+			line18.add(new FormatTokenTestProperties(WsBlock.class, " ", 20, 20, 18, i++));
+			line18.add(new FormatTokenTestProperties(CodeBlock.class, "m", 21, 21, 18, i++));
+			line18.add(new FormatTokenTestProperties(WsBlock.class, " ", 22, 22, 18, i++));
+			line18.add(new FormatTokenTestProperties(CodeBlock.class, "=", 23, 23, 18, i++));
+			line18.add(new FormatTokenTestProperties(WsBlock.class, " ", 24, 24, 18, i++));
+			line18.add(new FormatTokenTestProperties(CodeBlock.class, "0", 25, 25, 18, i++));
+			line18.add(new FormatTokenTestProperties(CodeBlock.class, ";", 26, 26, 18, i++));
 			
-			ArrayList<FormatToken> line19 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line19 = new ArrayList<>();
 			i = 0;
-			line19.add(new WsBlock("    ", 0, 0, 19, i++));
-			line19.add(new CommentBlock("/* Some key */", 4, 4, 19, i++));
+			line19.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 19, i++));
+			line19.add(new FormatTokenTestProperties(CommentBlock.class, "/* Some key */", 4, 4, 19, i++));
 				
-			ArrayList<FormatToken> line20 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line20 = new ArrayList<>();
 			i = 0;
-			line20.add(new WsBlock("    ", 0, 0, 20, i++));
-			line20.add(new CodeBlock("private", 4, 4, 20, i++));
-			line20.add(new WsBlock(" ", 11, 11, 20, i++));
-			line20.add(new CodeBlock("static", 12, 12, 20, i++));
-			line20.add(new WsBlock(" ", 18, 18, 20, i++));
-			line20.add(new CodeBlock("final", 19, 19, 20, i++));
-			line20.add(new WsBlock(" ", 24, 24, 20, i++));
-			line20.add(new CodeBlock("String", 25, 25, 20, i++));
-			line20.add(new WsBlock(" ", 31, 31, 20, i++));
-			line20.add(new CodeBlock("SOME_KEY", 32, 32, 20, i++));
-			line20.add(new WsBlock(" ", 40, 40, 20, i++));
-			line20.add(new CodeBlock("=", 41, 41, 20, i++));
-			line20.add(new CodeBlock(" ", 42, 42, 20, i++));
+			line20.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 20, i++));
+			line20.add(new FormatTokenTestProperties(CodeBlock.class, "private", 4, 4, 20, i++));
+			line20.add(new FormatTokenTestProperties(WsBlock.class, " ", 11, 11, 20, i++));
+			line20.add(new FormatTokenTestProperties(CodeBlock.class, "static", 12, 12, 20, i++));
+			line20.add(new FormatTokenTestProperties(WsBlock.class, " ", 18, 18, 20, i++));
+			line20.add(new FormatTokenTestProperties(CodeBlock.class, "final", 19, 19, 20, i++));
+			line20.add(new FormatTokenTestProperties(WsBlock.class, " ", 24, 24, 20, i++));
+			line20.add(new FormatTokenTestProperties(CodeBlock.class, "String", 25, 25, 20, i++));
+			line20.add(new FormatTokenTestProperties(WsBlock.class, " ", 31, 31, 20, i++));
+			line20.add(new FormatTokenTestProperties(CodeBlock.class, "SOME_KEY", 32, 32, 20, i++));
+			line20.add(new FormatTokenTestProperties(WsBlock.class, " ", 40, 40, 20, i++));
+			line20.add(new FormatTokenTestProperties(CodeBlock.class, "=", 41, 41, 20, i++));
+			line20.add(new FormatTokenTestProperties(CodeBlock.class, " ", 42, 42, 20, i++));
 			
-			ArrayList<FormatToken> line21 = new ArrayList<>();
-			line21.add(new WsBlock("        ", 0, 0, 21, 0));
-			line21.add(new CodeBlock("\"I know this isn\\'t a key. \\n\"", 8, 8, 21, 1));
+			ArrayList<FormatTokenTestProperties> line21 = new ArrayList<>();
+			line21.add(new FormatTokenTestProperties(WsBlock.class, "        ", 0, 0, 21, 0));
+			line21.add(new FormatTokenTestProperties(CodeBlock.class, "\"I know this isn\\'t a key. \\n\"", 8, 8, 21, 1));
 			
-			ArrayList<FormatToken> line22 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line22 = new ArrayList<>();
 			i = 0;
-			line22.add(new WsBlock("\t    ", 0, 0, 22, i++));
-			line22.add(new CodeBlock("+", 8, 5, 22, i++));
-			line22.add(new WsBlock(" ", 9, 6, 22, i++));
-			line22.add(new CodeBlock("\"It is just a test string.\"", 10, 7, 22, i++));
-			line22.add(new CodeBlock(";", 37, 34, 22, i++));
+			line22.add(new FormatTokenTestProperties(WsBlock.class, "\t    ", 0, 0, 22, i++));
+			line22.add(new FormatTokenTestProperties(CodeBlock.class, "+", 8, 5, 22, i++));
+			line22.add(new FormatTokenTestProperties(WsBlock.class, " ", 9, 6, 22, i++));
+			line22.add(new FormatTokenTestProperties(CodeBlock.class, "\"It is just a test string.\"", 10, 7, 22, i++));
+			line22.add(new FormatTokenTestProperties(CodeBlock.class, ";", 37, 34, 22, i++));
 			
-			ArrayList<FormatToken> line23 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line23 = new ArrayList<>();
 			// I deliberately put the spaces in the line.
-			line23.add(new WsBlock("    ", 0, 0, 23, 0));
+			line23.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 23, 0));
 			
 			expected_tokens.add(line17);
 			expected_tokens.add(line18);
@@ -381,23 +438,23 @@ class TestSourceFile
 			expected_tokens.add(line23);
 		}		
 		{
-			ArrayList<FormatToken> line24 = new ArrayList<>();
-			line24.add(new CommentBlock("////////////////////// Methods ///////////////////////", 0, 0, 24, 0));
+			ArrayList<FormatTokenTestProperties> line24 = new ArrayList<>();
+			line24.add(new FormatTokenTestProperties(CommentBlock.class, "////////////////////// Methods ///////////////////////", 0, 0, 24, 0));
 			
-			ArrayList<FormatToken> line25 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line25 = new ArrayList<>();
 			
-			ArrayList<FormatToken> line26 = new ArrayList<>();
-			line26.add(new WsBlock("    ", 0, 0, 26, 0));
-			line26.add(new JavaDocCommentBlock("/**\r\n"
+			ArrayList<FormatTokenTestProperties> line26 = new ArrayList<>();
+			line26.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 26, 0));
+			line26.add(new FormatTokenTestProperties(JavaDocCommentBlock.class, "/**\r\n"
 					+ "     * Some method\r\n"
 					+ "     * @param param\r\n"
 					+ "     * @return something\r\n"
 					+ "     */", 4, 4, 26, 1));
 			
-			ArrayList<FormatToken> line27 = new ArrayList<>();
-			ArrayList<FormatToken> line28 = new ArrayList<>();
-			ArrayList<FormatToken> line29 = new ArrayList<>();
-			ArrayList<FormatToken> line30 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line27 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line28 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line29 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line30 = new ArrayList<>();
 			
 			expected_tokens.add(line24);
 			expected_tokens.add(line25);
@@ -408,95 +465,95 @@ class TestSourceFile
 			expected_tokens.add(line30);
 		}
 		{
-			ArrayList<FormatToken> line31 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line31 = new ArrayList<>();
 			int i = 0;
-			line31.add(new WsBlock("    ", 0, 0, 31, i++));
-			line31.add(new CodeBlock("protected", 4, 4, 31, i++));
-			line31.add(new WsBlock(" ", 13, 13, 31, i++));
-			line31.add(new CodeBlock("boolean", 14, 14, 31, i++));
-			line31.add(new WsBlock(" ", 21, 21, 31, i++));
-			line31.add(new CodeBlock("someMethod", 22, 22, 31, i++));
-			line31.add(new CodeBlock("(", 32, 32, 31, i++));
-			line31.add(new CodeBlock("List", 33, 33, 31, i++));
-			line31.add(new CodeBlock("<", 37, 37, 31, i++));
-			line31.add(new CodeBlock("Integer", 38, 38, 31, i++));
-			line31.add(new CodeBlock(">", 45, 45, 31, i++));
-			line31.add(new WsBlock(" ", 46, 46, 31, i++));
-			line31.add(new CodeBlock("list", 47, 47, 31, i++));
-			line31.add(new CodeBlock(")", 51, 51, 31, i++));
+			line31.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "protected", 4, 4, 31, i++));
+			line31.add(new FormatTokenTestProperties(WsBlock.class, " ", 13, 13, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "boolean", 14, 14, 31, i++));
+			line31.add(new FormatTokenTestProperties(WsBlock.class, " ", 21, 21, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "someMethod", 22, 22, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "(", 32, 32, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "List", 33, 33, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "<", 37, 37, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "Integer", 38, 38, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, ">", 45, 45, 31, i++));
+			line31.add(new FormatTokenTestProperties(WsBlock.class, " ", 46, 46, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, "list", 47, 47, 31, i++));
+			line31.add(new FormatTokenTestProperties(CodeBlock.class, ")", 51, 51, 31, i++));
 			
-			ArrayList<FormatToken> line32 = new ArrayList<>();
-			line32.add(new WsBlock("    ", 0, 0, 32, 0));
-			line32.add(new CodeBlock("{", 4, 4, 32, 1));
+			ArrayList<FormatTokenTestProperties> line32 = new ArrayList<>();
+			line32.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 32, 0));
+			line32.add(new FormatTokenTestProperties(CodeBlock.class, "{", 4, 4, 32, 1));
 			
-			ArrayList<FormatToken> line33 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line33 = new ArrayList<>();
 			i = 0;
-			line33.add(new WsBlock("    	", 0, 0, 33, i++));
-			line33.add(new CodeBlock("for", 8, 5, 33, i++));
-			line33.add(new CodeBlock("(", 11, 8, 33, i++));
-			line33.add(new CodeBlock("int", 12, 9, 33, i++));
-			line33.add(new WsBlock(" ", 15, 12, 33, i++));
-			line33.add(new CodeBlock("i", 16, 13, 33, i++));
-			line33.add(new WsBlock(" ", 17, 14, 33, i++));
-			line33.add(new CodeBlock("=", 18, 15, 33, i++));
-			line33.add(new WsBlock(" ", 19, 16, 33, i++));
-			line33.add(new CodeBlock("0", 20, 17, 33, i++));
-			line33.add(new CodeBlock(";", 21, 18, 33, i++));
-			line33.add(new WsBlock(" ", 22, 19, 33, i++));
-			line33.add(new CodeBlock("i", 23, 20, 33, i++));
-			line33.add(new WsBlock(" ", 24, 21, 33, i++));
-			line33.add(new CodeBlock("<", 25, 22, 33, i++));
-			line33.add(new WsBlock(" ", 26, 23, 33, i++));
-			line33.add(new CodeBlock("list", 27, 24, 33, i++));
-			line33.add(new CodeBlock(".", 31, 28, 33, i++));
-			line33.add(new CodeBlock("size", 32, 29, 33, i++));
-			line33.add(new CodeBlock("(", 36, 33, 33, i++));
-			line33.add(new CodeBlock(")", 37, 34, 33, i++));
-			line33.add(new CodeBlock(";", 38, 35, 33, i++));
-			line33.add(new WsBlock(" ", 39, 36, 33, i++));
-			line33.add(new CodeBlock("++", 40, 37, 33, i++));
-			line33.add(new CodeBlock("i", 42, 39, 33, i++));
-			line33.add(new CodeBlock(")", 43, 40, 33, i++));
-			line33.add(new WsBlock(" ", 44, 41, 33, i++));
-			line33.add(new CodeBlock("{", 45, 42, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, "    	", 0, 0, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "for", 8, 5, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "(", 11, 8, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "int", 12, 9, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 15, 12, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "i", 16, 13, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 17, 14, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "=", 18, 15, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 19, 16, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "0", 20, 17, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, ";", 21, 18, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 22, 19, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "i", 23, 20, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 24, 21, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "<", 25, 22, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 26, 23, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "list", 27, 24, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, ".", 31, 28, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "size", 32, 29, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "(", 36, 33, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, ")", 37, 34, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, ";", 38, 35, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 39, 36, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "++", 40, 37, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "i", 42, 39, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, ")", 43, 40, 33, i++));
+			line33.add(new FormatTokenTestProperties(WsBlock.class, " ", 44, 41, 33, i++));
+			line33.add(new FormatTokenTestProperties(CodeBlock.class, "{", 45, 42, 33, i++));
 			
-			ArrayList<FormatToken> line34 = new ArrayList<>();
-			line34.add(new WsBlock("        ", 0, 0, 34, 0));
-			line34.add(new CommentBlock("// Do something", 8, 8, 34, 1));
+			ArrayList<FormatTokenTestProperties> line34 = new ArrayList<>();
+			line34.add(new FormatTokenTestProperties(WsBlock.class, "        ", 0, 0, 34, 0));
+			line34.add(new FormatTokenTestProperties(CommentBlock.class, "// Do something", 8, 8, 34, 1));
 		
-			ArrayList<FormatToken> line35 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line35 = new ArrayList<>();
 			i = 0;
-			line35.add(new WsBlock("        	", 0, 0, 35, i++));
-			line35.add(new CodeBlock("int", 12, 9, 35, i++));
-			line35.add(new WsBlock(" ", 15, 12, 35, i++));
-			line35.add(new CodeBlock("a", 16, 13, 35, i++));
-			line35.add(new WsBlock(" ", 17, 14, 35, i++));
-			line35.add(new CommentBlock("/* ... */", 18, 15, 35, i++));
-			line35.add(new WsBlock(" ", 27, 24, 35, i++));
-			line35.add(new CodeBlock("=", 28, 25, 35, i++));
-			line35.add(new WsBlock(" ", 29, 26, 35, i++));
-			line35.add(new CodeBlock("3", 30, 27, 35, i++));
-			line35.add(new CodeBlock(";", 31, 28, 35, i++));
+			line35.add(new FormatTokenTestProperties(WsBlock.class, "        	", 0, 0, 35, i++));
+			line35.add(new FormatTokenTestProperties(CodeBlock.class, "int", 12, 9, 35, i++));
+			line35.add(new FormatTokenTestProperties(WsBlock.class, " ", 15, 12, 35, i++));
+			line35.add(new FormatTokenTestProperties(CodeBlock.class, "a", 16, 13, 35, i++));
+			line35.add(new FormatTokenTestProperties(WsBlock.class, " ", 17, 14, 35, i++));
+			line35.add(new FormatTokenTestProperties(CommentBlock.class, "/* ... */", 18, 15, 35, i++));
+			line35.add(new FormatTokenTestProperties(WsBlock.class, " ", 27, 24, 35, i++));
+			line35.add(new FormatTokenTestProperties(CodeBlock.class, "=", 28, 25, 35, i++));
+			line35.add(new FormatTokenTestProperties(WsBlock.class, " ", 29, 26, 35, i++));
+			line35.add(new FormatTokenTestProperties(CodeBlock.class, "3", 30, 27, 35, i++));
+			line35.add(new FormatTokenTestProperties(CodeBlock.class, ";", 31, 28, 35, i++));
 			
-			ArrayList<FormatToken> line36 = new ArrayList<>();
-			line36.add(new WsBlock("        ", 0, 0, 36, 0));
-			line36.add(new CodeBlock("}", 8, 8, 36, 1));
+			ArrayList<FormatTokenTestProperties> line36 = new ArrayList<>();
+			line36.add(new FormatTokenTestProperties(WsBlock.class, "        ", 0, 0, 36, 0));
+			line36.add(new FormatTokenTestProperties(CodeBlock.class, "}", 8, 8, 36, 1));
 			
-			ArrayList<FormatToken> line37 = new ArrayList<>();
+			ArrayList<FormatTokenTestProperties> line37 = new ArrayList<>();
 			
-			ArrayList<FormatToken> line38 = new ArrayList<>();
-			line38.add(new WsBlock("        ", 0, 0, 38, 0));
-			line38.add(new CodeBlock("return", 8, 8, 38, 1));
-			line38.add(new WsBlock(" ", 14, 14, 38, 2));
-			line38.add(new CodeBlock("true", 15, 15, 38, 3));
-			line38.add(new CodeBlock(";", 19, 19, 38, 4));
+			ArrayList<FormatTokenTestProperties> line38 = new ArrayList<>();
+			line38.add(new FormatTokenTestProperties(WsBlock.class, "        ", 0, 0, 38, 0));
+			line38.add(new FormatTokenTestProperties(CodeBlock.class, "return", 8, 8, 38, 1));
+			line38.add(new FormatTokenTestProperties(WsBlock.class, " ", 14, 14, 38, 2));
+			line38.add(new FormatTokenTestProperties(CodeBlock.class, "true", 15, 15, 38, 3));
+			line38.add(new FormatTokenTestProperties(CodeBlock.class, ";", 19, 19, 38, 4));
 			
-			ArrayList<FormatToken> line39 = new ArrayList<>();
-			line39.add(new WsBlock("    ", 0, 0, 39, 0));
-			line39.add(new CodeBlock("}", 4, 4, 39, 1));
+			ArrayList<FormatTokenTestProperties> line39 = new ArrayList<>();
+			line39.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 39, 0));
+			line39.add(new FormatTokenTestProperties(CodeBlock.class, "}", 4, 4, 39, 1));
 			
-			ArrayList<FormatToken> line40 = new ArrayList<>();
-			line40.add(new CodeBlock("}", 0, 0, 40, 0));
+			ArrayList<FormatTokenTestProperties> line40 = new ArrayList<>();
+			line40.add(new FormatTokenTestProperties(CodeBlock.class, "}", 0, 0, 40, 0));
 			
 			expected_tokens.add(line31);
 			expected_tokens.add(line32);
@@ -547,21 +604,21 @@ class TestSourceFile
 		assertEquals
 		(
 			"public",
-			s1.getPrevFormatToken(s1.getFormatToken(11, 1)).characters
+			s1.getPrevFormatToken(s1.getFormatToken(11, 1)).characters()
 		);
 		
 		// When there is some in the previous line
 		assertEquals
 		(
 			"// ...",
-			s1.getPrevFormatToken(s1.getFormatToken(13, 0)).characters
+			s1.getPrevFormatToken(s1.getFormatToken(13, 0)).characters()
 		);
 		
 		// When there is some in a not immediately previous line.
 		assertEquals
 		(
 			"// Exists",
-			s1.getPrevFormatToken(s1.getFormatToken(4, 0)).characters
+			s1.getPrevFormatToken(s1.getFormatToken(4, 0)).characters()
 		);
 	}
 	
@@ -601,21 +658,21 @@ class TestSourceFile
 		assertEquals
 		(
 			"class",
-			s1.getNextFormatToken(s1.getFormatToken(11, 1)).characters
+			s1.getNextFormatToken(s1.getFormatToken(11, 1)).characters()
 		);
 		
 		// When there is some in the previous line
 		assertEquals
 		(
 			"}",
-			s1.getNextFormatToken(s1.getFormatToken(18, 1)).characters
+			s1.getNextFormatToken(s1.getFormatToken(18, 1)).characters()
 		);
 		
 		// When there is some in a not immediately previous line.
 		assertEquals
 		(
 			"// Exists.",
-			s1.getNextFormatToken(s1.getFormatToken(19, 0)).characters
+			s1.getNextFormatToken(s1.getFormatToken(19, 0)).characters()
 		);
 	}
 	

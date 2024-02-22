@@ -3,6 +3,8 @@
  */
 package edu.guanyfyp.format;
 
+import org.antlr.v4.runtime.Token;
+
 import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
@@ -19,11 +21,15 @@ public class CommentBlock extends FormatToken
 	 */
 	public CommentBlock
 	(
-		String characters, 
-		int visual_pos, int actual_pos, int line, int index_in_line
+		Token antlr_token,
+		int visual_pos,
+		int index_in_line
 	)
 	{
-		super(characters, visual_pos, actual_pos, line, index_in_line);
+		super
+		(
+			antlr_token, visual_pos, index_in_line
+		);	
 	}
 
 	@Override
