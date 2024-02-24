@@ -27,24 +27,6 @@ class TestSourceFile
 {
 	
 /////////////////////////////// Lines ////////////////////////////
-	
-	/**
-	 * Creates a new SourceFile, but calls JUnit's fail()
-	 * if the creation fails.
-	 * @return the SourceFile created, or null if the creation fails.
-	 */
-	public static SourceFile createSourceFileNoError(String file_path) 
-	{	
-		SourceFile s = null;
-		try {
-			s = new SourceFile(file_path);
-		} catch (UnsupportedOperationException e) {
-			fail("The source contains no syntax error yet the ctor says otherwise.");
-		} catch (IOException e) {
-			fail("Could not open the source file.");
-		}
-		return s;
-	}
 
 	/**
 	 * Tests if the source file constructor can get the number of lines right
@@ -55,8 +37,8 @@ class TestSourceFile
 	{
 		final String file_path_1 = "test_data/no_empty_lines1.txt";
 		final String file_path_2 = "test_data/no_empty_lines2.txt";
-		var s1 = createSourceFileNoError(file_path_1);
-		var s2 = createSourceFileNoError(file_path_2);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
 		assertEquals(4, s1.get_format_tokens().size());
 		assertEquals(9, s2.get_format_tokens().size());
@@ -70,9 +52,9 @@ class TestSourceFile
 	void testCtorLinesEmptyLines() 
 	{
 		final String file_path_1 = "test_data/empty_lines1.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		final String file_path_2 = "test_data/empty_lines2.txt";
-		var s2 = createSourceFileNoError(file_path_2);
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
 		// Nothing. The file is empty
 		assertEquals(1, s1.get_format_tokens().size());
@@ -90,7 +72,7 @@ class TestSourceFile
 	{
 		// This file has a few lines.
 		final String file_path_1 = "test_data/no_empty_lines1.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		var s1_tokens = s1.get_format_tokens();
 		ArrayList<ArrayList<FormatTokenTestProperties>> expected_tokens = new ArrayList<>();
@@ -142,7 +124,7 @@ class TestSourceFile
 	{
 		// This file has a bit of everything.
 		final String file_path_2 = "test_data/mixture1.txt";
-		var s2 = createSourceFileNoError(file_path_2);
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
 		var s2_tokens = s2.get_format_tokens();
 		ArrayList<ArrayList<FormatTokenTestProperties>> expected_tokens = new ArrayList<>();
@@ -465,7 +447,7 @@ class TestSourceFile
 	void testCtorTokensTypes()
 	{
 		final String file_path_1 = "test_data/empty_lines2.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		var s1_tokens = s1.get_format_tokens();
 		
@@ -486,18 +468,18 @@ class TestSourceFile
 	{
 		// The boundary case: 0 format tokens.
 		final String file_path_1 = "test_data/empty_lines1.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		assertEquals(0, s1.numFormatTokens(), 
 				"Should contain 0 format tokens from an empty file (excluding new lines)");
 		
 		// Other cases
 		final String file_path_2 = "test_data/empty_lines2.txt";
-		var s2 = createSourceFileNoError(file_path_2);
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		// I counted this by hand.
 		assertEquals(39, s2.numFormatTokens());
 		
 		final String file_path_3 = "test_data/no_empty_lines1.txt";
-		var s3 = createSourceFileNoError(file_path_3);
+		var s3 = TestUtils.createSourceFileNoError(file_path_3);
 		// I counted this by hand.
 		assertEquals(18, s3.numFormatTokens());
 	}
@@ -510,7 +492,7 @@ class TestSourceFile
 	void testGetPrevFormatTokenExists()
 	{
 		final String file_path_1 = "test_data/prev_next_test_exists.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		// When in the same line there is some token before it.
 		assertEquals
@@ -543,7 +525,7 @@ class TestSourceFile
 	{
 		// When the token is the first in the first line.
 		final String file_path_1 = "test_data/empty_lines2.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		var s1_tokens = s1.get_format_tokens();
 		assertEquals(null, s1.getPrevFormatToken(s1_tokens.get(0).get(0)));
@@ -551,7 +533,7 @@ class TestSourceFile
 		// When the token isn't in the first line, but all
 		// previous lines are empty.
 		final String file_path_2 = "test_data/prev_next_test.txt";
-		var s2 = createSourceFileNoError(file_path_2);
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 
 		assertEquals(null, s2.getPrevFormatToken(s2.getFormatToken(4, 0)));
 	}
@@ -564,7 +546,7 @@ class TestSourceFile
 	void testGetNextFormatTokenExists()
 	{
 		final String file_path_1 = "test_data/prev_next_test_exists.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		// When in the same line there is some token after it.
 		assertEquals
@@ -597,7 +579,7 @@ class TestSourceFile
 	{
 		// When the token is the last in the last line.
 		final String file_path_1 = "test_data/empty_lines2.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		var s1_tokens = s1.get_format_tokens();
 		assertEquals(null, s1.getNextFormatToken(s1_tokens.get(s1_tokens.size()-1).get(0)));
@@ -605,7 +587,7 @@ class TestSourceFile
 		// When the token isn't in the last line, but all
 		// following lines are empty.
 		final String file_path_2 = "test_data/next_no_token_test.txt";
-		var s2 = createSourceFileNoError(file_path_2);
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
 		assertEquals(null, s2.getNextFormatToken(s2.getFormatToken(9, 0)));
 	}
@@ -619,7 +601,7 @@ class TestSourceFile
 	{
 		// Need a source file with some tokens.
 		final String file_path_1 = "test_data/mixture2.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		// Boundary cases:
 		// the first token
@@ -692,7 +674,7 @@ class TestSourceFile
 		// preferably on different lines.
 		
 		final String file_path_1 = "test_data/prev_next_test_exists.txt";
-		var s1 = createSourceFileNoError(file_path_1);
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		// Some tokens in the middle
 		assertTrue(s1.includes(s1.getFormatToken(11, 1)));
@@ -715,13 +697,13 @@ class TestSourceFile
 	{
 		// Need a source file with some tokens.
 		final String file_path_1 = "test_data/prev_next_test_exists.txt";
-		final var s1 = createSourceFileNoError(file_path_1);
+		final var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
 		// Need some other to see if they include each other's
 		// (they should not, even if they are created from the same file.).
-		final var s1_prime = createSourceFileNoError(file_path_1);
+		final var s1_prime = TestUtils.createSourceFileNoError(file_path_1);
 		final String file_path_2 = "test_data/mixture1.txt";
-		final var s2 = createSourceFileNoError(file_path_2);
+		final var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
 		
 		// Boundary cases

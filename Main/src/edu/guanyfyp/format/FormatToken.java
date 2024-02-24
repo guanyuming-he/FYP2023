@@ -132,13 +132,15 @@ public abstract class FormatToken
 	
 	/**
 	 * Calculates how long the token with the characters should look like visually.
+	 * Is defined public as it doesn't change anything of this.
+	 * Is not defined as static so that it can be virtual.
 	 * 
 	 * @param str the String that this token has. I use this instead of this.characters()
 	 * because the method may be called inside constructors, where fields used by this.characters() may not be initialized yet.
 	 * @implNote The default implementation returns the number of characters.
 	 * @return the visual lengths calculated
 	 */
-	protected int calculateVisualLength(String str)
+	public int calculateVisualLength(String str)
 	{
 		return str.length();
 	}

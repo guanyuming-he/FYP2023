@@ -24,7 +24,7 @@ class TestSyntaxStructureBuilder {
 	{
 		// See if the indices of the tokens in the parse tree are what I expected them to be.
 		
-		var src = TestSourceFile.createSourceFileNoError("test_data/many_declarations.txt");
+		var src = TestUtils.createSourceFileNoError("test_data/many_declarations.txt");
 		
 		var builder = src.getSyntaxStructureBuilder();
 		var additional_tokens_attributes = builder.getAdditionalTokenAttributes();
@@ -63,7 +63,7 @@ class TestSyntaxStructureBuilder {
 	@Test
 	void testAdditionalAttributesType()
 	{
-		var src = TestSourceFile.createSourceFileNoError("test_data/mixture2.txt");
+		var src = TestUtils.createSourceFileNoError("test_data/mixture2.txt");
 		
 		// a global class
 		var a_class = (CodeBlock)src.getFormatToken(12, 6);

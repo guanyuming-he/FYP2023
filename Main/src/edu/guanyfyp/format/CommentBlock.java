@@ -32,6 +32,52 @@ public class CommentBlock extends FormatToken
 		);	
 	}
 
+	/**
+	 * For comments.
+	 * 
+	 * @return If it is a single line comment, then returns the number of characters, even if 
+	 * 	the most characters are all spaces.
+	 * If it is a multi-line comment, then returns the number of characters before the first line terminator.
+	 */
+	@Override
+	public int calculateVisualLength(String str)
+	{
+		// we have //, /**/, or /***/
+		assert(str.length() >= 2);
+		
+		if(str.substring(0, 2).equals("//"))
+		{
+			// Single line comment starting with //
+			return str.length();
+		}
+		else
+		{
+			// Must start with /* or /**
+			assert(str.substring(0, 2).equals("/*"));
+				
+			int indFirstN = str.indexOf("\n");
+			int indFirstR = str.indexOf("\r");
+			int indFirstNewLine = -1;
+			if(indFirstN == -1)
+			{
+				indFirstNewLine = indFirstR;
+			}
+			else if(indFirstR == -1)
+			{
+				indFirstNewLine = indFirstN;
+			}
+			else
+			{
+				indFirstNewLine = Math.min(indFirstR, indFirstN);
+			}
+			
+			// Length is 
+			// 1. the number of characters until the first /n (multi-line) or
+			// 2. the whole number of characters (single-line)
+			return indFirstNewLine != -1 ? indFirstNewLine : str.length();
+		}
+	}
+	
 	@Override
 	protected float calculateFormatScore(SyntaxContext ctx) 
 	{
@@ -39,7 +85,7 @@ public class CommentBlock extends FormatToken
 	}
 	
 	/**
-	 * A comment block should always be visible.
+	 * A comment block should always be visible, because both // and /* are visible.
 	 */
 	@Override
 	public boolean isVisible()

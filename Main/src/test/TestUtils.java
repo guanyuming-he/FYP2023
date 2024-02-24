@@ -6,9 +6,11 @@ package test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.FormatToken;
 
 /**
@@ -130,4 +132,23 @@ public final class TestUtils
 		}
 	}
 	
+/////////////////////////////// SourceFile Testing Helpers ////////////////////////////	
+
+	/**
+	 * Creates a new SourceFile, but calls JUnit's fail()
+	 * if the creation fails.
+	 * @return the SourceFile created, or null if the creation fails.
+	 */
+	public static SourceFile createSourceFileNoError(String file_path) 
+	{	
+		SourceFile s = null;
+		try {
+			s = new SourceFile(file_path);
+		} catch (UnsupportedOperationException e) {
+			fail("The source contains no syntax error yet the ctor says otherwise.");
+		} catch (IOException e) {
+			fail("Could not open the source file.");
+		}
+		return s;
+	}
 }

@@ -77,7 +77,7 @@ public class WsBlock extends FormatToken
 	}
 
 	@Override
-	protected int calculateVisualLength(String str) 
+	public int calculateVisualLength(String str) 
 	{
 		int length = 0;
 		for (int i = 0; i < str.length(); ++i)

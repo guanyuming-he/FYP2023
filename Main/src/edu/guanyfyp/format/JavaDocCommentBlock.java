@@ -17,6 +17,14 @@ import edu.guanyfyp.syntax.SyntaxContext;
  * There was no such a class, but a boolean in CommentBlock.
  * However, Dr. Selig pointed out that it was a bad design.
  * Hence this class.
+ * 
+ * How JavaDoc is parsed:
+ * First the comment is divided into lines.
+ * 1. If a line is the first line, then /** is removed from the start of it
+ * 2. If a line is a middle line, then all before the first *, including it, is removed from it.
+ * 3. If a line is the last line, then star/ (can't type the star here) is removed from it.
+ * 
+ * All other texts are preserved. And tags are processed based on the JavaDoc rules.
  */
 public final class JavaDocCommentBlock extends CommentBlock 
 {
@@ -243,29 +251,21 @@ public final class JavaDocCommentBlock extends CommentBlock
 				}
 				// Remove characters from the last line
 				if(i == lines.length - 1)
-				{
-					
-					if(i != 0)
-					{
-						// Remove all when it's not the first line
-						processed_line = "";
-					}
-					else
-					{
-						// Remove "*/" when it's also the first line.
-						assert processed_line.length() >= 2;
-						processed_line = processed_line.substring(0, processed_line.length()-2);
-					}
-
+				{				
+					// Remove "*/" 
+					assert processed_line.length() >= 2;
+					processed_line = processed_line.substring(0, processed_line.length()-2);
 				}
 				// Not the first or the last line.
 				else if(i != 0)
 				{
-					// Remove all before  " * "
-					int index = processed_line.indexOf(" * ");
-					assert index != -1;
+					// Remove all before the starting "*" if there is one.
+					int index = processed_line.indexOf("*");
 					
-					processed_line = processed_line.substring(index+3);
+					if(index != -1)
+					{
+						processed_line = processed_line.substring(index+1);
+					}
 				}
 				
 				if(processed_line.isEmpty())
@@ -274,7 +274,8 @@ public final class JavaDocCommentBlock extends CommentBlock
 				}
 				
 				// Tell if the line contains a tag start
-				if(processed_line.charAt(0) == '@')
+				int tagInd = processed_line.indexOf('@');
+				if(tagInd != -1)
 				{
 					// It's a tag start, also the only place where the last text portion ends.
 					
@@ -312,10 +313,8 @@ public final class JavaDocCommentBlock extends CommentBlock
 						}
 					}
 					
-					// Now reset the accumulated text
-					// and add the current line
-					accumulated_text = "";
-					accumulated_text += processed_line;
+					// Now reset the accumulated text to the current tag's string
+					accumulated_text = processed_line.substring(tagInd);
 				}
 				else
 				{
@@ -324,13 +323,13 @@ public final class JavaDocCommentBlock extends CommentBlock
 				}
 			}
 			// Handle the last accumulated text.
-			// the whole accumulated_text is the main_text if the main desc has never ended
+			// the whole accumulated_text is for the main_text if the main desc has never ended
 			if(!main_desc_ended)
 			{
 				main_desc_ended = true;
 				main_text_builder.append(accumulated_text);
 			}
-			// Otherwise, it's a tag
+			// Otherwise, it's for a tag
 			else
 			{
 				// Try to parse the tag text.

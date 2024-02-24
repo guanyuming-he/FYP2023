@@ -28,7 +28,7 @@ public final class Line
 	 * @param first the first token. can be null if the line has no token.
 	 * @param last the last token. can be null if the line has no token.
 	 * @param sf the source file in which the tokens are in. Used to find all the tokens 
-	 * in the line.
+	 * in the line. Not used if first = last = null.
 	 * 
 	 * @throws IllegalArgumentException if only one of first and last is null.
 	 * @throws IllegalArgumentException if either first or last does not come from sf.
@@ -90,7 +90,49 @@ public final class Line
 		firstToken = first;
 		lastToken = last;
 		
-		throw new RuntimeException("The implementation is unfinished.");
+		// Find the first & last visible tokens
+		// Those fields are final, so they can only be assigned once.
+		// Hence these temp ones.
+		FormatToken tempFV = null, tempLV = null; 
+		for(int i = firstToken.index(); i <= lastToken.index(); ++i)
+		{
+			FormatToken t = sf.getFormatToken(i);
+			if(t.isVisible())
+			{
+				// Only assign tempFV once.
+				if(tempFV == null)
+				{
+					tempFV = t;
+				}
+				
+				// But always update tempLV to the latest visible token.
+				tempLV = t;
+			}
+		}
+		firstVisibleToken = tempFV;
+		lastVisibleToken = tempLV;
+		
+		// Now calculate the visualLength and indentationLevel.
+		if(firstVisibleToken != null)
+		{
+			// Should be in the same line.
+			// Otherwise something's terribly wrong.
+			assert(firstVisibleToken.line() == lastVisibleToken.line() && lastVisibleToken.line() == firstToken.line());
+			
+			// Has at least one visible token
+			visualLength = lastVisibleToken.visualLength + 
+					lastVisibleToken.visualPos - firstVisibleToken.visualPos;
+			indentationLevel = firstVisibleToken.visualPos;
+			
+			// Should have this positive.
+			assert(visualLength > 0);
+		}
+		else
+		{
+			// Doesn't have any visible token
+			visualLength = 0;
+			indentationLevel = 0;
+		}
 	}
 
 ///////////////////////////// Fields /////////////////////////////
@@ -111,12 +153,12 @@ public final class Line
 	public final FormatToken lastVisibleToken;
 	
 	// How long the first visible token is separated from the start of the line.
-	// If the indentation is correct, then this should be a multiple of 4.
+	// If the indentation of the source code in this line is correct, then this should be a multiple of 4.
 	// Will be calculated in any constructor.
 	// If the line has no visible token, then it is 0.
 	public final int indentationLevel;
 	
-	// How long the line looks like from the first visibleToken to the last.
+	// How long the line looks like from the start of the first visibleToken to the end of the last.
 	// Will be calculated in any constructor.
 	// If the line has no visible token, then it is 0.
 	public final int visualLength;
@@ -125,11 +167,25 @@ public final class Line
 	/**
 	 * @return true iff the line has any FormatToken at all.
 	 */
-	public boolean hasToken() { return null != firstToken; }
+	public boolean hasToken() 
+	{ 
+		return null != firstToken; 
+	}
 	
 	/**
 	 * @return true iff the line has any visible FormatToken at all.
 	 */
-	public boolean hasVisibleToken() { return null != firstVisibleToken; }
+	public boolean hasVisibleToken() 
+	{ 
+		return null != firstVisibleToken; 
+	}
 	
+	/**
+	 * @return How long the line ends visually from the start of the line.
+	 * That is, indentationLevel + visualLength.
+	 */
+	public int visualOffset()
+	{
+		return indentationLevel + visualLength;
+	}
 }

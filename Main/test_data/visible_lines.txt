@@ -1,0 +1,13 @@
+public class ABC
+// Boundary case
+{
+    // Other normal cases
+    int abc;
+
+    void f() {
+
+    }
+
+    // Abnormal case: three spaces after ;
+    int abnormal;   
+}

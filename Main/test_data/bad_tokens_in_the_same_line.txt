@@ -1,0 +1,9 @@
+/**
+ * Bad: class def does not start from a new line
+ */ public class ABC {
+    
+    int abc; /**
+    Bad again:
+    comment does not start from a new line
+     */
+ }

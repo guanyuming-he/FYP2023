@@ -181,8 +181,8 @@ class TestJavaDocCommentBlock
 		 * 
 		 */
 		t = new CommonToken(0, "/**\r\n"
-				+ " * \r\n" 
-				+ " */");
+				+ " *\r\n" 
+				+ "*/");
 		var b2 = new JavaDocCommentBlock(t, 0, 0);
 		assertTrue(b2.mainText.isEmpty());
 		assertTrue(b2.tags.isEmpty());
@@ -192,10 +192,10 @@ class TestJavaDocCommentBlock
 		 * spaces.....
 		 */
 		t = new CommonToken(0, "/**\r\n"
-				+ " *                  \r\n" 
-				+ " */");
+				+ "   *                 \r\n" 
+				+ "    */");
 		var b3 = new JavaDocCommentBlock(t, 0, 0);
-		assertEquals("                 ", b3.mainText);
+		assertEquals("                     ", b3.mainText);
 		assertTrue(b3.tags.isEmpty());
 	}
 	
@@ -216,7 +216,7 @@ class TestJavaDocCommentBlock
 		 * abcde
 		 */
 		var b1 = new JavaDocCommentBlock(t, 0, 0);
-		assertEquals("abcde", b1.mainText);
+		assertEquals(" abcde ", b1.mainText);
 		assertTrue(b1.tags.isEmpty());
 		
 		// The comment is this:
@@ -227,7 +227,7 @@ class TestJavaDocCommentBlock
 				+ "		 * abcde pknsd190n 12mjd.\r\n"
 				+ "		 */");
 		var b2 = new JavaDocCommentBlock(t, 0, 0);
-		assertEquals("abcde pknsd190n 12mjd.", b2.mainText);
+		assertEquals(" abcde pknsd190n 12mjd.		 ", b2.mainText);
 		assertTrue(b2.tags.isEmpty());
 		
 		// The comment is this:
@@ -242,15 +242,15 @@ class TestJavaDocCommentBlock
 		 */
 		t = new CommonToken(0, "/**\r\n"
 				+ "		 * abcde pknsd190n 12mjd. \r\n"
-				+ "		 * jwu091nn89i.\r\n"
-				+ "		 * \r\n"
+				+ "		 *jwu091nn89i.\r\n"
+				+ "		 *\r\n"
 				+ "		 * m90jo1\r\n"
-				+ "		 * \r\n"
-				+ "		 * \r\n"
-				+ "		 * w9je91n2h0 d12.\r\n"
+				+ "		 *\r\n"
+				+ "		 *\r\n"
+				+ "		 *w9je91n2h0 d12.\r\n"
 				+ "		 */");
 		var b3 = new JavaDocCommentBlock(t, 0, 0);
-		assertEquals("abcde pknsd190n 12mjd. jwu091nn89i.m90jo1w9je91n2h0 d12.", b3.mainText);
+		assertEquals(" abcde pknsd190n 12mjd. jwu091nn89i. m90jo1w9je91n2h0 d12.		 ", b3.mainText);
 		assertTrue(b3.tags.isEmpty());
 	}
 	
@@ -262,20 +262,20 @@ class TestJavaDocCommentBlock
 	{
 		// A JavaDocCommentBlock requires an ANTLR token to create.
 		var t = new CommonToken(0, "/**\r\n"
-				+ " * abcde pknsd190n 12mjd. \r\n"
+				+ " *abcde pknsd190n 12mjd. \r\n"
 				+ " * jwu091nn89i.\r\n"
-				+ " * \r\n"
+				+ " *\r\n"
 				+ " * @author Guanyuming He\r\n"
-				+ " * @param abc def\r\n"
+				+ " *@param abc def\r\n"
 				+ " */");
 		
 		var b1 = new JavaDocCommentBlock(t, 0, 0);
-		assertEquals("abcde pknsd190n 12mjd. jwu091nn89i.", b1.mainText);
+		assertEquals("abcde pknsd190n 12mjd.  jwu091nn89i.", b1.mainText);
 		
 		var expectedTags = List.of
 		(
 			new Tag("@author Guanyuming He"),
-			(Tag)(new AttrTag("@param abc def"))
+			(Tag)(new AttrTag("@param abc def "))
 		);
 		assertEquals(expectedTags, b1.tags);
 		
@@ -283,14 +283,14 @@ class TestJavaDocCommentBlock
 		assertTrue(b1.throwsTags.isEmpty());
 		
 		t = new CommonToken(0, "/**\r\n"
-				+ " * abc\r\n"
-				+ " * \r\n"
-				+ " * @author Guanyuming He\r\n"
-				+ " * @param abc def\r\n"
-				+ " * @param bbb ddd \r\n"
+				+ " *abc\r\n"
+				+ " *\r\n"
+				+ " *@author Guanyuming He\r\n"
+				+ " *@param abc def\r\n"
+				+ " *@param bbb ddd \r\n"
 				+ " * eee fff\r\n"
-				+ " * @throws Exception when \r\n"
-				+ " * this and that and this and that\r\n"
+				+ " *@throws Exception when \r\n"
+				+ " *this and that and this and that\r\n"
 				+ " */");
 		var b2 = new JavaDocCommentBlock(t, 0, 0);
 		assertEquals("abc", b2.mainText);
@@ -299,12 +299,30 @@ class TestJavaDocCommentBlock
 		(
 			new Tag("@author Guanyuming He"),
 			(Tag)(new AttrTag("@param abc def")),
-			(Tag)(new AttrTag("@param bbb ddd eee fff")),
-			(Tag)(new AttrTag("@throws Exception when this and that and this and that"))
+			(Tag)(new AttrTag("@param bbb ddd  eee fff")),
+			(Tag)(new AttrTag("@throws Exception when this and that and this and that "))
 		);
 		assertEquals(expectedTags2, b2.tags);
 		
 		assertEquals(List.of(Integer.valueOf(1),Integer.valueOf(2)), b2.paramTags);
 		assertEquals(List.of(Integer.valueOf(3)), b2.throwsTags);
+	}
+	
+	/**
+	 * Bug 1: when space was found before @ in a line,
+	 * the parsing would fail.
+	 */
+	@Test
+	void testPreviousBug1()
+	{
+		// A JavaDocCommentBlock requires an ANTLR token to create.
+		var t = new CommonToken(0, "/**\n @param abc*/");
+		var b1 = new JavaDocCommentBlock(t, 0, 0);
+		assertEquals("", b1.mainText);
+		var expectedTags = List.of
+		(
+			new Tag("@param abc")
+		);
+		assertEquals(expectedTags, b1.tags);
 	}
 }
