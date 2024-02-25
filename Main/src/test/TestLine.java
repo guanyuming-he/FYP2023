@@ -2,6 +2,7 @@ package test;
 
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -187,5 +188,60 @@ public class TestLine
 		assertEquals(true, l4.hasToken(), "Has some token.");
 		assertEquals(true, l4.hasVisibleToken(), "Has some visible token.");
 		assertEquals(17, l4.visualOffset(), "17");
+	}
+
+	/**
+	 * Test when equals() should return false.
+	 */
+	@Test
+	void testLineEqualsUnequal()
+	{
+		// Need at least two source files with empty and non-empty lines.
+		final String file_path_1 = "test_data/visible_lines.txt";
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
+		
+		final String file_path_2 = "test_data/mixture1.txt";
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
+		
+		// null
+		assertFalse(s1.getLine(1).equals(null));
+		
+		// Other objects
+		assertFalse(s1.getLine(2).equals(s1));
+		
+		// Empty line vs non-empty line
+		// line 4 is non-empty. line 10 and 6 are empty.
+		assertFalse(s1.getLine(10).equals(s1.getLine(4)));
+		assertFalse(s1.getLine(4).equals(s1.getLine(6)));
+		
+		// Different lines from the same source file
+		assertFalse(s2.getLine(1).equals(s2.getLine(2)));
+		
+		// Lines with the same line number, but from two different SFs.
+		assertFalse(s1.getLine(11).equals(s2.getLine(11)));
+	}
+	
+	/**
+	 * Test when equals() should return true.
+	 */
+	@Test
+	void testLineEqualsEqual()
+	{
+		// Need at least two source files with empty and non-empty lines.
+		final String file_path_1 = "test_data/visible_lines.txt";
+		var s1 = TestUtils.createSourceFileNoError(file_path_1);
+		
+		final String file_path_2 = "test_data/mixture1.txt";
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
+		
+		// Empty lines should equal to any empty line, even if that is from another source file.
+		assertEquals(s1.getLine(10), s2.getLine(12));
+		
+		// Empty lines from the same sf
+		assertEquals(s1.getLine(6), s1.getLine(10));
+		
+		// Two non-empty lines are equal iff they refer to the same line in the same source file.
+		assertEquals(s1.getLine(5), s1.getLine(5));
+		assertEquals(s2.getLine(11), s2.getLine(11));
 	}
 }

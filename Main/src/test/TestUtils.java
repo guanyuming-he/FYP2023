@@ -12,6 +12,7 @@ import java.util.List;
 
 import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.FormatToken;
+import edu.guanyfyp.format.Line;
 
 /**
  * This class contains utilities and helper methods for all the tests.
@@ -19,7 +20,7 @@ import edu.guanyfyp.format.FormatToken;
 public final class TestUtils 
 {
 	
-/////////////////////////////// FormatToken Testing Helpers ////////////////////////////
+/////////////////////////////// SourceFile's FormatToken Testing Helpers ////////////////////////////
 	
 	public static final class FormatTokenTestProperties
 	{
@@ -131,6 +132,43 @@ public final class TestUtils
 			);
 		}
 	}
+	
+/////////////////////////////// SourceFile's Line Testing Helpers ////////////////////////////
+	/**
+	 * Asserts that the lines formed by the expected tokens are equal to s's lines
+	 * @param expectedTokenProperties
+	 * @param s the source file
+	 */
+	public static void assertLinesEquals
+	(
+		ArrayList<ArrayList<FormatTokenTestProperties>> expectedTokenProperties,
+		SourceFile s
+	)
+	{
+		var actual_lines = s.getLines();
+		
+		// create the expected lines
+		List<Line> expected_lines = new ArrayList<Line>();
+		for (int i = 0; i < expectedTokenProperties.size(); ++i)
+		{
+			var prop_line = expectedTokenProperties.get(i);
+			if(prop_line.isEmpty())
+			{
+				expected_lines.add(new Line(null, null, s));
+			}
+			else
+			{
+				var token_line = s.getFormatTokens().get(i);
+				
+				assertEquals(prop_line.size(), token_line.size());
+				
+				expected_lines.add(new Line(token_line.get(0), token_line.get(prop_line.size()-1), s));
+			}
+		}
+		
+		assertEquals(expected_lines, actual_lines);
+	}
+	
 	
 /////////////////////////////// SourceFile Testing Helpers ////////////////////////////	
 

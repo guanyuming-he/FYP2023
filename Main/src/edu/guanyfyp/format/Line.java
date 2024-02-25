@@ -166,6 +166,7 @@ public final class Line
 ///////////////////////////// Observers /////////////////////////////
 	/**
 	 * @return true iff the line has any FormatToken at all.
+	 * This line is empty <-> !hasToken().
 	 */
 	public boolean hasToken() 
 	{ 
@@ -187,5 +188,35 @@ public final class Line
 	public int visualOffset()
 	{
 		return indentationLevel + visualLength;
+	}
+	
+///////////////////////////// From Object /////////////////////////////
+	/**
+	 * @return true iff the two lines are created from the same start/end of line tokens.
+	 * So, they are equal also if they are both empty.
+	 */
+	@Override
+	public boolean equals(Object other)
+	{
+		if(other == null)
+		{
+			return super.equals(other);
+		}
+		
+		if(!(other instanceof Line))
+		{
+			return false;
+		}
+		
+		Line o = (Line)other;
+		
+		if(!hasToken())
+		{
+			// If this is empty, then return true if o is empty.
+			return !o.hasToken();
+		}
+		
+		// Both are not empty.
+		return firstToken.equals(o.firstToken) && lastToken.equals(o.lastToken);
 	}
 }

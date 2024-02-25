@@ -15,8 +15,10 @@ import java.util.List;
 
 import edu.guanyfyp.format.CodeBlock;
 import edu.guanyfyp.format.CommentBlock;
+import edu.guanyfyp.format.FormatResult;
 import edu.guanyfyp.format.FormatToken;
 import edu.guanyfyp.format.JavaDocCommentBlock;
+import edu.guanyfyp.format.Line;
 import edu.guanyfyp.format.WsBlock;
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser;
@@ -35,64 +37,52 @@ import edu.guanyfyp.syntax.ThrowExceptionErrorListener;
  */
 public class SourceFile 
 {
-	/**
-	 * The result of analyzing the format of the source.
-	 * Includes scores, problem descriptions, etc.
-	 */
-	public final class FormatResult
-	{
-		// TODO: complete this class.
-	}
 	
     // All the tokens for format checking.
     // Each element of the outmost array represents a line in the source file.
     // Each element inside a line array is a token.
 	// The field in the end will be immutable, and each inner list will also be.
     private final List<List<FormatToken>> formatTokens;
-    /**
-     * Because the format_tokens is immutable, one can get it.
-     * @return this.format_tokens
-     */
-    public List<List<FormatToken>> get_format_tokens()
-    {
-    	return formatTokens;
-    }
     
-    /**
-     * To support fast random access of the format tokens,
-     * this table that maps
-     * token index -> {line index (starting from 0), token line index (from 0)}
-     * is built.
-     */
+	// To support fast random access of the format tokens,
+	// this table that maps
+	// token index -> {line index (starting from 0), token line index (from 0)}
+	// is built.
     private final ArrayList<Pair<Integer, Integer>> formatTokenRandomAccessTable;
     
-    private final SyntaxStructureBuilder syntaxStructureBuilder;
-    public SyntaxStructureBuilder getSyntaxStructureBuilder()
-    {
-    	return syntaxStructureBuilder;
-    }
+    // All the lines in the source file, stored in the order they appear.
+    // 0..n-1
+    private final List<Line> lines;
     
-    /**
-     * Channel numbers of the lexer tokens
-     */
+    // Created at beginning and is used to build the syntax structure during parsing.
+    private final SyntaxStructureBuilder syntaxStructureBuilder;
+    
+    // Channel numbers of the ANTLR lexer tokens
 	public static final int DEFAULT_CHANNEL = 0;
 	public static final int WHITESPACE_CHANNEL = 1;
 	public static final int COMMENTS_CHANNEL = 2;
 	public static final int JAVADOC_CHANNEL = 3;
     
+//////////////////////////// Constructors /////////////////////////
+	
     /**
      * Reads the source code from a local file.
      * And parses the source file to create necessary objects to evaluate the format.
+     * 1. FormatTokens are created and stored.
+     * 2. Lines are created and stored.
+     * 3. A SyntaxStructureBuilder is created and the syntax structure is built with that.
      * 
      * @param file_path The path to the file.
-     * @param encoding The encoding of the file.
      * @throws IOException on reading error.
      * @throws UnsupportedOperationException if the source code contains some syntax error.
      */
     public SourceFile(String file_path) throws IOException, UnsupportedOperationException
     {
     	// Initialise temp fields
+    	// Temp fields are used because the final fields can only be assigned to once.
+    	// The final fields will be created by calling Collections.unmodifiableList().
     	List<List<FormatToken>> temp_format_tokens = new ArrayList<>();
+    	List<Line> temp_lines = new ArrayList<>();
     	
     	// Parse the source file with ANTLR4
     	CharStream inputStream = CharStreams.fromFileName(file_path);
@@ -212,7 +202,7 @@ public class SourceFile
 			formatTokens = Collections.unmodifiableList(temp_format_tokens);		
 		}
 		
-		// build the random access table
+		// Build the format token random access table
 		{
 			formatTokenRandomAccessTable = new ArrayList<Pair<Integer,Integer>>();
 			for(int i = 0; i < formatTokens.size(); ++i)
@@ -223,6 +213,24 @@ public class SourceFile
 					formatTokenRandomAccessTable.add(new Pair<Integer, Integer>(i, j));
 				}
 			}
+		}
+		
+		// Create the lines
+		{
+			for (var line : formatTokens)
+			{
+				if(!line.isEmpty())
+				{
+					// A line is created with the first and the last format token.
+					temp_lines.add(new Line(line.get(0), line.get(line.size()-1), this));
+				}
+				else // the line is empty
+				{
+					temp_lines.add(new Line(null, null, this));
+				}
+			}
+			
+			lines = Collections.unmodifiableList(temp_lines);
 		}
 		
 		// Parse the program and fill missing attributes of the format tokens
@@ -258,7 +266,9 @@ public class SourceFile
 			syntaxStructureBuilder.applyAdditionalTokenAttributes();
 		}
     }
-
+    
+//////////////////////////// Observers /////////////////////////
+    
     /**
      * Analyzes the source code in the file and give a result.
      * @return the result given
@@ -268,8 +278,26 @@ public class SourceFile
 		throw new RuntimeException("Not implemented");
     }
     
-//////////////////////////// Observers /////////////////////////
-    // The tokens can only be accessed through the following methods.
+    /**
+     * @return the SyntaxStructureBuilder created with the source file,
+     * in which the syntax structure built is contained.
+     */
+    public SyntaxStructureBuilder getSyntaxStructureBuilder()
+    {
+    	return syntaxStructureBuilder;
+    }
+    
+    // The format tokens can only be accessed through the following methods
+    // or through the lines.
+    
+    /**
+     * Because the formatTokens is immutable, one can get it.
+     * @return this.formatTokens
+     */
+    public List<List<FormatToken>> getFormatTokens()
+    {
+    	return formatTokens;
+    }
     
     /**
      * @return The number of format tokens in the source file.
@@ -477,5 +505,40 @@ public class SourceFile
     	// Since a FormatToken cannot be deeply copied,
     	// from one ANTLR token there can only be one FormatToken.
     	return t == tk;
+    }
+
+    // The lines can only be accessed through the following methods.
+    
+    /**
+     * Can return this.lines as the field is immutable.
+     * @return the lines, represented by class Line, in the source file.
+     */
+    public List<Line> getLines()
+    {
+    	return this.lines;
+    }
+    
+    /**
+     * @return the number of lines in the source file.
+     */
+    public int numLines()
+    {
+    	return lines.size();
+    }
+    
+    /**
+     * @param line_num 1..numLines()
+     * @return the Line
+     * @throws ArrayIndexOutOfBoundsException if line_num is out of bound.
+     */
+    public Line getLine(int line_num)
+    {
+    	int line_ind = line_num - 1;
+    	if(line_ind < 0 || line_ind >= lines.size())
+    	{
+    		throw new ArrayIndexOutOfBoundsException("line_num is out of bound");
+    	}
+    	
+    	return lines.get(line_ind);
     }
 }

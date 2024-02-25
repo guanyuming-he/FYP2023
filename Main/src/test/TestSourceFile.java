@@ -17,6 +17,7 @@ import edu.guanyfyp.format.CodeBlock;
 import edu.guanyfyp.format.CommentBlock;
 import edu.guanyfyp.format.FormatToken;
 import edu.guanyfyp.format.JavaDocCommentBlock;
+import edu.guanyfyp.format.Line;
 import edu.guanyfyp.format.WsBlock;
 import test.TestUtils.FormatTokenTestProperties;
 
@@ -26,7 +27,7 @@ import test.TestUtils.FormatTokenTestProperties;
 class TestSourceFile 
 {
 	
-/////////////////////////////// Lines ////////////////////////////
+/////////////////////////////// Lines and Tokens ////////////////////////////
 
 	/**
 	 * Tests if the source file constructor can get the number of lines right
@@ -40,8 +41,8 @@ class TestSourceFile
 		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
-		assertEquals(4, s1.get_format_tokens().size());
-		assertEquals(9, s2.get_format_tokens().size());
+		assertEquals(4, s1.numLines());
+		assertEquals(9, s2.numLines());
 	}
 	
 	/**
@@ -57,24 +58,43 @@ class TestSourceFile
 		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
 		// Nothing. The file is empty
-		assertEquals(1, s1.get_format_tokens().size());
-		assertTrue(s1.get_format_tokens().get(0).isEmpty());
+		assertEquals(1, s1.numLines());
+		assertTrue(s1.getFormatTokens().get(0).isEmpty());
 		// Some lines...
-		assertEquals(16, s2.get_format_tokens().size());
+		assertEquals(16, s2.numLines());
+	}
+	
+	/**
+	 * Tests if getLine() will throw an exception with an out of bound index
+	 */
+	@Test
+	void testGetLineIndexOutOfBound()
+	{
+		final String file_path_2 = "test_data/empty_lines2.txt";
+		var s2 = TestUtils.createSourceFileNoError(file_path_2);
+		
+		// Boundary cases
+		assertThrows(ArrayIndexOutOfBoundsException.class, ()->{s2.getLine(0);});
+		assertThrows(ArrayIndexOutOfBoundsException.class, ()->{s2.getLine(17);});
+			
+		// Other cases
+		assertThrows(ArrayIndexOutOfBoundsException.class, ()->{s2.getLine(-1);});
+		assertThrows(ArrayIndexOutOfBoundsException.class, ()->{s2.getLine(20);});
 	}
 
 	/**
-	 * Tests if the source file constructor can get each token's information right.
+	 * Tests if the source file constructor can construct the tokens and lines correctly.
 	 * From a file of minimal tokens.
 	 */
 	@Test
-	void testCtorTokensMinimal() 
+	void testCtorTokensLinesMinimal() 
 	{
 		// This file has a few lines.
 		final String file_path_1 = "test_data/no_empty_lines1.txt";
 		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.get_format_tokens();
+		// Testing tokens
+		var s1_tokens = s1.getFormatTokens();
 		ArrayList<ArrayList<FormatTokenTestProperties>> expected_tokens = new ArrayList<>();
 		{
 			ArrayList<FormatTokenTestProperties> line1 = new ArrayList<>();
@@ -113,20 +133,22 @@ class TestSourceFile
 		
 		TestUtils.assertTokenLinesEqual(expected_tokens, s1_tokens);	
 		
+		// Testing lines
+		TestUtils.assertLinesEquals(expected_tokens, s1);
 	}
 	
 	/**
-	 * Tests if the source file constructor can get each token's information right.
+	 * Tests if the source file constructor can construct the tokens and lines correctly.
 	 * From a file of a more complete set of tokens.
 	 */
 	@Test
-	void testCtorTokensComplete()
+	void testCtorTokensLinesComplete()
 	{
 		// This file has a bit of everything.
 		final String file_path_2 = "test_data/mixture1.txt";
 		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
-		var s2_tokens = s2.get_format_tokens();
+		var s2_tokens = s2.getFormatTokens();
 		ArrayList<ArrayList<FormatTokenTestProperties>> expected_tokens = new ArrayList<>();
 		{
 			ArrayList<FormatTokenTestProperties> line1 = new ArrayList<>();
@@ -437,7 +459,10 @@ class TestSourceFile
 			expected_tokens.add(line40);
 		}
 		
-		TestUtils.assertTokenLinesEqual(expected_tokens, s2_tokens);	
+		TestUtils.assertTokenLinesEqual(expected_tokens, s2_tokens);
+		
+		// Testing lines
+		TestUtils.assertLinesEquals(expected_tokens, s2);
 	}
 	
 	/**
@@ -449,7 +474,7 @@ class TestSourceFile
 		final String file_path_1 = "test_data/empty_lines2.txt";
 		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.get_format_tokens();
+		var s1_tokens = s1.getFormatTokens();
 		
 		assertTrue(s1.getFormatToken(1, 0) instanceof JavaDocCommentBlock);
 		assertTrue(s1.getFormatToken(8, 1) instanceof WsBlock);
@@ -527,7 +552,7 @@ class TestSourceFile
 		final String file_path_1 = "test_data/empty_lines2.txt";
 		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.get_format_tokens();
+		var s1_tokens = s1.getFormatTokens();
 		assertEquals(null, s1.getPrevFormatToken(s1_tokens.get(0).get(0)));
 		
 		// When the token isn't in the first line, but all
@@ -581,7 +606,7 @@ class TestSourceFile
 		final String file_path_1 = "test_data/empty_lines2.txt";
 		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
-		var s1_tokens = s1.get_format_tokens();
+		var s1_tokens = s1.getFormatTokens();
 		assertEquals(null, s1.getNextFormatToken(s1_tokens.get(s1_tokens.size()-1).get(0)));
 		
 		// When the token isn't in the last line, but all
