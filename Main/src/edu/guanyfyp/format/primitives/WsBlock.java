@@ -1,12 +1,13 @@
 /**
  * @author Guanyuming He
  */
-package edu.guanyfyp.format;
+package edu.guanyfyp.format.primitives;
 
 import javax.management.RuntimeErrorException;
 
 import org.antlr.v4.runtime.Token;
 
+import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
@@ -115,5 +116,12 @@ public class WsBlock extends FormatToken
 	public boolean isVisible()
 	{
 		return false;
+	}
+	
+///////////////////////////// From FormatPrimitive /////////////////////////////
+	@Override
+	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
+	{
+		throw new RuntimeException("Not implemented.");
 	}
 }

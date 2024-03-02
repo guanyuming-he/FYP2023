@@ -1,7 +1,7 @@
 /**
  * 
  */
-package edu.guanyfyp.format;
+package edu.guanyfyp.format.primitives;
 
 import edu.guanyfyp.SourceFile;
 
@@ -18,7 +18,7 @@ import edu.guanyfyp.SourceFile;
  * 
  * After creation, a Line and all its fields are immutable. Hence they are all public.
  */
-public final class Line 
+public final class Line extends FormatPrimitive
 {
 ///////////////////////////// Constructors /////////////////////////////
 	
@@ -218,5 +218,12 @@ public final class Line
 		
 		// Both are not empty.
 		return firstToken.equals(o.firstToken) && lastToken.equals(o.lastToken);
+	}
+
+///////////////////////////// From FormatPrimitive /////////////////////////////
+	@Override
+	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
+	{
+		throw new RuntimeException("Not implemented.");
 	}
 }

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package edu.guanyfyp.format;
+package edu.guanyfyp.format.primitives;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +26,7 @@ import edu.guanyfyp.syntax.SyntaxContext;
  * 
  * All other texts are preserved. And tags are processed based on the JavaDoc rules.
  */
-public final class JavaDocCommentBlock extends CommentBlock 
+public final class JavaDocBlock extends CommentBlock 
 {
 	
 	/**
@@ -205,7 +205,7 @@ public final class JavaDocCommentBlock extends CommentBlock
 	 * @param line
 	 * @param index_in_line
 	 */
-	public JavaDocCommentBlock
+	public JavaDocBlock
 	(
 		Token antlr_token,
 		int visual_pos,

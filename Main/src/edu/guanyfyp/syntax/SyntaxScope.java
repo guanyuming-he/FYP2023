@@ -6,7 +6,7 @@ package edu.guanyfyp.syntax;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.guanyfyp.format.FormatToken;
+import edu.guanyfyp.format.primitives.FormatToken;
 
 /**
  * Represents a syntax scope.

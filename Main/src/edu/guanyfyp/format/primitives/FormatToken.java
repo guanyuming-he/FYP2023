@@ -1,7 +1,7 @@
 /**
  * @author Guanyuming He
  */
-package edu.guanyfyp.format;
+package edu.guanyfyp.format.primitives;
 
 import org.antlr.v4.runtime.Token;
 
@@ -37,7 +37,7 @@ import edu.guanyfyp.syntax.SyntaxContext;
  * But some fields (the non-public and non-final ones)
  * are only available after deeper analysis.
  */
-public abstract class FormatToken 
+public abstract class FormatToken extends FormatPrimitive
 {
 //////////////////////// Fields //////////////////////////////
 	
@@ -69,7 +69,7 @@ public abstract class FormatToken
 	 * @param visual_pos Its visual position, calculated by its creator.
 	 * @param index_in_line The index of the token in the line, 0..n-1
 	 */
-	FormatToken
+	public FormatToken
 	(
 		Token antlr_token,
 		int visual_pos,

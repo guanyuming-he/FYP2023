@@ -10,9 +10,9 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
 import edu.guanyfyp.SourceFile;
-import edu.guanyfyp.format.CodeBlock;
-import edu.guanyfyp.format.CodeBlock.AdditionalAttributes;
-import edu.guanyfyp.format.FormatToken;
+import edu.guanyfyp.format.primitives.CodeBlock;
+import edu.guanyfyp.format.primitives.FormatToken;
+import edu.guanyfyp.format.primitives.CodeBlock.AdditionalAttributes;
 import edu.guanyfyp.generated.JavaParser;
 import edu.guanyfyp.generated.JavaParserBaseListener;
 import edu.guanyfyp.generated.JavaParser.AnnotationContext;

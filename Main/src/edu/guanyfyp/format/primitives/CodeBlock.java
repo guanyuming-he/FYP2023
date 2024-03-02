@@ -1,7 +1,7 @@
 /**
  * @author Guanyuming He
  */
-package edu.guanyfyp.format;
+package edu.guanyfyp.format.primitives;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.Token;
 
+import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser.AnnotationContext;
 import edu.guanyfyp.syntax.SyntaxContext;
@@ -489,4 +490,11 @@ public class CodeBlock extends FormatToken
 	}
 
 	public final AdditionalAttributes additionalAttr;
+	
+///////////////////////////// From FormatPrimitive /////////////////////////////
+	@Override
+	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
+	{
+		throw new RuntimeException("Not implemented.");
+	}
 }

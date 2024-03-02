@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.guanyfyp.SourceFile;
-import edu.guanyfyp.format.FormatToken;
-import edu.guanyfyp.format.Line;
+import edu.guanyfyp.format.primitives.FormatToken;
+import edu.guanyfyp.format.primitives.Line;
 
 /**
  * This class contains utilities and helper methods for all the tests.

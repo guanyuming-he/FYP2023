@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import edu.guanyfyp.format.CodeBlock;
+import edu.guanyfyp.format.primitives.CodeBlock;
 
 /**
  * 

@@ -11,9 +11,9 @@ import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.Token;
 import org.junit.jupiter.api.Test;
 
-import edu.guanyfyp.format.JavaDocCommentBlock.Tag;
-import edu.guanyfyp.format.JavaDocCommentBlock;
-import edu.guanyfyp.format.JavaDocCommentBlock.AttrTag;
+import edu.guanyfyp.format.primitives.JavaDocBlock;
+import edu.guanyfyp.format.primitives.JavaDocBlock.AttrTag;
+import edu.guanyfyp.format.primitives.JavaDocBlock.Tag;
 
 /**
  * Tests how this class handles JavaDoc
@@ -172,7 +172,7 @@ class TestJavaDocCommentBlock
 	{
 		// A JavaDocCommentBlock requires an ANTLR token to create.
 		var t = new CommonToken(0, "/***/");
-		var b1 = new JavaDocCommentBlock(t, 0, 0);
+		var b1 = new JavaDocBlock(t, 0, 0);
 		assertTrue(b1.mainText.isEmpty());
 		assertTrue(b1.tags.isEmpty());
 		
@@ -183,7 +183,7 @@ class TestJavaDocCommentBlock
 		t = new CommonToken(0, "/**\r\n"
 				+ " *\r\n" 
 				+ "*/");
-		var b2 = new JavaDocCommentBlock(t, 0, 0);
+		var b2 = new JavaDocBlock(t, 0, 0);
 		assertTrue(b2.mainText.isEmpty());
 		assertTrue(b2.tags.isEmpty());
 		
@@ -194,7 +194,7 @@ class TestJavaDocCommentBlock
 		t = new CommonToken(0, "/**\r\n"
 				+ "   *                 \r\n" 
 				+ "    */");
-		var b3 = new JavaDocCommentBlock(t, 0, 0);
+		var b3 = new JavaDocBlock(t, 0, 0);
 		assertEquals("                     ", b3.mainText);
 		assertTrue(b3.tags.isEmpty());
 	}
@@ -215,7 +215,7 @@ class TestJavaDocCommentBlock
 		/**
 		 * abcde
 		 */
-		var b1 = new JavaDocCommentBlock(t, 0, 0);
+		var b1 = new JavaDocBlock(t, 0, 0);
 		assertEquals(" abcde ", b1.mainText);
 		assertTrue(b1.tags.isEmpty());
 		
@@ -226,7 +226,7 @@ class TestJavaDocCommentBlock
 		t = new CommonToken(0, "/**\r\n"
 				+ "		 * abcde pknsd190n 12mjd.\r\n"
 				+ "		 */");
-		var b2 = new JavaDocCommentBlock(t, 0, 0);
+		var b2 = new JavaDocBlock(t, 0, 0);
 		assertEquals(" abcde pknsd190n 12mjd.		 ", b2.mainText);
 		assertTrue(b2.tags.isEmpty());
 		
@@ -249,7 +249,7 @@ class TestJavaDocCommentBlock
 				+ "		 *\r\n"
 				+ "		 *w9je91n2h0 d12.\r\n"
 				+ "		 */");
-		var b3 = new JavaDocCommentBlock(t, 0, 0);
+		var b3 = new JavaDocBlock(t, 0, 0);
 		assertEquals(" abcde pknsd190n 12mjd. jwu091nn89i. m90jo1w9je91n2h0 d12.		 ", b3.mainText);
 		assertTrue(b3.tags.isEmpty());
 	}
@@ -269,7 +269,7 @@ class TestJavaDocCommentBlock
 				+ " *@param abc def\r\n"
 				+ " */");
 		
-		var b1 = new JavaDocCommentBlock(t, 0, 0);
+		var b1 = new JavaDocBlock(t, 0, 0);
 		assertEquals("abcde pknsd190n 12mjd.  jwu091nn89i.", b1.mainText);
 		
 		var expectedTags = List.of
@@ -292,7 +292,7 @@ class TestJavaDocCommentBlock
 				+ " *@throws Exception when \r\n"
 				+ " *this and that and this and that\r\n"
 				+ " */");
-		var b2 = new JavaDocCommentBlock(t, 0, 0);
+		var b2 = new JavaDocBlock(t, 0, 0);
 		assertEquals("abc", b2.mainText);
 		
 		var expectedTags2 = List.of
@@ -317,7 +317,7 @@ class TestJavaDocCommentBlock
 	{
 		// A JavaDocCommentBlock requires an ANTLR token to create.
 		var t = new CommonToken(0, "/**\n @param abc*/");
-		var b1 = new JavaDocCommentBlock(t, 0, 0);
+		var b1 = new JavaDocBlock(t, 0, 0);
 		assertEquals("", b1.mainText);
 		var expectedTags = List.of
 		(

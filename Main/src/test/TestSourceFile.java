@@ -13,12 +13,12 @@ import org.antlr.v4.runtime.CommonToken;
 import org.junit.jupiter.api.Test;
 
 import edu.guanyfyp.SourceFile;
-import edu.guanyfyp.format.CodeBlock;
-import edu.guanyfyp.format.CommentBlock;
-import edu.guanyfyp.format.FormatToken;
-import edu.guanyfyp.format.JavaDocCommentBlock;
-import edu.guanyfyp.format.Line;
-import edu.guanyfyp.format.WsBlock;
+import edu.guanyfyp.format.primitives.CodeBlock;
+import edu.guanyfyp.format.primitives.CommentBlock;
+import edu.guanyfyp.format.primitives.FormatToken;
+import edu.guanyfyp.format.primitives.JavaDocBlock;
+import edu.guanyfyp.format.primitives.Line;
+import edu.guanyfyp.format.primitives.WsBlock;
 import test.TestUtils.FormatTokenTestProperties;
 
 /**
@@ -155,7 +155,7 @@ class TestSourceFile
 			line1.add
 			(new FormatTokenTestProperties
 				(
-					JavaDocCommentBlock.class,
+					JavaDocBlock.class,
 					"/**\r\n"
 					+ " * Has a bit of everything.\r\n"
 					+ " * @author Guanyuming He\r\n"
@@ -224,7 +224,7 @@ class TestSourceFile
 			ArrayList<FormatTokenTestProperties> line11 = new ArrayList<>();
 			line11.add
 			(new FormatTokenTestProperties
-					(JavaDocCommentBlock.class,
+					(JavaDocBlock.class,
 					"/**\r\n"
 					+ " * Some comments for the class.\r\n"
 					+ " */", 
@@ -337,7 +337,7 @@ class TestSourceFile
 			
 			ArrayList<FormatTokenTestProperties> line26 = new ArrayList<>();
 			line26.add(new FormatTokenTestProperties(WsBlock.class, "    ", 0, 0, 26, 0));
-			line26.add(new FormatTokenTestProperties(JavaDocCommentBlock.class, "/**\r\n"
+			line26.add(new FormatTokenTestProperties(JavaDocBlock.class, "/**\r\n"
 					+ "     * Some method\r\n"
 					+ "     * @param param\r\n"
 					+ "     * @return something\r\n"
@@ -476,7 +476,7 @@ class TestSourceFile
 		
 		var s1_tokens = s1.getFormatTokens();
 		
-		assertTrue(s1.getFormatToken(1, 0) instanceof JavaDocCommentBlock);
+		assertTrue(s1.getFormatToken(1, 0) instanceof JavaDocBlock);
 		assertTrue(s1.getFormatToken(8, 1) instanceof WsBlock);
 		assertTrue(s1.getFormatToken(8, 2) instanceof CodeBlock);
 		assertTrue(s1.getFormatToken(9, 0) instanceof WsBlock);

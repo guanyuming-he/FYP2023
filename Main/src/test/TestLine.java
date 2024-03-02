@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-import edu.guanyfyp.format.Line;
+import edu.guanyfyp.format.primitives.Line;
 
 /**
  * Tests if the immutable class Line will correctly establish its invariants

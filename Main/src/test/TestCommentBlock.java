@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.Token;
 import org.junit.jupiter.api.Test;
 
-import edu.guanyfyp.format.CommentBlock;
+import edu.guanyfyp.format.primitives.CommentBlock;
 
 public class TestCommentBlock 
 {

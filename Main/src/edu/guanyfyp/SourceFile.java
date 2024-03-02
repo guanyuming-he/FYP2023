@@ -13,15 +13,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import edu.guanyfyp.format.CodeBlock;
-import edu.guanyfyp.format.CommentBlock;
 import edu.guanyfyp.format.FormatResult;
-import edu.guanyfyp.format.FormatToken;
-import edu.guanyfyp.format.JavaDocCommentBlock;
-import edu.guanyfyp.format.Line;
-import edu.guanyfyp.format.WsBlock;
+import edu.guanyfyp.format.primitives.CodeBlock;
+import edu.guanyfyp.format.primitives.CommentBlock;
+import edu.guanyfyp.format.primitives.FormatToken;
+import edu.guanyfyp.format.primitives.JavaDocBlock;
+import edu.guanyfyp.format.primitives.Line;
+import edu.guanyfyp.format.primitives.PrimitiveContext;
+import edu.guanyfyp.format.primitives.WsBlock;
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser;
+import edu.guanyfyp.syntax.SyntaxStructure;
 import edu.guanyfyp.syntax.SyntaxStructureBuilder;
 import edu.guanyfyp.syntax.ThrowExceptionErrorListener;
 
@@ -179,7 +181,7 @@ public class SourceFile
 					
 				case JAVADOC_CHANNEL:
 					ft =
-					new JavaDocCommentBlock
+					new JavaDocBlock
 					(
 						t, visual_pos, 
 						cur_line_token_number // index of the token in the line
@@ -270,21 +272,20 @@ public class SourceFile
 //////////////////////////// Observers /////////////////////////
     
     /**
-     * Analyzes the source code in the file and give a result.
-     * @return the result given
-     */
-    FormatResult analyze()
-    {
-		throw new RuntimeException("Not implemented");
-    }
-    
-    /**
      * @return the SyntaxStructureBuilder created with the source file,
      * in which the syntax structure built is contained.
      */
     public SyntaxStructureBuilder getSyntaxStructureBuilder()
     {
     	return syntaxStructureBuilder;
+    }
+    
+    /**
+     * @return The SyntaxStructure built during the SourceFile's construction
+     */
+    public SyntaxStructure getSyntaxStructure()
+    {
+    	return syntaxStructureBuilder.getSyntaxStructure();
     }
     
     // The format tokens can only be accessed through the following methods
@@ -540,5 +541,32 @@ public class SourceFile
     	}
     	
     	return lines.get(line_ind);
+    }
+    
+    /**
+     * Analyzes the source code in the file and give a result.
+     * @return the result given
+     */
+    FormatResult analyze()
+    {
+		FormatResult res = new FormatResult();
+		
+		// Get the syntax structure for syntax contexts
+		final var syntax_structure = getSyntaxStructure();
+		
+		// Evaluate format tokens
+		for(int i = 0; i < numFormatTokens(); ++i)
+		{
+			var pair = formatTokenRandomAccessTable.get(i);
+	    	var tk = formatTokens.get(pair.a).get(pair.b);
+	    	
+	    	var tk_ctx = new PrimitiveContext(syntax_structure.getSyntaxContext(tk));
+	    	
+	    	tk.evaluateFormat(this, tk_ctx);
+		}
+		
+		throw new RuntimeException("Implementation incomplete");
+		
+		// return res;
     }
 }

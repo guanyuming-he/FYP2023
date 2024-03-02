@@ -1,10 +1,11 @@
 /**
  * 
  */
-package edu.guanyfyp.format;
+package edu.guanyfyp.format.primitives;
 
 import org.antlr.v4.runtime.Token;
 
+import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
@@ -91,5 +92,12 @@ public class CommentBlock extends FormatToken
 	public boolean isVisible()
 	{
 		return true;
+	}
+	
+///////////////////////////// From FormatPrimitive /////////////////////////////
+	@Override
+	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
+	{
+		throw new RuntimeException("Not implemented.");
 	}
 }
