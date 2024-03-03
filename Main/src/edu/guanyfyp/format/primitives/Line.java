@@ -221,9 +221,66 @@ public final class Line extends FormatPrimitive
 	}
 
 ///////////////////////////// From FormatPrimitive /////////////////////////////
+	/**
+	 * 1. Evaluates if the line is too long
+	 * 2. Evaluates if the line is well indented (TBD. Needs to complete SyntaxContext for this).
+	 * 3. May be more
+	 */
 	@Override
 	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
 	{
-		throw new RuntimeException("Not implemented.");
+		// handles the state
+		super.evaluateFormat(sf, context);
+		
+		// 1
+		if(visualOffset() > settings.maximumGoodLineVOffset)
+		{
+			tooLong = true;
+		}
+		
+		// TODO: 2
 	}
+	
+//////////////////////// Format evaluation results ////////////////////////
+	// If the line looks too long
+	private boolean tooLong = false;
+	public boolean isTooLong() { return tooLong; }
+	
+//////////////////////// Format evaluation Settings ////////////////////////
+	
+	public static final class Settings
+	{
+		//////////////////////// maximum good line length ////////////////////////
+		
+		// Maximum visual offset a good line can have.
+		// Default value is obtained from Oracle's Java coding conventions
+		// https://www.oracle.com/java/technologies/javase/codeconventions-indentation.html
+		// Note: At that time it was concerned because of terminal limits, so it was meant to be num of chars
+		//	However, currently most use graphical IDEs, so what concerns most is the visual appearance 
+		// (should not stick out of screen).
+		private int maximumGoodLineVOffset = 80;
+
+		public int getMaximumGoodLineVOffset() 
+		{
+			return maximumGoodLineVOffset;
+		}
+		/**
+		 * Sets maximumGoodLineVOffset.
+		 * @param maximumGoodLineVOffset
+		 * @throws IllegalArgumentException if maximumGoodLineVOffset <= 0
+		 */
+		public void setMaximumGoodLineVOffset(int maximumGoodLineVOffset) 
+		{
+			if(maximumGoodLineVOffset <= 0)
+			{
+				throw new IllegalArgumentException("a visual offset must be positive.");
+			}
+			
+			this.maximumGoodLineVOffset = maximumGoodLineVOffset;
+		}
+		
+		//////////////////////// another entry ////////////////////////
+	}
+	
+	public static final Settings settings = new Settings();
 }

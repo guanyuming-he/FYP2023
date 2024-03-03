@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import edu.guanyfyp.format.FormatResult;
+import edu.guanyfyp.format.FormatVerdict;
 import edu.guanyfyp.format.primitives.CodeBlock;
 import edu.guanyfyp.format.primitives.CommentBlock;
 import edu.guanyfyp.format.primitives.FormatToken;
@@ -21,6 +21,10 @@ import edu.guanyfyp.format.primitives.JavaDocBlock;
 import edu.guanyfyp.format.primitives.Line;
 import edu.guanyfyp.format.primitives.PrimitiveContext;
 import edu.guanyfyp.format.primitives.WsBlock;
+import edu.guanyfyp.format.summaries.CommentBlockSummary;
+import edu.guanyfyp.format.summaries.JavaDocSummary;
+import edu.guanyfyp.format.summaries.LineSummary;
+import edu.guanyfyp.format.summaries.WsBlockSummary;
 import edu.guanyfyp.generated.JavaLexer;
 import edu.guanyfyp.generated.JavaParser;
 import edu.guanyfyp.syntax.SyntaxStructure;
@@ -36,9 +40,11 @@ import edu.guanyfyp.syntax.ThrowExceptionErrorListener;
  * Invariants:
  * 		1. The lines and the tokens in the field format_tokens 
  * 		are stored in the order they appear in the file.
+ * 		2. syntaxStructureBuilder has finished building a SyntaxStructure.
  */
 public class SourceFile 
 {
+//////////////////////////// Fields /////////////////////////
 	
     // All the tokens for format checking.
     // Each element of the outmost array represents a line in the source file.
@@ -58,6 +64,8 @@ public class SourceFile
     
     // Created at beginning and is used to build the syntax structure during parsing.
     private final SyntaxStructureBuilder syntaxStructureBuilder;
+    
+//////////////////////////// Static fields /////////////////////////
     
     // Channel numbers of the ANTLR lexer tokens
 	public static final int DEFAULT_CHANNEL = 0;
@@ -543,30 +551,80 @@ public class SourceFile
     	return lines.get(line_ind);
     }
     
+//////////////////////////// analyze() deserves a separator /////////////////////////
+    
     /**
      * Analyzes the source code in the file and give a result.
      * @return the result given
      */
-    FormatResult analyze()
+    FormatVerdict analyze()
     {
-		FormatResult res = new FormatResult();
+		FormatVerdict verdict = new FormatVerdict();
 		
 		// Get the syntax structure for syntax contexts
 		final var syntax_structure = getSyntaxStructure();
 		
 		// Evaluate format tokens
-		for(int i = 0; i < numFormatTokens(); ++i)
 		{
-			var pair = formatTokenRandomAccessTable.get(i);
-	    	var tk = formatTokens.get(pair.a).get(pair.b);
-	    	
-	    	var tk_ctx = new PrimitiveContext(syntax_structure.getSyntaxContext(tk));
-	    	
-	    	tk.evaluateFormat(this, tk_ctx);
+			// TODO: after summary classes for different CodeBlocks are written,
+			// add the evaluated code blocks to them.
+			
+			WsBlockSummary wsBlockSummary = new WsBlockSummary();
+			CommentBlockSummary commentBlockSummary = new CommentBlockSummary();
+			JavaDocSummary javaDocSummary = new JavaDocSummary();
+			
+			// For each ft, evaluate it and add it to the corresponding summary.
+			for(int i = 0; i < numFormatTokens(); ++i)
+			{
+				var pair = formatTokenRandomAccessTable.get(i);
+		    	var tk = formatTokens.get(pair.a).get(pair.b);
+		    	
+		    	var tk_ctx = new PrimitiveContext(syntax_structure.getSyntaxContext(tk));
+		    	
+		    	tk.evaluateFormat(this, tk_ctx);
+		    	
+		    	if(tk instanceof WsBlock)
+		    	{
+		    		wsBlockSummary.include((WsBlock)tk);
+		    	}
+		    	else if(tk instanceof JavaDocBlock)
+		    	{
+		    		javaDocSummary.include((JavaDocBlock)tk);
+		    	}
+		    	else if(tk instanceof CommentBlock)
+		    	{
+		    		commentBlockSummary.include((CommentBlock)tk);
+		    	}
+			}
+			
+			// Include the summaries in the verdict
+			verdict.include(wsBlockSummary);
+			verdict.include(commentBlockSummary);
+			verdict.include(javaDocSummary);
 		}
 		
-		throw new RuntimeException("Implementation incomplete");
+		// Evaluate lines
+		{
+			LineSummary lineSummary = new LineSummary();
+			
+			// For each line, evaluate it and add it to the summary.
+			for(int i = 0; i < lines.size(); ++i)
+			{
+				var line = lines.get(i);
+		    	
+				var line_ctx = new PrimitiveContext(syntax_structure.getSyntaxContext(line));
+		    	line.evaluateFormat(this, line_ctx);
+		    	
+		    	lineSummary.include(line);
+			}
+			
+			// Include the summary in the verdict
+			verdict.include(lineSummary);
+		}
 		
-		// return res;
+		// Don't forget to give verdict
+		verdict.giveVerdict();
+		
+		return verdict;
     }
 }

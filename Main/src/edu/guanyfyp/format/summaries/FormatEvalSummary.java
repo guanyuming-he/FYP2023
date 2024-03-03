@@ -21,7 +21,7 @@ public abstract class FormatEvalSummary<T extends FormatPrimitive>
 {
 //////////////////////// Fields ////////////////////////
 	private boolean summaryDone;
-	private final List<T> primitives;
+	protected final List<T> primitives;
 	
 //////////////////////// Constructors ////////////////////////
 	/**
@@ -41,19 +41,43 @@ public abstract class FormatEvalSummary<T extends FormatPrimitive>
 	
 	/**
 	 * Include an evaluated format primitive into the account of the summary that is to be made.
+	 * The default implementation puts p into the primitives list.
 	 * 
 	 * @param p an evaluated primitive
-	 * @throws IllegalArgumentException if p is not evaluated
 	 * @throws IllegalStateException if it already has a summary.
+	 * @throws IllegalArgumentException if p is not evaluated
 	 */
-	public abstract void include(T p);
+	public void include(T p)
+	{
+		if(isSummaryDone())
+		{
+			throw new IllegalStateException("Already summarised.");
+		}
+		
+		if(!p.isEvaluated())
+		{
+			throw new IllegalArgumentException("p is not evaluated.");
+		}
+		
+		primitives.add(p);
+	}
 	
 	/**
 	 * Summarises all the evaluated primitives included.
 	 * The results of the method are stored in fields of the class and are accessed through its observers.
 	 * After it, isSummaryDone() = true.
 	 * 
+	 * The default implementation only sets summaryDone = true and does nothing else.
+	 * 
 	 * @throws IllegalStateException if it already has a summary.
 	 */
-	public abstract void summarize();
+	public void summarize()
+	{
+		if(isSummaryDone())
+		{
+			throw new IllegalStateException("Already summarised.");
+		}
+		
+		summaryDone = true;
+	}
 }
