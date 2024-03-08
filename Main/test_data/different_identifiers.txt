@@ -1,0 +1,42 @@
+/*
+ * This file contails different kinds of identifiers:
+ *  1. normal, too long, and too short
+ *  2. named in different ways: pascal, camel, UPPERCASE_UNDERSCORE, and other
+ *  3. TBA ...
+ *  ...
+ */
+public class PascalNamedClass
+{
+    public static interface camelNamedInterface
+    {
+        public void thisNameIsTooLongForAnIdentifierLongerThanManyThings();
+    }
+    
+    public static enum PascalNamedEnum {
+        ENUM_1,
+        ENUM_TWO,
+        ENUM_THREE3
+    }
+
+    private static final int A = 0;
+    private static final int A_CONSTANT = 0;
+
+    // too short
+    private int a = 1;
+    // named not in any of the standard ways, or as upper underscore when it's not a constant.
+    private int badly_named_field = 2;
+    private int Badly_Named_Field = 2;
+    private int badly_NAMED_Field, BADLY_NAMED_FIELD = 2;
+    // numbers are allowed inside names
+    private int actuallyLegit1 = 3;
+
+    // parameters should also be recognised as identifiers
+    public void foo(int bar, int Shit)
+    {
+        // local variables should also be recognised as identifiers
+        int a, b, c;
+    }
+    
+    // badly named method
+    private void FOO() {}
+}

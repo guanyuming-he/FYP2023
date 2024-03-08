@@ -79,12 +79,6 @@ public class CommentBlock extends FormatToken
 		}
 	}
 	
-	@Override
-	protected float calculateFormatScore(SyntaxContext ctx) 
-	{
-		throw new RuntimeException("Not implemented.");		
-	}
-	
 	/**
 	 * A comment block should always be visible, because both // and /* are visible.
 	 */

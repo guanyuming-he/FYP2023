@@ -102,12 +102,6 @@ public class WsBlock extends FormatToken
 		
 		return length;
 	}
-
-	@Override
-	protected float calculateFormatScore(SyntaxContext ctx) 
-	{
-		throw new RuntimeException("Not implemented.");		
-	}
 	
 	/**
 	 * A whitespace block should always be invisible.

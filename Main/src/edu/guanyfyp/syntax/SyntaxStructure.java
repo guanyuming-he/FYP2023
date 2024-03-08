@@ -47,6 +47,7 @@ public final class SyntaxStructure
 	 */
 	public SyntaxContext getSyntaxContext(FormatPrimitive p)
 	{
-		throw new RuntimeException("Not implemented.");
+		// Not implemented!
+		return null;
 	}
 }

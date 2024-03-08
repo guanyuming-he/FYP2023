@@ -144,13 +144,6 @@ public abstract class FormatToken extends FormatPrimitive
 	{
 		return str.length();
 	}
-	
-	/**
-	 * Calculates the format score of the token given the context that it's in.
-	 * @param ctx the context that the token is in.
-	 * @return the format_score calculated.
-	 */
-	protected abstract float calculateFormatScore(SyntaxContext ctx);
 		
 ////////////////////////// From Object ///////////////////////////////	
 	@Override

@@ -3,10 +3,22 @@
  */
 package edu.guanyfyp.format.summaries;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.antlr.v4.runtime.CommonToken;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.UpperCase;
+
+import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
+import edu.guanyfyp.format.primitives.CodeBlock.NamingStyle;
+import edu.guanyfyp.format.primitives.PrimitiveContext;
+import edu.guanyfyp.generated.JavaLexer;
+import edu.guanyfyp.syntax.SyntaxStructure;
 
 /**
- * 
+ * Dedicated to testing the evalFormat() method of Line
  */
 public class CodeBlockSummary extends FormatEvalSummary<CodeBlock>
 {
@@ -33,5 +45,7 @@ public class CodeBlockSummary extends FormatEvalSummary<CodeBlock>
 	{
 		throw new RuntimeException("Unimplemented.");
 	}
+	
+//////////////////////// Settings ////////////////////////
 
 }

@@ -6,6 +6,7 @@ package edu.guanyfyp.format.primitives;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.Token;
 
@@ -68,12 +69,6 @@ public class CodeBlock extends FormatToken
 	}
 
 //////////////////// Abstract overrides ///////////////////////////////
-	
-	@Override
-	protected float calculateFormatScore(SyntaxContext ctx)
-	{
-		throw new RuntimeException("Not implemented.");		
-	}
 	
 	/**
 	 * A code block should always be visible.
@@ -492,9 +487,213 @@ public class CodeBlock extends FormatToken
 	public final AdditionalAttributes additionalAttr;
 	
 ///////////////////////////// From FormatPrimitive /////////////////////////////
+	/**
+	 * 1. If it's identifier
+	 * 	i. judge length
+	 *  ii. check naming style.
+	 *  ...
+	 * 2. ...
+	 */
 	@Override
 	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
 	{
-		throw new RuntimeException("Not implemented.");
+		super.evaluateFormat(sf, context);
+		
+		// 1.
+		if(isIdentifier())
+		{
+			// i.
+			judgeLength();
+			// ii.
+			decideCurrentNamingStyle();
+		}
+		// 2. ...
+		else if(false)
+		{
+			
+		}
 	}
+	
+///////////////////////////// Format evaluation: Identifier /////////////////////////////
+	/**
+	 * @return true iff it's an identifier.
+	 */
+	public boolean isIdentifier() 
+	{ 
+		switch(additionalAttr.type)
+		{
+		case CLASS_NAME:
+		case CONSTRUCTOR_NAME:
+		case ENUM_NAME:
+		case FIELD_NAME:
+		case FOR_VARIABLE_NAME:
+		case INTERFACE_NAME:
+		case METHOD_NAME:
+		case PARAMETER_NAME:
+		case VARIABLE_NAME:
+			return true;
+		default:
+			return false;
+		}
+	}
+	
+///////////////////////////// Format evaluation: Length /////////////////////////////
+	// Only meaningful if it's an identifier.
+	
+	private boolean tooLong = false;
+	public boolean isTooLong() { return tooLong; }
+	
+	private boolean tooShort = false;
+	public boolean isTooShort() { return tooShort; }
+	
+	private void judgeLength()
+	{
+		assert(!tooLong && !tooShort);
+		
+		if(characters().length() > settings.longestIdentifierLength)
+		{
+			tooLong = true;
+		}
+		else if(characters().length() < settings.shortestIdentifierLength)
+		{
+			tooShort = true;
+		}
+	}
+	
+///////////////////////////// Format evaluation: Naming style /////////////////////////////
+	
+	// How an identifier is named
+	public static enum NamingStyle
+	{
+		// All allow numbers in between
+		
+		// First letter of each word is capitalised.
+		// For classes
+		PASCAL_CASE, 
+		// First letter of each word, except the first, is capitalised
+		// methods and variables
+		CAMEL_CASE, 
+		// Uppercase and underscores.
+		// For constants and enumeration items
+		UPPERCASE_UNDERSCORE, 
+		// Not one of the above
+		OTHER
+	}
+	
+	public static final String PASCAL_REGEX = "[A-Z][\\da-z]*([\\dA-Z][\\da-z]*)*";
+	public static final String CAMEL_REGEX = "[a-z][\\da-z]*([\\dA-Z][\\da-z]*)*";
+	public static final String UPPERCASE_REGEX = "[A-Z\\d]+(_[A-Z\\d]+)*";
+	private static final Pattern pascalRegexPattern = Pattern.compile(PASCAL_REGEX);
+	private static final Pattern camelRegexPattern = Pattern.compile(CAMEL_REGEX);
+	private static final Pattern uppercaseRegexPattern = Pattern.compile(UPPERCASE_REGEX);
+	
+	// Only meaningful if it's an identifier.
+	
+	private NamingStyle namingStyle = NamingStyle.OTHER;
+	/** 
+	 * @return The current naming style of this 
+	 */
+	public NamingStyle getNamingStyle() {return namingStyle; }
+	/** 
+	 * @return The correct naming style for this's type of identifier 
+	 */
+	public NamingStyle getCorrectNamingStyle() 
+	{
+		// Decide correct naming style
+		switch(additionalAttr.type)
+		{
+		case CLASS_NAME:
+		case INTERFACE_NAME:
+		case ENUM_NAME:
+			return settings.desiredClassNamingStyle;
+		case CONSTRUCTOR_NAME:
+		case METHOD_NAME:
+			return settings.desiredMethodNamingStyle;
+		case FIELD_NAME:
+		case VARIABLE_NAME:
+			// Check if it's a constant
+			// A constant should have static final
+			if (additionalAttr.hasOtherModifier(AdditionalAttributes.MODIFIER_STATIC) ||
+					additionalAttr.hasOtherModifier(AdditionalAttributes.MODIFIER_FINAL))
+			{
+				return settings.desiredConstantNamingStyle;
+			}
+		case FOR_VARIABLE_NAME:
+		case PARAMETER_NAME:
+			return settings.desiredVariableNamingStyle;
+		default:
+			return NamingStyle.OTHER;
+		}
+	}
+	/**
+	 * @return true iff getNamingStyle() == getCorrectNamingStyle();
+	 */
+	public boolean isNamingCorrect() { return getNamingStyle() == getCorrectNamingStyle(); }
+	
+	/**
+	 * Decides the current naming style used.
+	 * 
+	 * Can only be called inside evaluateFormat()
+	 * Only meaningful if it's an identifier.
+	 */
+	private void decideCurrentNamingStyle()
+	{
+		var text = characters();
+		assert(!text.isEmpty());
+		
+		// Decide current naming style
+		// first character is uppercase ->
+		// PASCAL, UPPERCASE_UNDERSCORE, or other
+		{
+			if(Character.isUpperCase(text.charAt(0)))
+			{
+				// Match uppercase underscore before pascal.
+				// Imagine this name ABC, it could theoretically be pascal if A, B, and C were all words.
+				// But it's better to treat it as uppercase underscore.
+				if(uppercaseRegexPattern.matcher(text).matches())
+				{
+					namingStyle = NamingStyle.UPPERCASE_UNDERSCORE;
+				}
+				else if(pascalRegexPattern.matcher(text).matches())
+				{
+					namingStyle = NamingStyle.PASCAL_CASE;
+				}
+				else
+				{
+					namingStyle = NamingStyle.OTHER;
+				}
+			}
+			// otherwise, camel or other
+			else
+			{
+				if(camelRegexPattern.matcher(text).matches())
+				{
+					namingStyle = NamingStyle.CAMEL_CASE;
+				}
+				else
+				{
+					namingStyle = NamingStyle.OTHER;
+				}
+			}
+		}
+		
+	}
+	
+	
+//////////////////////// Settings ////////////////////////
+	
+	public static final class Settings
+	{
+		// Default values come from the Java coding convention by oracle.
+		
+		public int longestIdentifierLength = 15;
+		public int shortestIdentifierLength = 4;
+		public NamingStyle desiredClassNamingStyle = NamingStyle.PASCAL_CASE;
+		public NamingStyle desiredMethodNamingStyle = NamingStyle.CAMEL_CASE;
+		public NamingStyle desiredVariableNamingStyle = NamingStyle.CAMEL_CASE;
+		public NamingStyle desiredConstantNamingStyle = NamingStyle.UPPERCASE_UNDERSCORE;
+	}
+	
+	public static final Settings settings = new Settings();
+	
 }

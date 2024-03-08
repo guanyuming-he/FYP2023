@@ -65,7 +65,7 @@ public final class FormatVerdict
 	 * @throws IllegalArgumentException if that kind of summary has already been given.
 	 * @throws IllegalStateException if a verdict has already been given.
 	 */
-	public void include(FormatEvalSummary summary)
+	public void include(FormatEvalSummary<?> summary)
 	{
 		if(hasGivenVerdict())
 		{

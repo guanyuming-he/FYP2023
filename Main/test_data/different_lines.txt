@@ -1,0 +1,21 @@
+/*
+ * Contains lines of different lengths
+ * and of different indentation levels in different scopes
+ */
+
+public class ABC
+{
+    private static final int        thisLineIsTooFuckingLongDoNotDoThisBecauseItWillGoOutOfTheScreen         =          123456 ;
+int badlyIndentedLine1 = 1;
+        int badlyIndentedLine2 = 2;
+    int correctlyIndentedLine1 = 3;
+    
+    // the following line is not too long despite having many trailing whitespaces,
+    // because only the visible offset is considered.
+    int notTooLong = 4;																												  
+
+    // TODO: add more lines here after I finish the indentation level evaluation.
+    void foo() {
+
+    }
+}

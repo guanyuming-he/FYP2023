@@ -11,8 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.guanyfyp.SourceFile;
+import edu.guanyfyp.format.primitives.CodeBlock;
+import edu.guanyfyp.format.primitives.FormatPrimitive;
 import edu.guanyfyp.format.primitives.FormatToken;
 import edu.guanyfyp.format.primitives.Line;
+import edu.guanyfyp.format.primitives.PrimitiveContext;
+import edu.guanyfyp.syntax.SyntaxStructure;
 
 /**
  * This class contains utilities and helper methods for all the tests.
@@ -188,5 +192,22 @@ public final class TestUtils
 			fail("Could not open the source file.");
 		}
 		return s;
+	}
+
+/////////////////////////////// FormatPrimitive Evaluation Testing Helpers ////////////////////////////	
+	/**
+	 * Convenient helper that calls p.evaluateFormat with necessary arguments.
+	 * Also, it prevents reevaluation as some tokens are used by more than one tests.
+	 * @param c
+	 */
+	public static void evalPrimitiveOnlyOnce(FormatPrimitive p, SourceFile sf, SyntaxStructure ss)
+	{
+		if(!p.isEvaluated())
+		{
+			var ctx = new PrimitiveContext(ss.getSyntaxContext(p));
+			p.evaluateFormat(sf, ctx);
+			// Must be true now.
+			assert(p.isEvaluated());
+		}
 	}
 }
