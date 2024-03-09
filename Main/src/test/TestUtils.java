@@ -158,7 +158,7 @@ public final class TestUtils
 			var prop_line = expectedTokenProperties.get(i);
 			if(prop_line.isEmpty())
 			{
-				expected_lines.add(new Line(null, null, s));
+				expected_lines.add(new Line(i+1, null, null, s));
 			}
 			else
 			{
@@ -166,7 +166,7 @@ public final class TestUtils
 				
 				assertEquals(prop_line.size(), token_line.size());
 				
-				expected_lines.add(new Line(token_line.get(0), token_line.get(prop_line.size()-1), s));
+				expected_lines.add(new Line(i+1, token_line.get(0), token_line.get(prop_line.size()-1), s));
 			}
 		}
 		

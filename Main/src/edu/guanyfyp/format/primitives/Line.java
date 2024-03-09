@@ -30,14 +30,23 @@ public final class Line extends FormatPrimitive
 	 * @param sf the source file in which the tokens are in. Used to find all the tokens 
 	 * in the line. Not used if first = last = null.
 	 * 
+	 * @throws IllegalArgumentException if lineNumber <= 0
 	 * @throws IllegalArgumentException if only one of first and last is null.
 	 * @throws IllegalArgumentException if either first or last does not come from sf.
 	 * @throws IllegalArgumentException if first and last are not in the same line.
+	 * @throws IllegalArgumentException if lineNumber does not agree with the tokens.
 	 * @throws IllegalArgumentException if first's index in the line is not 0.
 	 * @throws IllegalArgumentException if last's index is not the last in the line.
 	 */
-	public Line(FormatToken first, FormatToken last, final SourceFile sf)
+	public Line(int lineNumber, FormatToken first, FormatToken last, final SourceFile sf)
 	{
+		if(lineNumber <= 0)
+		{
+			throw new IllegalArgumentException("lineNumber can only be positive.");
+		}
+		
+		this.lineNumber = lineNumber;
+		
 		if(	(first == null && last != null) || 
 			(first != null && last == null) )
 		{
@@ -67,6 +76,11 @@ public final class Line extends FormatPrimitive
 		
 		// They are from the same sf.
 		// Now the line has some tokens.
+		
+		if(lineNumber != first.line())
+		{
+			throw new IllegalArgumentException("The lineNumber does not agree with the tokens.");
+		}
 		
 		if(last.line() != first.line())
 		{
@@ -136,6 +150,10 @@ public final class Line extends FormatPrimitive
 	}
 
 ///////////////////////////// Fields /////////////////////////////
+	// The number of the line in the source file, 1..n.
+	// Especially important if the line does not have any token.
+	public final int lineNumber;
+	
 	// The first token in the line.
 	// Is null if the line has no token at all.
 	public final FormatToken firstToken;
@@ -163,7 +181,7 @@ public final class Line extends FormatPrimitive
 	// If the line has no visible token, then it is 0.
 	public final int visualLength;
 	
-///////////////////////////// Observers /////////////////////////////
+///////////////////////////// Observers /////////////////////////////	
 	/**
 	 * @return true iff the line has any FormatToken at all.
 	 * This line is empty <-> !hasToken().

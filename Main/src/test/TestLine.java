@@ -30,26 +30,29 @@ public class TestLine
 		var s2 = TestUtils.createSourceFileNoError(file_path_2);
 		
 		// 1. Only 1 token is null.
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(null, s2.getFormatToken(3), s2);});
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s1.getFormatToken(0), null, s1);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(1, null, s2.getFormatToken(3), s2);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(1, s1.getFormatToken(0), null, s1);});
 		
 		// 2. At least one token is not from the given source file.
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s1.getFormatToken(9, 0), s2.getFormatToken(9, 7), s2);});
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s1.getFormatToken(9, 0), s2.getFormatToken(9, 7), s1);});
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s1.getFormatToken(3, 0), s1.getFormatToken(3, 7), s2);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(9, s1.getFormatToken(9, 0), s2.getFormatToken(9, 7), s2);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(9, s1.getFormatToken(9, 0), s2.getFormatToken(9, 7), s1);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(3, s1.getFormatToken(3, 0), s1.getFormatToken(3, 7), s2);});
 		
 		// 3. First and last are not in the same line.
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s2.getFormatToken(8, 1), s2.getFormatToken(9, 1), s2);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(8, s2.getFormatToken(8, 1), s2.getFormatToken(9, 1), s2);});
 		// the file for s1 is specially designed so that the following tokens may appear to be in the same line but are not.
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s1.getFormatToken(1, 0), s1.getFormatToken(3, 0), s1);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(1, s1.getFormatToken(1, 0), s1.getFormatToken(3, 0), s1);});
 		
 		// 4. First is not the first token in the line.
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s1.getFormatToken(3, 1), s1.getFormatToken(3, 7), s1);});
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s2.getFormatToken(26, 1), s2.getFormatToken(26, 1), s2);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(3, s1.getFormatToken(3, 1), s1.getFormatToken(3, 7), s1);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(26, s2.getFormatToken(26, 1), s2.getFormatToken(26, 1), s2);});
 		
 		// 5. Last is not the last token in the line.
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s1.getFormatToken(5, 0), s1.getFormatToken(5, 2), s1);});
-		assertThrows(IllegalArgumentException.class, ()-> {new Line(s2.getFormatToken(18, 0), s2.getFormatToken(18, 0), s2);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(5, s1.getFormatToken(5, 0), s1.getFormatToken(5, 2), s1);});
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(18, s2.getFormatToken(18, 0), s2.getFormatToken(18, 0), s2);});
+	
+		// 6. Line number does not agree with the tokens
+		assertThrows(IllegalArgumentException.class, ()-> {new Line(18, s2.getFormatToken(17, 0), s2.getFormatToken(17, 1), s2);});
 	}
 	
 	/**
@@ -58,7 +61,7 @@ public class TestLine
 	@Test
 	void testEmptyLine()
 	{
-		Line l1 = new Line(null, null, null);
+		Line l1 = new Line(1, null, null, null);
 		assertEquals(null, l1.firstToken, "All tokens should be null now.");
 		assertEquals(null, l1.lastToken, "All tokens should be null now.");
 		assertEquals(null, l1.firstVisibleToken, "All tokens should be null now.");
@@ -68,12 +71,13 @@ public class TestLine
 		assertEquals(false, l1.hasToken(), "Does not have any token.");
 		assertEquals(false, l1.hasVisibleToken(), "Does not have any token.");
 		assertEquals(0, l1.visualOffset(), "Visual offset should be 0 now.");
+		assertEquals(1, l1.lineNumber);
 		
 		// The source file parameter is unused under this condition,
 		// so the following results should be exactly the same as above.
 		final String file_path_1 = "test_data/empty_lines1.txt";
 		var s1 = TestUtils.createSourceFileNoError(file_path_1);
-		l1 = new Line(null, null, s1);
+		l1 = new Line(12, null, null, s1);
 		assertEquals(null, l1.firstToken, "All tokens should be null now.");
 		assertEquals(null, l1.lastToken, "All tokens should be null now.");
 		assertEquals(null, l1.firstVisibleToken, "All tokens should be null now.");
@@ -83,6 +87,7 @@ public class TestLine
 		assertEquals(false, l1.hasToken(), "Does not have any token.");
 		assertEquals(false, l1.hasVisibleToken(), "Does not have any token.");
 		assertEquals(0, l1.visualOffset(), "Visual offset should be 0 now.");
+		assertEquals(12, l1.lineNumber);
 	}
 	
 	/**
@@ -96,9 +101,9 @@ public class TestLine
 		final String file_path_1 = "test_data/white_spaces.txt";
 		var s1 = TestUtils.createSourceFileNoError(file_path_1);
 		
-		Line l1 = new Line(s1.getFormatToken(4, 0), s1.getFormatToken(4, 0), s1);
-		Line l2 = new Line(s1.getFormatToken(5, 0), s1.getFormatToken(5, 0), s1);
-		Line l3 = new Line(s1.getFormatToken(6, 0), s1.getFormatToken(6, 0), s1);
+		Line l1 = new Line(4, s1.getFormatToken(4, 0), s1.getFormatToken(4, 0), s1);
+		Line l2 = new Line(5, s1.getFormatToken(5, 0), s1.getFormatToken(5, 0), s1);
+		Line l3 = new Line(6, s1.getFormatToken(6, 0), s1.getFormatToken(6, 0), s1);
 		
 		assertEquals(s1.getFormatToken(4, 0), l1.firstToken, "The first should be set correctly");
 		assertEquals(s1.getFormatToken(4, 0), l1.lastToken, "The last should be set correctly");
@@ -143,7 +148,7 @@ public class TestLine
 		
 		// Boundary case:
 		// Has only one token, which is visible.
-		Line l1 = new Line(s1.getFormatToken(3, 0), s1.getFormatToken(3, 0), s1);
+		Line l1 = new Line(3, s1.getFormatToken(3, 0), s1.getFormatToken(3, 0), s1);
 		assertEquals(s1.getFormatToken(3, 0), l1.firstToken, "The first should be set correctly");
 		assertEquals(s1.getFormatToken(3, 0), l1.lastToken, "The last should be set correctly");
 		assertEquals(s1.getFormatToken(3, 0), l1.firstVisibleToken, "The first visible should be set correctly");
@@ -155,7 +160,7 @@ public class TestLine
 		assertEquals(1, l1.visualOffset(), "1");
 		
 		// Other normal cases
-		Line l2 = new Line(s1.getFormatToken(5, 0), s1.getFormatToken(5, 4), s1);
+		Line l2 = new Line(5, s1.getFormatToken(5, 0), s1.getFormatToken(5, 4), s1);
 		assertEquals(s1.getFormatToken(5, 0), l2.firstToken, "The first should be set correctly");
 		assertEquals(s1.getFormatToken(5, 4), l2.lastToken, "The last should be set correctly");
 		assertEquals(s1.getFormatToken(5, 1), l2.firstVisibleToken, "The first visible should be set correctly");
@@ -166,7 +171,7 @@ public class TestLine
 		assertEquals(true, l2.hasVisibleToken(), "Has some visible token.");
 		assertEquals(12, l2.visualOffset(), "12");
 		
-		Line l3 = new Line(s1.getFormatToken(9, 0), s1.getFormatToken(9, 1), s1);
+		Line l3 = new Line(9, s1.getFormatToken(9, 0), s1.getFormatToken(9, 1), s1);
 		assertEquals(s1.getFormatToken(9, 0), l3.firstToken, "The first should be set correctly");
 		assertEquals(s1.getFormatToken(9, 1), l3.lastToken, "The last should be set correctly");
 		assertEquals(s1.getFormatToken(9, 1), l3.firstVisibleToken, "The first visible should be set correctly");
@@ -178,7 +183,7 @@ public class TestLine
 		assertEquals(5, l3.visualOffset(), "5");
 		
 		// Abnormal case: invisible spaces after the last visible token.
-		Line l4 = new Line(s1.getFormatToken(12, 0), s1.getFormatToken(12, 5), s1);
+		Line l4 = new Line(12, s1.getFormatToken(12, 0), s1.getFormatToken(12, 5), s1);
 		assertEquals(s1.getFormatToken(12, 0), l4.firstToken, "The first should be set correctly");
 		assertEquals(s1.getFormatToken(12, 5), l4.lastToken, "The last should be set correctly");
 		assertEquals(s1.getFormatToken(12, 1), l4.firstVisibleToken, "The first visible should be set correctly");

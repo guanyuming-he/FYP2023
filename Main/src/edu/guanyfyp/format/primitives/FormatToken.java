@@ -118,7 +118,7 @@ public abstract class FormatToken extends FormatPrimitive
 	/**
 	 * @return The index of the token in the whole SourceFile, 0..n-1
 	 */
-	int index()
+	public int index()
 	{
 		return antlrToken.getTokenIndex();
 	}

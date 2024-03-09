@@ -227,16 +227,17 @@ public class SourceFile
 		
 		// Create the lines
 		{
-			for (var line : formatTokens)
+			for (int i = 0; i < formatTokens.size(); ++i)
 			{
+				var line = formatTokens.get(i);
 				if(!line.isEmpty())
 				{
 					// A line is created with the first and the last format token.
-					temp_lines.add(new Line(line.get(0), line.get(line.size()-1), this));
+					temp_lines.add(new Line(i+1, line.get(0), line.get(line.size()-1), this));
 				}
 				else // the line is empty
 				{
-					temp_lines.add(new Line(null, null, this));
+					temp_lines.add(new Line(i+1, null, null, this));
 				}
 			}
 			
