@@ -1,0 +1,35 @@
+// { starts in a new line
+public class ABC
+{
+    // { starts in the same line.
+    public static enum Enum {
+        A,
+        B,
+        C
+    }    
+
+    public static class CCC
+    // will this comment affect the detection of the scope?
+    {
+    }
+
+    // one-line scope
+    public void foo() { int i = 0; }
+
+    public void abc() {
+        // unnamed scope
+        {
+
+        }
+    }
+
+    // some badly-formatted scopes
+    public void bar() {
+        int i = 0; }
+    
+    public void f() {
+        if (true)
+        { 
+            int i = 0; }
+    }
+}

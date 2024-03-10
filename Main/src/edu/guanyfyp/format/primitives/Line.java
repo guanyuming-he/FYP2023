@@ -241,28 +241,38 @@ public final class Line extends FormatPrimitive
 ///////////////////////////// From FormatPrimitive /////////////////////////////
 	/**
 	 * 1. Evaluates if the line is too long
-	 * 2. Evaluates if the line is well indented (TBD. Needs to complete SyntaxContext for this).
+	 * 2. Evaluates if the line is well indented
 	 * 3. May be more
 	 */
 	@Override
 	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
-	{
-		// handles the state
-		super.evaluateFormat(sf, context);
-		
+	{		
 		// 1
 		if(visualOffset() > settings.maximumGoodLineVOffset)
 		{
 			tooLong = true;
 		}
 		
-		// TODO: 2
+		// 2.
+		// get the scope that the line is in.
+		var s = context.syntaxContext.scope;
+		// the correct indentation should be 4 * (s.level+1)
+		correctIndentation = 4 * (s.level+1);	
+		
+		// handles the state
+		super.evaluateFormat(sf, context);
 	}
 	
 //////////////////////// Format evaluation results ////////////////////////
 	// If the line looks too long
 	private boolean tooLong = false;
 	public boolean isTooLong() { return tooLong; }
+	// How far the line should be indented.
+	private int correctIndentation = 0;
+	/**
+	 * @return if the current indentation is correct. i.e. if current == correct.
+	 */
+	public boolean isIndentationCorrect() { return correctIndentation == indentationLevel; }
 	
 //////////////////////// Format evaluation Settings ////////////////////////
 	

@@ -27,8 +27,8 @@ public final class PrimitiveContext
 	 * 
 	 * @param syntax_context
 	 */
-	public PrimitiveContext(final SyntaxContext syntax_context)
+	public PrimitiveContext(final SyntaxContext syntaxContext)
 	{
-		syntaxContext = syntax_context;
+		this.syntaxContext = syntaxContext;
 	}
 }

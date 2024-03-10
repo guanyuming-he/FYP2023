@@ -492,7 +492,8 @@ public class CodeBlock extends FormatToken
 	 * 	i. judge length
 	 *  ii. check naming style.
 	 *  ...
-	 * 2. ...
+	 * 2. Punctuations
+	 * 	i. the style of { } enclosed scopes
 	 */
 	@Override
 	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
@@ -507,10 +508,13 @@ public class CodeBlock extends FormatToken
 			// ii.
 			decideCurrentNamingStyle();
 		}
-		// 2. ...
-		else if(false)
+		// 2. only need to find either { or } for one scope.
+		// I find the {
+		else if(antlrToken.getType() == JavaLexer.LBRACE)
 		{
-			
+			// This is the scope.
+			// context.syntaxContext.scope;
+			throw new RuntimeException("Not implemented.");
 		}
 	}
 	

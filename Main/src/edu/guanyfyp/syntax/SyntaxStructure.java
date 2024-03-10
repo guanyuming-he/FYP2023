@@ -31,7 +31,35 @@ public final class SyntaxStructure
 	 */
 	public SyntaxContext getSyntaxContext(FormatPrimitive p)
 	{
-		// Not implemented!
-		return null;
+		// Algorithm to find:
+		// 1. start with scope = root
+		// 2. for each children, c, of scope, check if p is in c.
+		// 3. if so, scope = c. goto 2.
+		// 4. if none of c has p, then we are done.
+		
+		// 1.
+		SyntaxScope scope = rootScope;
+		// p must be in the range of root.
+		assert (scope.isPrimitiveInRange(p));
+		
+		while(true)
+		{
+			// 2.
+			for(var c : scope.children)
+			{
+				if(c.isPrimitiveInRange(p))
+				{
+					// 3.
+					scope = c;
+					break;
+				}
+			}
+			
+			// 4. None of its children contains p.
+			// we are done.
+			break;
+		}
+		
+		return new SyntaxContext(scope);
 	}
 }

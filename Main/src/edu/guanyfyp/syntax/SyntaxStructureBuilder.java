@@ -3,8 +3,11 @@
  */
 package edu.guanyfyp.syntax;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale.IsoCountryCode;
+import java.util.Stack;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -15,6 +18,7 @@ import edu.guanyfyp.format.primitives.FormatToken;
 import edu.guanyfyp.format.primitives.CodeBlock.AdditionalAttributes;
 import edu.guanyfyp.generated.JavaParser;
 import edu.guanyfyp.generated.JavaParserBaseListener;
+import edu.guanyfyp.syntax.SyntaxScope.Type;
 import edu.guanyfyp.generated.JavaParser.AnnotationContext;
 import edu.guanyfyp.generated.JavaParser.ForInitContext;
 
@@ -26,7 +30,6 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	public SyntaxStructureBuilder(SourceFile sf) 
 	{
 		this.sourceFile = sf;
-		this.additionalTokenAttributes = new HashMap<>();
 	}
 
 	
@@ -51,7 +54,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	// token index (in the token stream, getTokenIndex()) -> additional information
 	// Because the tokens that the parser processes are only CodeBlocks,
 	// only this Type's information is needed.
-	private final HashMap<Integer, CodeBlock.AdditionalAttributes> additionalTokenAttributes;
+	private final HashMap<Integer, CodeBlock.AdditionalAttributes> additionalTokenAttributes = new HashMap<>();
 	public HashMap<Integer, CodeBlock.AdditionalAttributes> getAdditionalTokenAttributes()
 	{
 		return additionalTokenAttributes;
@@ -96,6 +99,119 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	private void resetPendingAttributes() 
 	{ 
 		pendingAttributes = new AdditionalAttributes();
+	}
+	
+///////////////////////////// SyntaxScope building /////////////////////////
+	/*
+	 * After a walk, I must have a complete syntax scope tree.
+	 * 
+	 * 1. Because I want a SyntaxScope to be as immutable as possible, the tree can only
+	 * be built bottom-up from the leaves (i.e. only the parent field can be set later)
+	 * 2. Therefore, I propose using a stack. 
+		 a. Because 
+		 * 	i. the walk is from the beginning token to the end token in order,
+		 * 	ii. a } always closes a scope
+		 * , the corresponding walk on the scope tree is always a post-order. That is,
+		 * any leaf will be closed during the walk before its parent is closed.
+		 
+		 b. Whenever a { is encountered, push a new block onto the stack. 
+		 The stack should contain the information about the new scope. 
+		 What are made available at this step:
+		 	i. the token for the {
+		 	ii. the scope's type.
+		 
+		 c. Whenever a } is encountered, pop the top block from the stack,
+		 and conclude the information about the scope. 
+		 What are made available at this step:
+		 	i. the }
+		 	ii. all of its children should have been created.
+		 	iii. its level is the size of the stack after the pop
+		 
+		 d. Create the new scope with the info. 
+		So also set their parent fields after the new scope is created.
+		 
+		 e.
+		 If the stack is empty, the new scope is the root.
+		 Otherwise, add the newly created scope to the top of the stack now as the corresponding scope's child.
+		 
+		 
+	 * 3. the type of a scope will always be available before the {,
+	 * because those that decide its type are before it.
+	 * As for standalone ones, I can assume a scope is standalone if nothing related is before it.
+	 * Therefore, use a similar pending mechanism here.
+	 * 	a. Initially, pendingType = Type.STANDALONE_SCOPE.
+	 * 	b. Whenever a syntax structure that contains a scope is encountered,
+	 * set the pendingType to its type.
+	 * 	c. Whenever a { is encountered, retrieve the pendingType and reset it back to Type.STANDALONE_SCOPE.
+	 * 
+	 */
+	
+	private static class ScopeBuildingInfo
+	{	
+		SyntaxScope.Type type;
+		// the {
+		// the } does not need to be stored.
+		// It's available when it's created.
+		CodeBlock start;
+		final List<SyntaxScope> children = new ArrayList<SyntaxScope>();
+		// The level does not need to be stored.
+		// It's available when it's created.
+	}
+	
+	private final Stack<ScopeBuildingInfo> scopeBuildingStack = new Stack<ScopeBuildingInfo>();
+	private SyntaxScope.Type pendingScopeType = Type.STANDALONE_SCOPE;
+	
+	/**
+	 * Called when a { is encountered 
+	 * 		 2.b. Whenever a { is encountered, push a new block onto the stack. 
+			 The stack should contain the information about the new scope. 
+			 What are made available at this step:
+			 	i. the token for the {
+			 	ii. the scope's type.
+			 	
+			3.c. Whenever a { is encountered, retrieve the pendingType and reset it back to Type.STANDALONE_SCOPE.
+	 */
+	private void onLBraceEncountered(CodeBlock lb)
+	{
+		ScopeBuildingInfo info = new ScopeBuildingInfo();
+		info.start = lb;
+		// 3.c. Whenever a { is encountered, retrieve the pendingType and reset it back to Type.STANDALONE_SCOPE.
+		info.type = pendingScopeType;
+		pendingScopeType = Type.STANDALONE_SCOPE;
+		
+		// push it onto the stack
+		scopeBuildingStack.push(info);
+	}
+	
+	/**
+	 * Called when a } is encountered 
+		 2.c. Whenever a } is encountered, pop the top block from the stack,
+		 and conclude the information about the scope. 
+		 What are made available at this step:
+		 	i. the }
+		 	ii. all of its children should have been created.
+		 	iii. its level is the size of the stack after the pop	 
+		 2.d. Create the new scope with the info. 
+		So also set their parent fields after the new scope is created.	 
+		 2.e.
+		 If the stack is empty, the new scope is the root.
+		 Otherwise, add the newly created scope to the top of the stack now as the corresponding scope's child.
+	 */
+	private void onRBraceEncountered(CodeBlock rb)
+	{
+		// Should end a scope and the stack must be empty now.
+		assert (!scopeBuildingStack.empty());
+		
+		// 2.c
+		var info = scopeBuildingStack.pop();
+		var end = rb;
+		int level = scopeBuildingStack.size();
+		
+		// 2.d
+		// TODO: finish this.
+		throw new RuntimeException("Not implemented");
+		
+		// 2.e.
 	}
 	
 ///////////////////////////// Helpers /////////////////////////////////

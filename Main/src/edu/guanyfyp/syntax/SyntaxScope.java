@@ -26,6 +26,11 @@ import edu.guanyfyp.format.primitives.Line;
  * For traversal, a syntax scope also acts as a node in a tree.
  * Therefore, it contains its parent and children, which are supplied by some external builder.
  * 
+ * @apiNote 
+ * You can only construct a syntax scope tree bottom-up.
+ * It's parent is not final. All other fields are immutable.
+ * 
+ * @implNote
  * Invariants:
  * 	1. parent is its parent and children are its children
  * 	2. startToken is a { and endToken is a }
@@ -64,9 +69,9 @@ public final class SyntaxScope
 	
 	/**
 	 * Its parent, can be null only when it has no parent.
-	 * Supplied to the constructor by an external builder.
+	 * Supplied to the constructor and can be set later.
 	 */
-	public final SyntaxScope parent;
+	public SyntaxScope parent;
 	/**
 	 * An immutable list of its children. 
 	 * Can be empty only when it has no children.
@@ -106,9 +111,9 @@ public final class SyntaxScope
 	 * @param startToken the { token that starts it
 	 * @param endToken the } token that ends it
 	 * 
-	 * @throws IllegalArgumentException if parent and children do not match in level.
 	 * @throws IllegalArgumentException if then start/end token is not {/},
 	 * or if start is after end.
+	 * @throws IllegalArgumentException if the children's levels are not correct.
 	 * @apiNote the constructor's checking won't cover all illegal cases, because that would be too expensive,
 	 * and that should be the job of the builder.
 	 * If the builder gives illegal arguments that the constructor can't check against, 
@@ -118,7 +123,8 @@ public final class SyntaxScope
 	(
 		Type type,
 		SyntaxScope parent, List<SyntaxScope> children,
-		CodeBlock startToken, CodeBlock endToken
+		CodeBlock startToken, CodeBlock endToken,
+		int level
 	)
 	{	
 		// check the start and end token
@@ -132,27 +138,7 @@ public final class SyntaxScope
 		{
 			throw new IllegalArgumentException("start token must be before the end token.");
 		}
-		// Check the level of parent and children.
-		if(parent == null)
-		{
-			for(var c : children)
-			{
-				if(c.level != 1)
-				{
-					throw new IllegalArgumentException("parent and children do not match in the field level");
-				}
-			}
-		}
-		else // parent != null
-		{
-			for(var c : children)
-			{
-				if(c.level != parent.level+2)
-				{
-					throw new IllegalArgumentException("parent and children do not match in the field level");
-				}
-			}
-		}
+		// Do not check parent because the parent can be set later.
 		
 		this.type = type;
 		this.parent = parent;
@@ -161,8 +147,15 @@ public final class SyntaxScope
 		this.startToken = startToken;
 		this.endToken = endToken;
 		
-		// calculate the level
-		level = (parent == null ? 0 : parent.level+1);
+		// check the children's levels
+		for(var c : children)
+		{
+			if(c.level != level+1)
+			{
+				throw new IllegalArgumentException("Children's levels are not correct.");
+			}
+		}
+		this.level = level;
 		
 		// calclaute oneLine
 		oneLine = (startToken.line() == endToken.line());
@@ -188,8 +181,8 @@ public final class SyntaxScope
 		if(p instanceof FormatToken)
 		{
 			var t = (FormatToken)p;
-			// If t is in between the start and end tokens.
-			return t.index() > startToken.index() && t.index() < endToken.index();
+			// If t is in between the start and end tokens (inclusive)
+			return t.index() >= startToken.index() && t.index() <= endToken.index();
 		}
 		else if(p instanceof Line)
 		{
@@ -210,7 +203,7 @@ public final class SyntaxScope
 	 * @implNote Could use a recursive approach. 
 	 * 	1. The base case is for the deepest scopes that have no subscopes. 
 	 * They just return true for all primitives in the range.
-	 * 	2. The recursive step: primitives in the range but are not deemed inside any subscope.
+	 * 	2. The recursive step: primitives in the range of this but are not deemed in the range of any subscope.
 	 * @param p a format primitive
 	 * @return true iff so.
 	 */
@@ -227,7 +220,7 @@ public final class SyntaxScope
 		// all primitives that are not in its subscopes,
 		for(var c : children)
 		{	
-			if (c.isPrimitiveInScope(p))
+			if (c.isPrimitiveInRange(p))
 			{
 				return false;
 			}
