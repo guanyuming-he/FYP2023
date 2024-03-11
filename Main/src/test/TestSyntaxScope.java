@@ -55,14 +55,14 @@ public class TestSyntaxScope
 		// construct the leaves
 		var leaf1 = new SyntaxScope
 		(
-			Type.STANDALONE_SCOPE, 
+			Type.GENERAL_STATEMENT_SCOPE, 
 			null, List.of(), 
 			(CodeBlock)simpleScopesSf.getFormatToken(10, 1), (CodeBlock)simpleScopesSf.getFormatToken(12, 1),
 			2
 		);
 		var leaf2 = new SyntaxScope
 		(
-			Type.STANDALONE_SCOPE, 
+			Type.GENERAL_STATEMENT_SCOPE, 
 			null, List.of(), 
 			(CodeBlock)simpleScopesSf.getFormatToken(14, 1), (CodeBlock)simpleScopesSf.getFormatToken(16, 1),
 			2

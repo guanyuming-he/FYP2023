@@ -52,12 +52,16 @@ public final class SyntaxScope
 		// Scope of a definition of something that is generally like a class:
 		// class, interface, enum, or generic class.
 		GENERAL_CLASS_DEF_SCOPE,
+		
 		// Scope of a definition of something that that is generally like a method:
 		// method or lambda.
 		GENERAL_METHOD_DEF_SCOPE,
-		// A scope that is a syntax structure on its own.
-		// e.g. an unnamed scope inside a method.
-		STANDALONE_SCOPE
+		
+		// Scope that is part of a statement, e.g.
+		// 1. part of an if, switch, ... statement
+		// 2. an statement on its own. can be an unnamed scope inside a method body.
+		// 3. array initializers
+		GENERAL_STATEMENT_SCOPE
 	}
 	
 //////////////////////// Fields //////////////////////////////
@@ -105,8 +109,12 @@ public final class SyntaxScope
 	
 //////////////////////// Ctors //////////////////////////////
 	/**
+	 * Creates a new syntax scope with the parameters.
+	 * It is impossible to give a valid parent here unless the scope is root, but you MUST give all its children here.
+	 * After the construction, the children's parent will be set to this.
+	 * 
 	 * @param type which kind of syntactical structure this scope is (or is part of)
-	 * @param parent its containing scope, should be null if it is the root
+	 * @param unless this is root, the parameter is meaningless. If it's root, then the argument MUST be null.
 	 * @param children its children, should be empty if it is a leaf
 	 * @param startToken the { token that starts it
 	 * @param endToken the } token that ends it
@@ -142,10 +150,6 @@ public final class SyntaxScope
 		
 		this.type = type;
 		this.parent = parent;
-		// make the list immutable
-		this.children = Collections.unmodifiableList(children);
-		this.startToken = startToken;
-		this.endToken = endToken;
 		
 		// check the children's levels
 		for(var c : children)
@@ -155,7 +159,17 @@ public final class SyntaxScope
 				throw new IllegalArgumentException("Children's levels are not correct.");
 			}
 		}
-		this.level = level;
+		this.level = level;	
+		// Don't forget to set the children's parents
+		for(var c : children)
+		{
+			c.parent = this;
+		}
+		// make the list immutable
+		this.children = Collections.unmodifiableList(children);
+		
+		this.startToken = startToken;
+		this.endToken = endToken;
 		
 		// calclaute oneLine
 		oneLine = (startToken.line() == endToken.line());
@@ -229,6 +243,8 @@ public final class SyntaxScope
 		return isPrimitiveInRange(p);
 	}
 
+	
+	
 	// Names inside a scope is not important to judging code quality.
 	// Consider the most important things first.
 //		/**

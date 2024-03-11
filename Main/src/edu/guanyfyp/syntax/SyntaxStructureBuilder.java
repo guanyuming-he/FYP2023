@@ -8,9 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale.IsoCountryCode;
 import java.util.Stack;
+import java.util.function.Consumer;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
@@ -21,6 +23,7 @@ import edu.guanyfyp.generated.JavaParserBaseListener;
 import edu.guanyfyp.syntax.SyntaxScope.Type;
 import edu.guanyfyp.generated.JavaParser.AnnotationContext;
 import edu.guanyfyp.generated.JavaParser.ForInitContext;
+import edu.guanyfyp.generated.JavaParser.StatementContext;
 
 /**
  * Builds a SyntaxContext by walking the parse tree
@@ -131,18 +134,17 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		So also set their parent fields after the new scope is created.
 		 
 		 e.
-		 If the stack is empty, the new scope is the root.
+		 If the stack is empty, the new scope is a root.
 		 Otherwise, add the newly created scope to the top of the stack now as the corresponding scope's child.
 		 
 		 
 	 * 3. the type of a scope will always be available before the {,
-	 * because those that decide its type are before it.
-	 * As for standalone ones, I can assume a scope is standalone if nothing related is before it.
-	 * Therefore, use a similar pending mechanism here.
-	 * 	a. Initially, pendingType = Type.STANDALONE_SCOPE.
+	 * unless the scope stands alone, in which case the type is GENERAL_STATMENT_SCOPE.
+	 * Therefore,
+	 * 	a. Initially, pendingType = Type.GENERAL_STATMENT_SCOPE.
 	 * 	b. Whenever a syntax structure that contains a scope is encountered,
 	 * set the pendingType to its type.
-	 * 	c. Whenever a { is encountered, retrieve the pendingType and reset it back to Type.STANDALONE_SCOPE.
+	 * 	c. Whenever a { is encountered, retrieve the pendingType and reset it back to Type.GENERAL_STATMENT_SCOPE.
 	 * 
 	 */
 	
@@ -159,7 +161,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	}
 	
 	private final Stack<ScopeBuildingInfo> scopeBuildingStack = new Stack<ScopeBuildingInfo>();
-	private SyntaxScope.Type pendingScopeType = Type.STANDALONE_SCOPE;
+	private SyntaxScope.Type pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
 	
 	/**
 	 * Called when a { is encountered 
@@ -177,12 +179,12 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		info.start = lb;
 		// 3.c. Whenever a { is encountered, retrieve the pendingType and reset it back to Type.STANDALONE_SCOPE.
 		info.type = pendingScopeType;
-		pendingScopeType = Type.STANDALONE_SCOPE;
+		pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
 		
 		// push it onto the stack
 		scopeBuildingStack.push(info);
 	}
-	
+
 	/**
 	 * Called when a } is encountered 
 		 2.c. Whenever a } is encountered, pop the top block from the stack,
@@ -192,9 +194,9 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		 	ii. all of its children should have been created.
 		 	iii. its level is the size of the stack after the pop	 
 		 2.d. Create the new scope with the info. 
-		So also set their parent fields after the new scope is created.	 
+		So also set their (2.c.ii) parent fields after the new scope is created.	 
 		 2.e.
-		 If the stack is empty, the new scope is the root.
+		 If the stack is empty, the new scope is a root.
 		 Otherwise, add the newly created scope to the top of the stack now as the corresponding scope's child.
 	 */
 	private void onRBraceEncountered(CodeBlock rb)
@@ -208,10 +210,21 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		int level = scopeBuildingStack.size();
 		
 		// 2.d
-		// TODO: finish this.
-		throw new RuntimeException("Not implemented");
+		// The children's parent are set in the constructor.
+		var newScope = new SyntaxScope(info.type, null, info.children, info.start, end, level);
 		
 		// 2.e.
+		if(scopeBuildingStack.empty())
+		{
+			// This new scope is a root. Add it to the root scopes
+			syntaxStructure.rootScopes.add(newScope);
+		}
+		else
+		{
+			// Otherwise, add the newly created scope to the top of the stack now as the corresponding scope's child.
+			var top = scopeBuildingStack.peek();
+			top.children.add(newScope);
+		}
 	}
 	
 ///////////////////////////// Helpers /////////////////////////////////
@@ -285,7 +298,55 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	}
 	
 	
-///////////////////////////// Inherited parser methods /////////////////////////////////
+///////////////////////////// Inherited parser listener methods /////////////////////////////////
+	/*
+	 * Syntactical analysis goals:
+	 * 1. obtain all modifiers and the precise type of an identifier
+	 * 2. obtain all scopes and the approximate type of each.
+	 * 
+	 * All structures needed to be examined for 1:
+	 * 	TypeDeclaration
+	 *	ClassBodyDeclaration
+	 *	InterfaceBodyDeclaration
+	 * 	LocalTypeDeclaration
+	 * 	FormalParameters
+	 * 	LocalVariableDeclaration
+	 * 	ClassDeclaration
+	 * 	EnumDeclaration
+	 * 	InterfaceDeclaration
+	 * 	MethodDeclaration
+	 * 	GenericMethodDeclaration
+	 * 	InterfaceMethodDeclaration
+	 * 	GenericInterfaceMethodDeclaration
+	 * 	ConstructorDeclaration
+	 * 	GenericConstructorDeclaration
+	 * 	FieldDeclaration
+	 * 
+	 * All structures needed to be examined for 2:
+	 * 	enumDeclaration
+	 * 	classBody
+	 * 	interfaceBody
+	 * 	arrayInitializer
+	 * 	elementValueArrayInitializer
+	 * 	annotationTypeBody
+	 * 	block
+	 * 	statement (on the SWITCH path)
+	 * 	switchExpression
+	 * 	methodBody (gives type to block)
+	 * 	constructorDeclaration (gives type to block)
+	 * 	compactConstructorDeclaration (gives type to block)
+	 * 	statement (single block path) (gives type to block)
+	 * 	statement (TRY path) (gives type to block)
+	 * 	statement (SYNCHRONIZED path) (gives type to block)
+	 * 	catchClause (gives type to block)
+	 * 	finallyBlock (gives type to block)
+	 * 	lambdaBody (gives type to block)
+	 * 	switchRuleOutcome (gives type to block)
+	 * 
+	 */
+	
+	// entering things
+	
 	/**
 	 * Because I care about the modifiers, I have to explore here
 	 * @see the comment for pending_type_modifiers
@@ -315,6 +376,18 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	}
 	
 	/**
+	 * ClassBody is part of ClassBodyDeclarations
+	 */
+	@Override
+	public void enterClassBody(JavaParser.ClassBodyContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_CLASS_DEF_SCOPE;
+		}
+	}
+	
+	/**
 	 * InterfaceBodyDeclarations also include modifiers
 	 * @see the comment for pending_type_modifiers
 	 */
@@ -325,6 +398,161 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		for(var modifier : modifiersList)
 		{
 			add_pending_modifier(modifier);
+		}
+	}
+	
+	/**
+	 * InterfaceBody is part of InterfaceBodyDeclarations
+	 */
+	@Override
+	public void enterInterfaceBody(JavaParser.InterfaceBodyContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_CLASS_DEF_SCOPE;
+		}
+	}
+	
+	/**
+	 * ArrayInitializer is used to initialize an array
+	 */
+	@Override
+	public void enterArrayInitializer(JavaParser.ArrayInitializerContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+		}
+	}
+
+	/**
+	 * ElementValueArrayInitializer initializes an element value array
+	 */
+	@Override
+	public void enterElementValueArrayInitializer(JavaParser.ElementValueArrayInitializerContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+		}
+	}
+	
+	/**
+	 * AnnotationTypeBody is part of the definition of an annotation.
+	 */
+	@Override
+	public void enterAnnotationTypeBody(JavaParser.AnnotationTypeBodyContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_CLASS_DEF_SCOPE;
+		}
+	}
+
+	/**
+	 * A statement.
+	 */
+	@Override
+	public void enterStatement(JavaParser.StatementContext ctx)
+	{
+		// 2.
+		{
+		
+			// Actually all scopes here have this GENERAL_STATMENT_SCOPE type,
+			// but I must be careful not to override the type unless needed.
+			// Don't do this here: pendingScopeType = Type.GENERAL_STATMENT_SCOPE;
+			if(ctx.SWITCH() != null) // the switch path
+			{
+				pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+			}
+			else if(ctx.blockLabel != null) // the single block path
+			{
+				pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+				// the onlbrace will be called in the block
+			}
+			else if(ctx.TRY() != null) // the try path
+			{
+				pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+				// the onlbrace will be called in the block
+			}
+			else if(ctx.SYNCHRONIZED() != null) // the synchronized path
+			{
+				pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+				// the onlbrace will be called in the block
+			}
+
+		}
+	}
+	
+	/**
+	 * A switch expression
+	 */
+	@Override
+	public void enterSwitchExpression(JavaParser.SwitchExpressionContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_METHOD_DEF_SCOPE;
+		}
+	}
+	
+	/**
+	 * A method body
+	 */
+	@Override
+	public void enterMethodBody(JavaParser.MethodBodyContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_METHOD_DEF_SCOPE;
+		}
+	}
+	
+	/**
+	 * A CatchClause
+	 */
+	@Override
+	public void enterCatchClause(JavaParser.CatchClauseContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+		}
+	}
+	
+	/**
+	 * A FinallyBlock
+	 */
+	@Override
+	public void enterFinallyBlock(JavaParser.FinallyBlockContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+		}
+	}
+	
+	/**
+	 * A method body
+	 */
+	@Override
+	public void enterLambdaBody(JavaParser.LambdaBodyContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_METHOD_DEF_SCOPE;
+		}
+	}
+
+	/**
+	 * A SwitchRuleOutcome
+	 */
+	@Override
+	public void enterSwitchRuleOutcome(JavaParser.SwitchRuleOutcomeContext ctx)
+	{
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
 		}
 	}
 	
@@ -480,18 +708,26 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterEnumDeclaration(JavaParser.EnumDeclarationContext ctx)
 	{
-		// the enumeration name token.
-		Token token = ctx.identifier().getStart();
+		// 1.
+		{
+			// the enumeration name token.
+			Token token = ctx.identifier().getStart();
 
-		// additional attributes
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.ENUM_NAME, token.getTokenIndex());
+			// additional attributes
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.ENUM_NAME, token.getTokenIndex());
+		}
+
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_CLASS_DEF_SCOPE;
+		}
 	}
 	
 	/**
 	 * When a declaration of an interface is encountered
 	 */
 	@Override
-	 public void enterInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx)
+	public void enterInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx)
 	 {
 		// the interface name token.
 		Token token = ctx.identifier().getStart();
@@ -570,10 +806,18 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx)
 	{
-		// the constructor name token.
-		Token token = ctx.identifier().getStart();
-	
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
+		// 1.
+		{
+			// the constructor name token.
+			Token token = ctx.identifier().getStart();
+		
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
+		}
+		
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_METHOD_DEF_SCOPE;
+		}
 	}
 	
 	/**
@@ -582,10 +826,18 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterGenericConstructorDeclaration(JavaParser.GenericConstructorDeclarationContext ctx)
 	{
-		// the generic constructor method name token.
-		Token token = ctx.constructorDeclaration().identifier().getStart();
-	
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
+		// 1.
+		{
+			// the generic constructor method name token.
+			Token token = ctx.constructorDeclaration().identifier().getStart();
+		
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CONSTRUCTOR_NAME, token.getTokenIndex());
+		}
+		
+		// 2.
+		{
+			pendingScopeType = Type.GENERAL_METHOD_DEF_SCOPE;
+		}
 	}
 	
 	/**
@@ -607,5 +859,26 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		}
 		// don't forget to reset pending_modifiers in the end
 		resetPendingAttributes();
+	}
+
+	// On visiting every terminal
+	@Override
+	public void visitTerminal(TerminalNode t)
+	{
+		// 2.
+		{
+			if(t.getText().equals("{"))
+			{
+				var lBraceAntlrToken = t.getSymbol();
+				var lBraceCodeBlock = (CodeBlock)sourceFile.getFormatToken(lBraceAntlrToken);
+				onLBraceEncountered(lBraceCodeBlock);
+			}
+			else if(t.getText().equals("}"))
+			{
+				var rBraceAntlrToken = t.getSymbol();
+				var rBraceCodeBlock = (CodeBlock)sourceFile.getFormatToken(rBraceAntlrToken);
+				onRBraceEncountered(rBraceCodeBlock);
+			}
+		}
 	}
 }

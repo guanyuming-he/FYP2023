@@ -390,6 +390,7 @@ public class SourceFile
      * Returns the FormatToken that corresponds to the Antlr token
      * @param antlr_token whose token index will be used
      * @return the FormatToken
+     * @apiNote The behaviour is undefined if antlr_token is not part of the source file.
      */
     public FormatToken getFormatToken(Token antlr_token)
     {
