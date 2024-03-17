@@ -59,9 +59,11 @@ public final class SyntaxScope
 		
 		// Scope that is part of a statement, e.g.
 		// 1. part of an if, switch, ... statement
-		// 2. an statement on its own. can be an unnamed scope inside a method body.
-		// 3. array initializers
-		GENERAL_STATEMENT_SCOPE
+		// 2. array initializers
+		GENERAL_STATEMENT_SCOPE,
+		
+		// a scope on its own. e.g. can be an unnamed scope inside a method body.
+		STANDALONE_SCOPE
 	}
 	
 //////////////////////// Fields //////////////////////////////

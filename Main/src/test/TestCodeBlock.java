@@ -69,17 +69,17 @@ class TestCodeBlock
 		
 		// Some operators
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.COLON);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		assertEquals(CodeBlock.Type.OPERATOR_LOW_PRECEDENCE, cb.additionalAttr.getType());
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.NOTEQUAL);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		assertEquals(CodeBlock.Type.OPERATOR_LOW_PRECEDENCE, cb.additionalAttr.getType());
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.DIV);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		assertEquals(CodeBlock.Type.OTHER_OPERATORS, cb.additionalAttr.getType());
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.ADD_ASSIGN);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		assertEquals(CodeBlock.Type.OPERATOR_LOW_PRECEDENCE, cb.additionalAttr.getType());
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.MOD);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		assertEquals(CodeBlock.Type.OTHER_OPERATORS, cb.additionalAttr.getType());
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.RSHIFT_ASSIGN);
-		assertEquals(CodeBlock.Type.OPERATOR_UNCLASSIFIED, cb.additionalAttr.getType());
+		assertEquals(CodeBlock.Type.OPERATOR_LOW_PRECEDENCE, cb.additionalAttr.getType());
 		
 		// Identifier
 		cb.additionalAttr.setTypeFromLexerTokenType(JavaLexer.IDENTIFIER);

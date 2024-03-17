@@ -131,7 +131,8 @@ public class CodeBlock extends FormatToken
 		PARAMETER_NAME,
 		
 		// Operators
-		OPERATOR_UNCLASSIFIED,
+		OPERATOR_LOW_PRECEDENCE,
+		OTHER_OPERATORS,
 		
 		// Others
 		OTHERS,
@@ -388,34 +389,9 @@ public class CodeBlock extends FormatToken
 				break;
 			
 			// Operators
+			// from lowest precedence to highest. See https://docs.oracle.com/javase/tutorial/java/nutsandbolts/operators.html
+			// lowest: assignment
 			case JavaLexer.ASSIGN:
-			// Comparisons
-			case JavaLexer.GT:
-			case JavaLexer.LT:
-			case JavaLexer.EQUAL:	
-			case JavaLexer.LE:
-			case JavaLexer.GE:
-			case JavaLexer.NOTEQUAL:
-			// ...
-			case JavaLexer.BANG:
-			case JavaLexer.TILDE:
-			case JavaLexer.QUESTION:
-			case JavaLexer.COLON:
-			// Logical
-			case JavaLexer.AND:	
-			case JavaLexer.OR:
-			// Math
-			case JavaLexer.INC:
-			case JavaLexer.DEC:
-			case JavaLexer.ADD:	
-			case JavaLexer.SUB:
-			case JavaLexer.MUL:
-			case JavaLexer.DIV:
-			case JavaLexer.BITAND:
-			case JavaLexer.BITOR:
-			case JavaLexer.CARET:
-			case JavaLexer.MOD:
-			// Op-assign
 			case JavaLexer.ADD_ASSIGN:	
 			case JavaLexer.SUB_ASSIGN:
 			case JavaLexer.MUL_ASSIGN:
@@ -427,14 +403,45 @@ public class CodeBlock extends FormatToken
 			case JavaLexer.RSHIFT_ASSIGN:	
 			case JavaLexer.URSHIFT_ASSIGN:
 			case JavaLexer.MOD_ASSIGN:
-				this.type = Type.OPERATOR_UNCLASSIFIED;
+			// then, ternary
+			case JavaLexer.QUESTION:
+			case JavaLexer.COLON:
+			// then, logical and or
+			case JavaLexer.AND:	
+			case JavaLexer.OR:
+			// then, bitwise and, or, exclusive or (^, a caret)
+			case JavaLexer.BITAND:
+			case JavaLexer.BITOR:
+			case JavaLexer.CARET:
+			// then, equality and relational
+			case JavaLexer.EQUAL:
+			case JavaLexer.NOTEQUAL:
+			case JavaLexer.GT:
+			case JavaLexer.LT:
+			case JavaLexer.LE:
+			case JavaLexer.GE:
+			// then, shift
+			// but these are implemented using multiple LTs or GTs
+				this.type = Type.OPERATOR_LOW_PRECEDENCE;
 				break;
-			
+			// all those under are considered having high precedence
+			case JavaLexer.BANG:
+			case JavaLexer.TILDE:
+			case JavaLexer.INC:
+			case JavaLexer.DEC:
+			case JavaLexer.ADD:	
+			case JavaLexer.SUB:
+			case JavaLexer.MUL:
+			case JavaLexer.DIV:
+			case JavaLexer.MOD:
+				this.type = Type.OTHER_OPERATORS;
+				break;
+				
 			// Identifier
 			case JavaLexer.IDENTIFIER:
 				this.type = Type.IDENTIFIER_UNCLASSIFIED;
 				break;
-			
+				
 			// Misc
 			case JavaLexer.ARROW:	
 			case JavaLexer.COLONCOLON:
@@ -493,12 +500,27 @@ public class CodeBlock extends FormatToken
 	 *  ii. check naming style.
 	 *  ...
 	 * 2. Punctuations
-	 * 	i. the style of { } enclosed scopes
+	 * 	2.1 {
+	 *  2.2 }
+	 *  2.3 ,
+	 *  2.4 ;
+	 * 3. operators
+	 *  i. check spaces around some low precedence operators
 	 */
 	@Override
 	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
 	{
 		super.evaluateFormat(sf, context);
+		
+		// types of codeblock
+		// 1. identifier
+		// 2. punctuation
+		// 3. operators
+		// 4. keywords (not useful for format evaluation)
+		
+		// set this to true in general
+		// unless I set it to false later in specific case
+		hasSpaceAroundWhenItShould = true;
 		
 		// 1.
 		if(isIdentifier())
@@ -508,14 +530,109 @@ public class CodeBlock extends FormatToken
 			// ii.
 			decideCurrentNamingStyle();
 		}
-		// 2. only need to find either { or } for one scope.
-		// I find the {
+		// 2. 
+		// need to check { } , ; 
+		// 2.1. {
 		else if(antlrToken.getType() == JavaLexer.LBRACE)
 		{
-			// This is the scope.
-			// context.syntaxContext.scope;
-			throw new RuntimeException("Not implemented.");
+			var containingScope = context.syntaxContext.scope;
+			if(containingScope.oneLine)
+			{
+				// get the next token and see if that's wsblock
+				var next = sf.getNextFormatToken(this);
+				// this is a oneline scope, so there must be some tokens after the {
+				assert (next != null && next.line() == this.line());
+				hasOneLineScopeSpace = next instanceof WsBlock;
+				hasSpaceAroundWhenItShould = hasOneLineScopeSpace;
+			}
+			// It's a multiline scope
+			else
+			{
+				// judge its style.
+				// If it starts a new line, then there should only be one block
+				// before it in the same line, and that block must be a wsblock.
+				var prev = sf.getPrevFormatToken(this);
+				if(prev == null)
+				{
+					// It's the first token in the file.
+					currentScopeStyle = ScopeStyle.LBRACE_STARTS_NEW_LINE;
+					return;
+				}
+				
+				if(!(prev instanceof WsBlock))
+				{
+					currentScopeStyle = ScopeStyle.LBRACE_STAYS_IN_OLD_LINE;
+					return;
+				}
+				
+				// now the prev token is a ws block
+				// check if the one before the prev is in the same line
+				var prevPrev = sf.getPrevFormatToken(prev);
+				if(prevPrev == null)
+				{
+					currentScopeStyle = ScopeStyle.LBRACE_STARTS_NEW_LINE;
+				}					
+				
+			}
 		}
+		// 2.2 }
+		else if(antlrToken.getType() == JavaLexer.RBRACE)
+		{
+			// only need to check the space if it's of a oneline scope
+			var containingScope = context.syntaxContext.scope;
+			if(containingScope.oneLine)
+			{
+				var prev = sf.getPrevFormatToken(this);
+				// this is a oneline scope, so there must be some tokens before the }
+				assert(prev != null && prev.line() == this.line());
+				
+				hasOneLineScopeSpace = prev instanceof WsBlock;
+				hasSpaceAroundWhenItShould = hasOneLineScopeSpace;
+			}
+		}
+		// 2.3 if there is a space after ,
+		else if(antlrToken.getType() == JavaLexer.COMMA)
+		{
+			var next = sf.getNextFormatToken(this);
+			if(next == null)
+			{
+				hasSpaceAfterComma = true;
+			}
+			else
+			{
+				hasSpaceAfterComma = next instanceof WsBlock;
+			}
+			hasSpaceAroundWhenItShould = hasSpaceAfterComma;
+		}
+		// 2.4 if there is space after ; or if ; ends a line
+		else if(antlrToken.getType() == JavaLexer.SEMI)
+		{
+			var next = sf.getNextFormatToken(this);
+			if(next == null)
+			{
+				hasSpaceOrNewLineAfterSemi = true;
+			}
+			else
+			{
+				hasSpaceOrNewLineAfterSemi = (next instanceof WsBlock || next.line() > this.line());
+			}
+			hasSpaceAroundWhenItShould = hasSpaceOrNewLineAfterSemi;
+		}
+		// 3.1 low precedence operators
+		else if(additionalAttr.type == Type.OPERATOR_LOW_PRECEDENCE)
+		{
+			// should have spaces around
+			var prev = sf.getPrevFormatToken(this);
+			var next = sf.getNextFormatToken(this);
+			
+			boolean prevSpace = prev == null ? true : prev instanceof WsBlock;
+			boolean nextSpace = next == null ? true : next instanceof WsBlock;
+			hasSpaceAroundLowPrecOper = prevSpace && nextSpace;
+			
+			hasSpaceAroundWhenItShould = hasSpaceAroundLowPrecOper;
+		}
+		// other operators are not evaluated now.
+
 	}
 	
 ///////////////////////////// Format evaluation: Identifier /////////////////////////////
@@ -682,7 +799,39 @@ public class CodeBlock extends FormatToken
 		}
 		
 	}
+
+///////////////////////////// Format evaluation: spaces before, after, starting new line or not /////////////////////////////
+	// Some code blocks should have space around them or start a new line
+	// these following fields are each for a specific case;
+	// otherwise, they are all true. They are inited to true and only set false in specific situations.
 	
+	// When you don't care about which of them this is, but only whether spaces are around it when there should be,
+	// then you query this value.
+	public boolean hasSpaceAroundWhenItShould = true;
+	
+	// { <- space, space -> }
+	// only meaningful for { or } of one-line scopes
+	public boolean hasOneLineScopeSpace = true;
+	// if this is a comma, then true iff there is space after it.
+	public boolean hasSpaceAfterComma = true;
+	// if it's a semi, then true iff there is space or newline after it
+	public boolean hasSpaceOrNewLineAfterSemi = true;
+	// if it's an operator of low precedence (lower than addition and subtraction)
+	// then true iff there is space before and after it.
+	public boolean hasSpaceAroundLowPrecOper = true;
+	
+	
+///////////////////////////// Format evaluation: consistent coding style /////////////////////////////
+	// Except that one-line scopes don't use a style,
+	// whether a { occupies its own line is a matter of choice.
+	// But you need to be consistent.
+	public static enum ScopeStyle
+	{
+		LBRACE_STARTS_NEW_LINE,
+		LBRACE_STAYS_IN_OLD_LINE
+	}
+	// only meaningful for { of multiline scopes.
+	public ScopeStyle currentScopeStyle;
 	
 //////////////////////// Settings ////////////////////////
 	
@@ -690,12 +839,19 @@ public class CodeBlock extends FormatToken
 	{
 		// Default values come from the Java coding convention by oracle.
 		
+		// Identifier settings
 		public int longestIdentifierLength = 15;
 		public int shortestIdentifierLength = 4;
 		public NamingStyle desiredClassNamingStyle = NamingStyle.PASCAL_CASE;
 		public NamingStyle desiredMethodNamingStyle = NamingStyle.CAMEL_CASE;
 		public NamingStyle desiredVariableNamingStyle = NamingStyle.CAMEL_CASE;
 		public NamingStyle desiredConstantNamingStyle = NamingStyle.UPPERCASE_UNDERSCORE;
+		
+		// Punctuation settings
+		// currently none
+		
+		// Operator settings
+		// currently none
 	}
 	
 	public static final Settings settings = new Settings();

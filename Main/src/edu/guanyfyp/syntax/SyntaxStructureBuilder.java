@@ -467,7 +467,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			}
 			else if(ctx.blockLabel != null) // the single block path
 			{
-				pendingScopeType = Type.GENERAL_STATEMENT_SCOPE;
+				pendingScopeType = Type.STANDALONE_SCOPE;
 				// the onlbrace will be called in the block
 			}
 			else if(ctx.TRY() != null) // the try path

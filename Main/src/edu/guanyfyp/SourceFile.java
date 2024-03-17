@@ -21,6 +21,7 @@ import edu.guanyfyp.format.primitives.JavaDocBlock;
 import edu.guanyfyp.format.primitives.Line;
 import edu.guanyfyp.format.primitives.PrimitiveContext;
 import edu.guanyfyp.format.primitives.WsBlock;
+import edu.guanyfyp.format.summaries.CodeBlockSummary;
 import edu.guanyfyp.format.summaries.CommentBlockSummary;
 import edu.guanyfyp.format.summaries.JavaDocSummary;
 import edu.guanyfyp.format.summaries.LineSummary;
@@ -571,6 +572,7 @@ public class SourceFile
 			// TODO: after summary classes for different CodeBlocks are written,
 			// add the evaluated code blocks to them.
 			
+			CodeBlockSummary cbSummary = new CodeBlockSummary();
 			WsBlockSummary wsBlockSummary = new WsBlockSummary();
 			CommentBlockSummary commentBlockSummary = new CommentBlockSummary();
 			JavaDocSummary javaDocSummary = new JavaDocSummary();
@@ -597,12 +599,17 @@ public class SourceFile
 		    	{
 		    		commentBlockSummary.include((CommentBlock)tk);
 		    	}
+		    	else if(tk instanceof CodeBlock)
+		    	{
+		    		cbSummary.include((CodeBlock)tk);
+		    	}
 			}
 			
 			// Include the summaries in the verdict
 			verdict.include(wsBlockSummary);
 			verdict.include(commentBlockSummary);
 			verdict.include(javaDocSummary);
+			verdict.include(cbSummary);
 		}
 		
 		// Evaluate lines

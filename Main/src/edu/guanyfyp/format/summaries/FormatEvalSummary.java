@@ -21,19 +21,16 @@ public abstract class FormatEvalSummary<T extends FormatPrimitive>
 {
 //////////////////////// Fields ////////////////////////
 	private boolean summaryDone;
-	protected final List<T> primitives;
 	
 //////////////////////// Constructors ////////////////////////
 	/**
 	 * Default ctor.
 	 * 
 	 * isSummaryDone() will be false.
-	 * Initialises the primitives list.
 	 */
 	FormatEvalSummary()
 	{
 		summaryDone = false;
-		primitives = new ArrayList<T>();
 	}
 	
 //////////////////////// Methods ////////////////////////
@@ -41,7 +38,7 @@ public abstract class FormatEvalSummary<T extends FormatPrimitive>
 	
 	/**
 	 * Include an evaluated format primitive into the account of the summary that is to be made.
-	 * The default implementation puts p into the primitives list.
+	 * The default implementation checks the states only
 	 * 
 	 * @param p an evaluated primitive
 	 * @throws IllegalStateException if it already has a summary.
@@ -58,8 +55,6 @@ public abstract class FormatEvalSummary<T extends FormatPrimitive>
 		{
 			throw new IllegalArgumentException("p is not evaluated.");
 		}
-		
-		primitives.add(p);
 	}
 	
 	/**

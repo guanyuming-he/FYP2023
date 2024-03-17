@@ -42,12 +42,16 @@ public final class LineSummary extends FormatEvalSummary<Line>
 	@Override
 	public void include(Line l) 
 	{
-		tooLongLines.add(l);
-		
-		// TODO: Detect if l is badly indented from the corresponding observers of Line
-		
-		// include it to the list.
 		super.include(l);
+		
+		if(l.isTooLong())
+		{
+			tooLongLines.add(l);
+		}
+		if(!l.isIndentationCorrect())
+		{
+			badlyIndentedLines.add(l);
+		}
 	}
 
 	@Override
