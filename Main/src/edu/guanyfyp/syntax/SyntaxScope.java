@@ -179,6 +179,9 @@ public final class SyntaxScope
 	
 
 //////////////////////// Observers //////////////////////////////
+	public boolean isRoot() { return parent == null; }
+	public boolean isLeaf() { return children.isEmpty(); }
+	
 	/**
 	 * Decides if a p is covered between the startToken and the endToken.
 	 * 

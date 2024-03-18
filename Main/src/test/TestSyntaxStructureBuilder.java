@@ -5,15 +5,47 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
+import edu.guanyfyp.syntax.SyntaxStructure;
+import edu.guanyfyp.syntax.SyntaxStructureBuilder;
 
 /**
  * 
  */
 class TestSyntaxStructureBuilder {
 
+	private static final String DIFFERENT_SCOPES_SF_PATH = "test_data/different_scopes.txt";
+	private static SourceFile differentScopesSf;
+	private static SyntaxStructure differentScopesSs;
+	
+	private static final String MANY_DECLS_SF_PATH = "test_data/many_declarations.txt";
+	private static SourceFile manyDeclsSf;
+	private static SyntaxStructureBuilder manyDeclsSynBuilder;
+	private static SyntaxStructure manyDeclsSs;
+	
+	private static final String MIXTURE2_SF_PATH = "test_data/mixture2.txt";
+	private static SourceFile mixture2Sf;
+	
+	/**
+	 * Initialises the source files used in the tests.
+	 */
+	@BeforeAll
+	public static void initSfs()
+	{
+		differentScopesSf = TestUtils.createSourceFileNoError(DIFFERENT_SCOPES_SF_PATH);
+		differentScopesSs = differentScopesSf.getSyntaxStructure();
+		
+		manyDeclsSf = TestUtils.createSourceFileNoError(MANY_DECLS_SF_PATH);
+		manyDeclsSynBuilder = manyDeclsSf.getSyntaxStructureBuilder();
+		manyDeclsSs = manyDeclsSf.getSyntaxStructure();
+		
+		mixture2Sf = TestUtils.createSourceFileNoError(MIXTURE2_SF_PATH);
+	}
+	
 	/**
 	 * I assume that the parser shares the same token stream with the lexer,
 	 * and therefore the tokens there should have the same indices as the lexer
@@ -24,10 +56,7 @@ class TestSyntaxStructureBuilder {
 	{
 		// See if the indices of the tokens in the parse tree are what I expected them to be.
 		
-		var src = TestUtils.createSourceFileNoError("test_data/many_declarations.txt");
-		
-		var builder = src.getSyntaxStructureBuilder();
-		var additional_tokens_attributes = builder.getAdditionalTokenAttributes();
+		var additional_tokens_attributes = manyDeclsSynBuilder.getAdditionalTokenAttributes();
 		
 		// class ABC
 		assertTrue(additional_tokens_attributes.containsKey(5));
@@ -63,7 +92,8 @@ class TestSyntaxStructureBuilder {
 	@Test
 	void testAdditionalAttributesType()
 	{
-		var src = TestUtils.createSourceFileNoError("test_data/mixture2.txt");
+		// use a shorter local name as it will be used many times.
+		var src = mixture2Sf;
 		
 		// a global class
 		var a_class = (CodeBlock)src.getFormatToken(12, 6);
@@ -112,5 +142,61 @@ class TestSyntaxStructureBuilder {
 		// another local variable, which is inside a for loop
 		var another_local_var = (CodeBlock)src.getFormatToken(42, 3);
 		assertEquals(CodeBlock.Type.VARIABLE_NAME, another_local_var.additionalAttr.getType());
+	}
+
+	/**
+	 * Tests if the builder can correct build the tree structure of the syntax scopes.
+	 */
+	@Test
+	void testBuildSyntaxScope()
+	{
+		// use shorter local names as they will be used many times.
+		var src = differentScopesSf;
+		var s = differentScopesSs;
+		
+		assertEquals(2, s.getNumRootScopes(), "Should have too roots for the two global classes inside.");
+		
+		var r1 = s.getRootScope(0);
+		var r2 = s.getRootScope(1);
+		assertTrue(r1 != null);
+		assertTrue(r2 != null);
+		
+		// Should have the start/end {/} correct
+		TestUtils.assertSyntaxScopeLocation(src, r1, 3, 0, 35, 0);
+		TestUtils.assertSyntaxScopeLocation(src, r2, 39, 6, 44, 0);
+		
+		// children
+		assertEquals(6, r1.children.size());
+		assertEquals(1, r2.children.size());
+		
+		var r1c0 = r1.children.get(0);
+		var r1c1 = r1.children.get(1);
+		var r1c2 = r1.children.get(2);
+		var r1c3 = r1.children.get(3);
+		var r1c4 = r1.children.get(4);
+		var r1c5 = r1.children.get(5);
+		TestUtils.assertSyntaxScopeLocation(src, r1c0, 5, 9, 9, 1);
+		TestUtils.assertSyntaxScopeLocation(src, r1c1, 13, 1, 14, 1);
+		TestUtils.assertSyntaxScopeLocation(src, r1c2, 17, 9, 17, 20);
+		TestUtils.assertSyntaxScopeLocation(src, r1c3, 19, 9, 24, 1);
+		TestUtils.assertSyntaxScopeLocation(src, r1c4, 27, 9, 28, 10);
+		TestUtils.assertSyntaxScopeLocation(src, r1c5, 30, 9, 34, 1);
+		assertTrue(r1c0.isLeaf());
+		assertTrue(r1c1.isLeaf());
+		assertTrue(r1c2.isLeaf());
+		assertTrue(r1c4.isLeaf());
+		assertEquals(1, r1c3.children.size());
+		assertEquals(1, r1c5.children.size());
+		
+		var r1c3c1 = r1c3.children.get(0);
+		var r1c5c1 = r1c5.children.get(0);
+		TestUtils.assertSyntaxScopeLocation(src, r1c3c1, 21, 1, 23, 1);
+		TestUtils.assertSyntaxScopeLocation(src, r1c5c1, 32, 1, 33, 10);
+		assertTrue(r1c3c1.isLeaf());
+		assertTrue(r1c5c1.isLeaf());
+		
+		var r2c0 = r2.children.get(0);
+		TestUtils.assertSyntaxScopeLocation(src, r2c0, 41, 1, 43, 1);
+		assertTrue(r2c0.isLeaf());
 	}
 }

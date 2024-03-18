@@ -525,6 +525,7 @@ public class CodeBlock extends FormatToken
 		// 1.
 		if(isIdentifier())
 		{
+			//throw new RuntimeException("TODO: only judge too short for some types.");
 			// i.
 			judgeLength();
 			// ii.

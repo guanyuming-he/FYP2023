@@ -16,6 +16,7 @@ import edu.guanyfyp.format.primitives.FormatPrimitive;
 import edu.guanyfyp.format.primitives.FormatToken;
 import edu.guanyfyp.format.primitives.Line;
 import edu.guanyfyp.format.primitives.PrimitiveContext;
+import edu.guanyfyp.syntax.SyntaxScope;
 import edu.guanyfyp.syntax.SyntaxStructure;
 
 /**
@@ -209,5 +210,22 @@ public final class TestUtils
 			// Must be true now.
 			assert(p.isEvaluated());
 		}
+	}
+	
+/////////////////////////////// SyntaxScope Testing Helpers ////////////////////////////
+	
+	/**
+	 * Asserts that s.startToken and s.endToken are those indicated by the arguments
+	 * @param src the sourcefile where the scope is in.
+	 * @param s the syntax scope
+	 * @param stl line number of the expected start token
+	 * @param sti index in the line of the expected start token
+	 * @param etl line number of the expected end token
+	 * @param eti index in the line of the expected end token
+	 */
+	public static void assertSyntaxScopeLocation(SourceFile src, SyntaxScope s, int stl, int sti, int etl, int eti)
+	{
+		assertEquals(src.getFormatToken(stl, sti), s.startToken, "Should have the start token right");
+		assertEquals(src.getFormatToken(etl, eti), s.endToken, "Should have the end token right");
 	}
 }

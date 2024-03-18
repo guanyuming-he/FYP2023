@@ -19,7 +19,7 @@ public class ABC
     public void abc() {
         // unnamed scope
         {
-
+			// Will a comment with } or { affect the scope discovery?
         }
     }
 
@@ -32,4 +32,13 @@ public class ABC
         { 
             int i = 0; }
     }
+}
+
+// another root scope
+// One Java file can host one public but many private global classes.
+private class PrivateABC {
+	private static interface IABC
+	{
+	
+	}
 }

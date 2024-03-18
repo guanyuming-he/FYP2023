@@ -26,8 +26,10 @@ public final class SyntaxStructure
 	protected List<SyntaxScope> rootScopes = new ArrayList<SyntaxScope>();
 	
 ////////////////////////// Observers //////////////////////////
+	public int getNumRootScopes() { return rootScopes.size(); }
+	
 	/**
-	 * @param i
+	 * @param i 0..n-1
 	 * @return the i^th root scope
 	 * @throws IndexOutOfBoundsException
 	 */
