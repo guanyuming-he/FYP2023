@@ -6,13 +6,13 @@ package edu.guanyfyp.format.primitives;
 import org.antlr.v4.runtime.Token;
 
 import edu.guanyfyp.SourceFile;
-import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
  * Block for all comments
  */
 public class CommentBlock extends FormatToken 
 {
+	
 	/**
 	 * @param characters
 	 * @param visual_pos
@@ -30,7 +30,7 @@ public class CommentBlock extends FormatToken
 		super
 		(
 			antlr_token, visual_pos, index_in_line
-		);	
+		);
 	}
 
 	/**
@@ -92,6 +92,7 @@ public class CommentBlock extends FormatToken
 	@Override
 	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
 	{
-		throw new RuntimeException("Not implemented.");
+		// Non-javaDoc comments need nothing.
+		super.evaluateFormat(sf, context);
 	}
 }

@@ -8,9 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Pair;
-
-import edu.guanyfyp.syntax.SyntaxContext;
+import edu.guanyfyp.SourceFile;
 
 /**
  * Comment block exclusively for JavaDoc.
@@ -27,24 +25,11 @@ import edu.guanyfyp.syntax.SyntaxContext;
  * All other texts are preserved. And tags are processed based on the JavaDoc rules.
  */
 public final class JavaDocBlock extends CommentBlock 
-{
-	
-	/**
-	 * Type of code block this JavaDoc comment precedes
-	 */
-	public enum Preceding
-	{
-		CLASS,
-		METHOD,
-		FIELD,
-		CONSTRUCTOR,
-		OTHER // This should be avoided in Java code but I need to have it anyway.
-	}
-	
+{	
 	/**
 	 * A tag of some JavaDoc comment.
 	 */
-	public static class Tag
+ 	public static class Tag
 	{
 		/**
 		 * @param org_text the original text that defines the tag.
@@ -179,8 +164,6 @@ public final class JavaDocBlock extends CommentBlock
 		}
 	}
 	
-	// Which kind of code block this JavaDoc comment precedes.
-	private Preceding preceding;
 	
 	/*
 	 * These lists will be stored in immutable containers.
@@ -357,16 +340,147 @@ public final class JavaDocBlock extends CommentBlock
 			this.mainText = main_text_builder.toString();
 		}
 		
-		preceding = Preceding.OTHER;
+		following = FollowingType.OTHER;
 	}
 
+//////////////////////////////////////// Format Evaluation ////////////////////////////////////////
+	
 	/**
-	 * Determines which kind of code block the javadoc precedes
-	 * and sets its preceding field accordingly.
-	 * @param context the syntax context around this token.
+	 * Type of the syntax structure that follows the JavaDoc.
 	 */
-	public void setPreceding(SyntaxContext context)
+	public static enum FollowingType
 	{
-		throw new RuntimeException("Not implemented.");
+		// class-like syntax structures
+		// e.g. class, interface, enum, ...
+		CLASS,
+		METHOD,
+		FIELD,
+		CONSTRUCTOR,
+		// all that having this are inappropriate.
+		OTHER 
 	}
+	
+	/**
+	 * The information about the method that follows it.
+	 * Means nothing if it's not followed by a method.
+	 */
+	public static class FollowingMethod
+	{
+		// These are only meaningful if the containing JavaDocBlock's
+		// following type is METHOD or CONSTRUCTOR
+		
+		// Constructors are treated as returning void
+		public String returnType = "void";
+		public List<String> parameterNames = new ArrayList<>(); 
+	}
+
+	// These are set in SyntaxStructureBuilder
+	// Which kind of code block this JavaDoc comment precedes.
+	private FollowingType following = FollowingType.OTHER;
+	private FollowingMethod followingMethod = new FollowingMethod();
+	
+	// These are calculated in evaluateFormat().
+	// if the JavaDoc has @param, @return, or @throws
+	// then it can only be followed by a method/ctor.
+	// The field is true iff the structure following the java doc is not a method/ctor,
+	// but the tags suggest otherwise.
+	private boolean followingTypeUnmatched = false;
+	// Tags that are written in the comment but are not matched in the following structure.
+	// if the following is a method, then it only stores the unmatched param tags 
+	private List<Tag> unmatchedTags;
+	// Only @param, @return, and @throws can be unmatched 
+	// because others like @author can be applied or not to any.
+	// but I decide not check throws now as deeper methods may also throw.
+	// @return check result is stored in another variable.
+	// So: params that are in the following definition but are not matched by the comment.
+	private List<String> unmatchedParams;
+	// If the method does not return void but there is not @return tag
+	private boolean returnNotProvided = false;
+	
+	/** @return Which kind of code block this JavaDoc comment precedes. */
+	public FollowingType getFollowing() 
+	{
+		return following;
+	}
+	/** @return If a method/ctor definition follows the java doc, then returns information about that. */
+	public FollowingMethod getFollowingMethod() 
+	{
+		return followingMethod;
+	}
+	public boolean isTypeUnMatched() 
+	{
+		return followingTypeUnmatched;
+	}
+	public List<Tag> getUnmatchedCommentTags() 
+	{
+		return unmatchedTags;
+	}
+	public List<String> getUnmatchedSyntaxObjects() 
+	{
+		return unmatchedParams;
+	}
+	
+	@Override
+	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
+	{
+		super.evaluateFormat(sf, context);
+		
+		unmatchedTags = new ArrayList<>();
+		
+		// If it's not followed by a method,
+		// then any tag except return, param, and throws is allowed
+		if(following != FollowingType.METHOD || following != FollowingType.CONSTRUCTOR)
+		{
+			// any method tag becomes unmatched.
+			for(var tag: tags)
+			{
+				if(tag.tagName.equals("return") || tag.tagName.equals("param") || tag.tagName.equals("throws"))
+				{
+					followingTypeUnmatched = true;
+					unmatchedTags.add(tag);
+				}
+			}
+			
+			return;
+		}
+		
+		// Now it's followed by a method.
+		// Algorithm to decide unmatched ones bidirectionally:
+		// 1. copy all following method parameters in list1
+		// 2. for each param tag, check if it's matched in list1.
+		//	If so, remove it from list1.
+		//	If not, add it to a new list, list2.
+		// 3. list2 is the list of the params that exist in the comment but not in the definition.
+		// 4. Add all remaining list1 items in unmatched list of the other direction.
+		{		
+			boolean hasReturnTag = false;
+			var list1 = new ArrayList<>(followingMethod.parameterNames);
+			var list2 = unmatchedTags;
+			for(var tag: tags)
+			{	
+				switch(tag.tagName)
+				{
+				case "return":
+					hasReturnTag = true;
+					break;
+				case "param":
+					var attrTag = (AttrTag)tag;
+					// if the par name equals the tag's attr name, then a match.
+					boolean matched = list1.removeIf((par) -> par.equals(attrTag.attrName));
+					if(!matched)
+					{
+						list2.add(tag);
+					}
+				}
+			}
+			unmatchedParams = list1;
+			
+			if(!followingMethod.returnType.equals("void")) 
+			{
+				returnNotProvided = !hasReturnTag;
+			}
+		}
+		
+	}
+
 }

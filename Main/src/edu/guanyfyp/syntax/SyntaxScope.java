@@ -4,10 +4,7 @@
 package edu.guanyfyp.syntax;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import edu.guanyfyp.format.primitives.CodeBlock;
 import edu.guanyfyp.format.primitives.FormatPrimitive;
 import edu.guanyfyp.format.primitives.FormatToken;

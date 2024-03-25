@@ -3,12 +3,9 @@
  */
 package edu.guanyfyp.format.primitives;
 
-import javax.management.RuntimeErrorException;
-
 import org.antlr.v4.runtime.Token;
 
 import edu.guanyfyp.SourceFile;
-import edu.guanyfyp.syntax.SyntaxContext;
 
 /**
  * I plan to process whitespaces as "blocks".

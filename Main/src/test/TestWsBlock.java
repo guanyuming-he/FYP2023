@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.antlr.v4.runtime.CommonToken;
 import org.junit.jupiter.api.Test;
 
-import edu.guanyfyp.format.primitives.CodeBlock;
 import edu.guanyfyp.format.primitives.WsBlock;
 
 /**

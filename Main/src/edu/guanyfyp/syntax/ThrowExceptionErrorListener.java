@@ -3,11 +3,7 @@
  */
 package edu.guanyfyp.syntax;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 

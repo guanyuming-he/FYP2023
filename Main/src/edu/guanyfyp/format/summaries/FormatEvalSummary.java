@@ -3,9 +3,6 @@
  */
 package edu.guanyfyp.format.summaries;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.guanyfyp.format.primitives.FormatPrimitive;
 
 /**

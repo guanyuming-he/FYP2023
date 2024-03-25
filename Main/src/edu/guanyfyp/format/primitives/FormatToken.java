@@ -5,8 +5,6 @@ package edu.guanyfyp.format.primitives;
 
 import org.antlr.v4.runtime.Token;
 
-import edu.guanyfyp.syntax.SyntaxContext;
-
 /**
  * A FormatToken represents how a token affects the format (or appearance) of the source code
  * Therefore, I only care about the length and position of such tokens.

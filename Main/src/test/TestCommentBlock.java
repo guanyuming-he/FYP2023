@@ -2,10 +2,7 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
-
 import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.Token;
 import org.junit.jupiter.api.Test;
 
 import edu.guanyfyp.format.primitives.CommentBlock;

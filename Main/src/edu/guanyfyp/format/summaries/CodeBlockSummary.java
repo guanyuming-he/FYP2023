@@ -3,21 +3,12 @@
  */
 package edu.guanyfyp.format.summaries;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.antlr.v4.runtime.CommonToken;
-
-import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
-import edu.guanyfyp.format.primitives.CodeBlock.NamingStyle;
 import edu.guanyfyp.format.primitives.CodeBlock.ScopeStyle;
-import edu.guanyfyp.format.primitives.PrimitiveContext;
-import edu.guanyfyp.generated.JavaLexer;
-import edu.guanyfyp.syntax.SyntaxStructure;
 
 /**
  * Dedicated to testing the evalFormat() method of Line

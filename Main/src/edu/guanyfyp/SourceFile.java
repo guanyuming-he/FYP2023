@@ -8,7 +8,6 @@ import org.antlr.v4.runtime.misc.Pair;
 import org.antlr.v4.runtime.tree.*;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +62,10 @@ public class SourceFile
     // 0..n-1
     private final List<Line> lines;
     
+    // List of all java doc format tokens. They are also stored in formatTokens,
+    // but for fast access I have another list just for them.
+    private final List<JavaDocBlock> javaDocs;
+    
     // Created at beginning and is used to build the syntax structure during parsing.
     private final SyntaxStructureBuilder syntaxStructureBuilder;
     
@@ -94,6 +97,7 @@ public class SourceFile
     	// The final fields will be created by calling Collections.unmodifiableList().
     	List<List<FormatToken>> temp_format_tokens = new ArrayList<>();
     	List<Line> temp_lines = new ArrayList<>();
+    	List<JavaDocBlock> tempJavaDocs = new ArrayList<>();
     	
     	// Parse the source file with ANTLR4
     	CharStream inputStream = CharStreams.fromFileName(file_path);
@@ -195,6 +199,8 @@ public class SourceFile
 						t, visual_pos, 
 						cur_line_token_number // index of the token in the line
 					);
+					
+					tempJavaDocs.add((JavaDocBlock)ft);
 					break;	
 					
 				default:
@@ -211,6 +217,9 @@ public class SourceFile
 			
 			// Finally, turn format_tokens immutable
 			formatTokens = Collections.unmodifiableList(temp_format_tokens);		
+			
+			// turn javaDocs immutable
+			javaDocs = Collections.unmodifiableList(tempJavaDocs);
 		}
 		
 		// Build the format token random access table

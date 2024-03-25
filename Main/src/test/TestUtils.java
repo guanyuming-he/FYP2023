@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.guanyfyp.SourceFile;
-import edu.guanyfyp.format.primitives.CodeBlock;
 import edu.guanyfyp.format.primitives.FormatPrimitive;
 import edu.guanyfyp.format.primitives.FormatToken;
 import edu.guanyfyp.format.primitives.Line;

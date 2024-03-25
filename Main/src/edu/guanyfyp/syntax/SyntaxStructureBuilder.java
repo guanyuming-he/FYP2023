@@ -6,24 +6,19 @@ package edu.guanyfyp.syntax;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale.IsoCountryCode;
 import java.util.Stack;
-import java.util.function.Consumer;
-
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
-import edu.guanyfyp.format.primitives.FormatToken;
 import edu.guanyfyp.format.primitives.CodeBlock.AdditionalAttributes;
 import edu.guanyfyp.generated.JavaParser;
 import edu.guanyfyp.generated.JavaParserBaseListener;
 import edu.guanyfyp.syntax.SyntaxScope.Type;
 import edu.guanyfyp.generated.JavaParser.AnnotationContext;
 import edu.guanyfyp.generated.JavaParser.ForInitContext;
-import edu.guanyfyp.generated.JavaParser.StatementContext;
 
 /**
  * Builds a SyntaxContext by walking the parse tree

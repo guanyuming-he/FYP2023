@@ -5,19 +5,14 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-
 import org.antlr.v4.runtime.CommonToken;
 import org.junit.jupiter.api.Test;
 
 import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
 import edu.guanyfyp.format.primitives.CommentBlock;
-import edu.guanyfyp.format.primitives.FormatToken;
 import edu.guanyfyp.format.primitives.JavaDocBlock;
-import edu.guanyfyp.format.primitives.Line;
 import edu.guanyfyp.format.primitives.WsBlock;
 import test.TestUtils.FormatTokenTestProperties;
 
