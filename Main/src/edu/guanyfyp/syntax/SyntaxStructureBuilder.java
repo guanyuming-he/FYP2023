@@ -6,7 +6,10 @@ package edu.guanyfyp.syntax;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.SortedMap;
 import java.util.Stack;
+import java.util.TreeMap;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -14,6 +17,9 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
 import edu.guanyfyp.format.primitives.CodeBlock.AdditionalAttributes;
+import edu.guanyfyp.format.primitives.JavaDocBlock;
+import edu.guanyfyp.format.primitives.JavaDocBlock.FollowingMethod;
+import edu.guanyfyp.format.primitives.JavaDocBlock.FollowingType;
 import edu.guanyfyp.generated.JavaParser;
 import edu.guanyfyp.generated.JavaParserBaseListener;
 import edu.guanyfyp.syntax.SyntaxScope.Type;
@@ -21,7 +27,9 @@ import edu.guanyfyp.generated.JavaParser.AnnotationContext;
 import edu.guanyfyp.generated.JavaParser.ForInitContext;
 
 /**
- * Builds a SyntaxContext by walking the parse tree
+ * Builds a SyntaxContext by walking the parse tree.
+ * In addition, it completes the syntactical information stored in the SourceFile
+ * during the walk.
  */
 public class SyntaxStructureBuilder extends JavaParserBaseListener {
 
@@ -31,7 +39,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	}
 
 	
-///////////////////////////// Fields and related methods /////////////////////////
+///////////////////////////// SyntaxStructure related /////////////////////////
 	/**
 	 * Reference to the SourceFile that produced this listener.
 	 * The listener will attach more information to the tokens of the source_file.
@@ -48,12 +56,14 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	}
 	
 	
+///////////////////////////// additional attributes related /////////////////////////
 	// A list of additional attributes for the format tokens is built during a walk.
 	// token index (in the token stream, getTokenIndex()) -> additional information
 	// Because the tokens that the parser processes are only CodeBlocks,
 	// only this Type's information is needed.
-	private final HashMap<Integer, CodeBlock.AdditionalAttributes> additionalTokenAttributes = new HashMap<>();
-	public HashMap<Integer, CodeBlock.AdditionalAttributes> getAdditionalTokenAttributes()
+	// defined as sorted map so I can get all keys in a range.
+	private final SortedMap<Integer, CodeBlock.AdditionalAttributes> additionalTokenAttributes = new TreeMap<>();
+	public SortedMap<Integer, CodeBlock.AdditionalAttributes> getAdditionalTokenAttributes()
 	{
 		return additionalTokenAttributes;
 	}
@@ -73,7 +83,6 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			cb.additionalAttr.move(additionalTokenAttributes.get(ind));
 		}
 	}
-	
 	
 	/**
 	 * Here, during the syntax and potential semantic analysis,
@@ -222,13 +231,76 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		}
 	}
 	
+///////////////////////////// JavaDoc following structure discovery /////////////////////////
+	/**
+	 * The index after the lastly examined javadoc in
+	 * the list sourceFile.getJavaDocs()
+	 * 
+	 * If not over the size, then it's also the index of the currently examined one.
+	 */
+	private int examinedJavaDocInd = 0;
+	
+	private JavaDocBlock examinedJavaDoc()
+	{
+		assert(examinedJavaDocInd >=0 && examinedJavaDocInd < sourceFile.getJavaDocs().size());
+		return sourceFile.getJavaDocs().get(examinedJavaDocInd);
+	}
+	
+	/**
+	 * On entering a syntax structure, check if it's before or after the start position of the 
+	 * examined java doc.
+	 * if it's before, then ignore it.
+	 * if it's after, then set the examined javadoc's fields to information obtained from the syntax structure
+	 * and ++examinedJavaDocInd.
+	 * 
+	 * @return true if it's after the currently examined java doc ind (not all have been examined)
+	 * if all have been examined, then return false.
+	 */
+	private boolean isAfterExaminedJavaDoc(int antlrTokenInd)
+	{
+		// check if we have already examined all javadocs
+		if(examinedJavaDocInd >= sourceFile.getJavaDocs().size())
+		{
+			return false;
+		}
+		
+		return antlrTokenInd > examinedJavaDoc().index();
+	}
+
+	/**
+	 * All things to do to examine the current javadoc
+	 * Mostly importantly, I won't forget to 
+	 * 	1. check isAfterExaminedJavaDoc()
+	 * 	2. setExaminedJavaDocInd accordingly
+	 * @param type
+	 * @param method
+	 */
+	private void examineJavaDoc(ParserRuleContext ctx, JavaDocBlock.FollowingType type, JavaDocBlock.FollowingMethod method)
+	{
+		int antlrInd = ctx.start.getTokenIndex();
+		int nearestJDInd = findTheNearestJavaDoc(antlrInd);
+		
+		// if the structure is the first one that corresponds to an unexamined javadoc
+		if(-1 != nearestJDInd)
+		{
+			// all javadocs between the old examinedJavaDocInd
+			// and nearestJDInd are not touched,
+			// which means they use the default FollowingType: OTHER, which means they are unmatched.
+			
+			examinedJavaDocInd = nearestJDInd;
+			var jD = examinedJavaDoc();
+			jD.setFollowing(type, method);
+			++examinedJavaDocInd;
+		}
+	}
+	
 ///////////////////////////// Helpers /////////////////////////////////
 	/**
 	 * Adds the corresponding modifier to the pending additional attributes
 	 * based on the given parser rule context, modifier
 	 * @param modifier the context generated by the parser
 	 */
-	private void add_pending_modifier(ParserRuleContext modifier)
+	private void addPendingModifier(ParserRuleContext modifier)
 	{
 		// If it is an annotation modifier.
 		if (modifier instanceof AnnotationContext)
@@ -292,12 +364,53 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		setAdditionalTokenAttributesForTheCode(type, tokenInd, true);
 	}
 	
-	
+	/**
+	 * Some javadoc may be unmatched.
+	 * Therefore, after examination, examinedJavaDocInd may increase by more than 1.
+	 * This method, given the index of a syntax structure, 
+	 * 
+	 * @param antlrTokenInd
+	 * @return the index of the nearest Javadoc before the structure, after the examinedJavaDocInd.
+	 * or -1 if !isAfterExaminedJavaDoc(antlrTokenInd)
+	 */
+	private int findTheNearestJavaDoc(int antlrTokenInd)
+	{
+		if(!isAfterExaminedJavaDoc(antlrTokenInd))
+		{
+			return -1;
+		}
+		
+		// find the first i such that it's after the structure
+		// then return i-1
+		int i = examinedJavaDocInd;
+		while(i < sourceFile.getJavaDocs().size())
+		{
+			var jD = sourceFile.getJavaDocs().get(i);
+			int jDTokenInd = jD.index();
+			
+			if(jDTokenInd > antlrTokenInd)
+			{
+				assert(i != examinedJavaDocInd);
+				return i-1;
+			}
+			
+			++i;
+		}
+		
+		// all remaining javaDocs are before the structure.
+		// return the last one
+		return sourceFile.getJavaDocs().size()-1;
+
+	}
+		
+
 ///////////////////////////// Inherited parser listener methods /////////////////////////////////
 	/*
 	 * Syntactical analysis goals:
 	 * 1. obtain all modifiers and the precise type of an identifier
 	 * 2. obtain all scopes and the approximate type of each.
+	 * 3. for each javadoc, obtain information about the structure immediately following the javadoc
+	 * 	and set the javadoc's corresponding fields.
 	 * 
 	 * All structures needed to be examined for 1:
 	 * 	TypeDeclaration
@@ -337,7 +450,24 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	 * 	finallyBlock (gives type to block)
 	 * 	lambdaBody (gives type to block)
 	 * 	switchRuleOutcome (gives type to block)
+	 * To handle blocks, also need to handle
+	 * 	enterTerminal()
 	 * 
+	 * All structures needed to be examined for 3:
+	 * 	i. class-like
+	 * 		classDeclaration | 
+	 * 		enumDeclaration | 
+	 * 		interfaceDeclaration | 
+	 * 		annotationTypeDeclaration
+	 * 	ii. fields
+	 * 		fieldDeclaration
+	 * 	iii. methods
+	 * 		methodDeclaration
+	 * 		genericMethodDeclaration
+	 * 	iv. constructors
+	 * 		constructorDeclaration
+	 * 		genericConstructorDeclaration
+	 * 	
 	 */
 	
 	// entering things
@@ -352,7 +482,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		var modifiersList = ctx.classOrInterfaceModifier();
 		for(var modifier : modifiersList)
 		{
-			add_pending_modifier(modifier);
+			addPendingModifier(modifier);
 		}
 	}
 	
@@ -366,7 +496,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		var modifiersList = ctx.modifier();
 		for(var modifier : modifiersList)
 		{
-			add_pending_modifier(modifier);
+			addPendingModifier(modifier);
 		}
 	}
 	
@@ -392,7 +522,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		var modifiersList = ctx.modifier();
 		for(var modifier : modifiersList)
 		{
-			add_pending_modifier(modifier);
+			addPendingModifier(modifier);
 		}
 	}
 	
@@ -561,7 +691,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		var modifiersList = ctx.classOrInterfaceModifier();
 		for(var modifier : modifiersList)
 		{
-			add_pending_modifier(modifier);
+			addPendingModifier(modifier);
 		}
 	}
 	
@@ -606,7 +736,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 					var modifiers = fp.variableModifier();
 					for(var modifier : modifiers)
 					{
-						add_pending_modifier(modifier);
+						addPendingModifier(modifier);
 					}
 					
 					Token token = fp.variableDeclaratorId().identifier().getStart();
@@ -621,7 +751,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 				var modifiers = lfp.variableModifier();
 				for(var modifier : modifiers)
 				{
-					add_pending_modifier(modifier);
+					addPendingModifier(modifier);
 				}
 				
 				Token token = lfp.variableDeclaratorId().identifier().getStart();
@@ -643,7 +773,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		var modifiersList = ctx.variableModifier();
 		for(var modifier : modifiersList)
 		{
-			add_pending_modifier(modifier);
+			addPendingModifier(modifier);
 		}
 		
 		// decide if it is a local variable or a for-loop variable
@@ -690,11 +820,19 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterClassDeclaration(JavaParser.ClassDeclarationContext ctx)
 	{
-		// the class name token.
-		Token token = ctx.identifier().getStart();
+		// 1.
+		{
+			// the class name token.
+			Token token = ctx.identifier().getStart();
+			
+			// additional attributes
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CLASS_NAME, token.getTokenIndex());
+		}
 		
-		// additional attributes
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.CLASS_NAME, token.getTokenIndex());
+		// 3.
+		{
+			examineJavaDoc(ctx, FollowingType.CLASS_LIKE, null);
+		}
 	}
 	
 	/**
@@ -716,6 +854,11 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		{
 			pendingScopeType = Type.GENERAL_CLASS_DEF_SCOPE;
 		}
+		
+		// 3.
+		{
+			examineJavaDoc(ctx, FollowingType.CLASS_LIKE, null);
+		}
 	}
 	
 	/**
@@ -724,11 +867,19 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx)
 	 {
-		// the interface name token.
-		Token token = ctx.identifier().getStart();
+		// 1.
+		{
+			// the interface name token.
+			Token token = ctx.identifier().getStart();
 
-		// additional attributes
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.INTERFACE_NAME, token.getTokenIndex());
+			// additional attributes
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.INTERFACE_NAME, token.getTokenIndex());
+		}
+		
+		// 3.
+		{
+			examineJavaDoc(ctx, FollowingType.CLASS_LIKE, null);
+		}
 	 }
 	
 	/**
@@ -737,11 +888,16 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterMethodDeclaration(JavaParser.MethodDeclarationContext ctx)
 	{
-		// the method name token.
-		Token token = ctx.identifier().getStart();
-	
-		// additional attributes
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		// 1.
+		{
+			// the method name token.
+			Token token = ctx.identifier().getStart();
+		
+			// additional attributes
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		}
+		
+		// 3. is done in exiting where all parameters have been built by enterFormalParameters
 	}
 	
 	/**
@@ -750,10 +906,15 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterGenericMethodDeclaration(JavaParser.GenericMethodDeclarationContext ctx)
 	{
-		// the generic method name token.
-		Token token = ctx.methodDeclaration().identifier().getStart();
-	
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		// 1.
+		{
+			// the generic method name token.
+			Token token = ctx.methodDeclaration().identifier().getStart();
+		
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		}
+		
+		// 3. is done in exiting.
 	}
 	
 	/**
@@ -766,7 +927,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		var modifiersList = ctx.interfaceMethodModifier();
 		for(var modifier : modifiersList)
 		{
-			add_pending_modifier(modifier);
+			addPendingModifier(modifier);
 		}
 		
 		// the method name token.
@@ -786,7 +947,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		var modifiersList = ctx.interfaceMethodModifier();
 		for(var modifier : modifiersList)
 		{
-			add_pending_modifier(modifier);
+			addPendingModifier(modifier);
 		}
 		
 		// the generic method name token.
@@ -813,6 +974,8 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		{
 			pendingScopeType = Type.GENERAL_METHOD_DEF_SCOPE;
 		}
+		
+		// 3. is done in exiting
 	}
 	
 	/**
@@ -833,6 +996,8 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 		{
 			pendingScopeType = Type.GENERAL_METHOD_DEF_SCOPE;
 		}
+		
+		// 3. is done in exiting
 	}
 	
 	/**
@@ -841,21 +1006,157 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override 
 	public void enterFieldDeclaration(JavaParser.FieldDeclarationContext ctx)
 	{
-		// A field declaration can declare multiple variables,
-		// as in "int a, b, c;"
-		var variable_declarator_list = ctx.variableDeclarators().variableDeclarator();
-		for(var variable_declarator : variable_declarator_list)
+		// 1.
 		{
-			// One variable token.
-			Token token = variable_declarator.variableDeclaratorId().identifier().getStart();
-			
-			// Don't reset
-			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.FIELD_NAME, token.getTokenIndex(), false);
+			// A field declaration can declare multiple variables,
+			// as in "int a, b, c;"
+			var variable_declarator_list = ctx.variableDeclarators().variableDeclarator();
+			for(var variable_declarator : variable_declarator_list)
+			{
+				// One variable token.
+				Token token = variable_declarator.variableDeclaratorId().identifier().getStart();
+				
+				// Don't reset
+				setAdditionalTokenAttributesForTheCode(CodeBlock.Type.FIELD_NAME, token.getTokenIndex(), false);
+			}
+			// don't forget to reset pending_modifiers in the end
+			resetPendingAttributes();
 		}
-		// don't forget to reset pending_modifiers in the end
-		resetPendingAttributes();
+		
+		// 3.
+		{
+			examineJavaDoc(ctx, FollowingType.FIELD, null);
+		}
 	}
 
+	@Override
+	public void enterAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx)
+	{
+		// 3.
+		{
+			examineJavaDoc(ctx, FollowingType.CLASS_LIKE, null);
+		}
+	}
+	
+	// exiting things
+	/**
+	 * When a declaration of a class method is exited
+	 */
+	@Override
+	public void exitMethodDeclaration(JavaParser.MethodDeclarationContext ctx)
+	{
+		// 3. is done in exiting where all parameters have been built by enterFormalParameters
+		{
+			FollowingMethod methodInfo = new FollowingMethod();
+			methodInfo.returnType = ctx.typeTypeOrVoid().getText();
+			
+			// indices of parameters 
+			// (each parameter has an additionalTokenAttributes structure built for it,
+			// and the structure is mapped to by the index of the parameter).
+			var parTokenIndices = additionalTokenAttributes.subMap
+			(
+				ctx.formalParameters().start.getTokenIndex(), 
+				ctx.formalParameters().stop.getTokenIndex()
+			).keySet();
+			for(Integer pi : parTokenIndices)
+			{
+				methodInfo.parameterNames.add(sourceFile.getFormatToken(pi).characters());
+			}
+			
+			//methodInfo.parameterNames
+			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+		}
+	}
+	
+	/**
+	 * When a declaration of a generic class method is exited
+	 */
+	@Override
+	public void exitGenericMethodDeclaration(JavaParser.GenericMethodDeclarationContext ctx)
+	{		
+		// 3. is done in exiting where all parameters have been built by enterFormalParameters
+		{
+			FollowingMethod methodInfo = new FollowingMethod();
+			methodInfo.returnType = ctx.methodDeclaration().typeTypeOrVoid().getText();
+			
+			// indices of parameters 
+			// (each parameter has an additionalTokenAttributes structure built for it,
+			// and the structure is mapped to by the index of the parameter).
+			var parTokenIndices = additionalTokenAttributes.subMap
+			(
+				ctx.methodDeclaration().formalParameters().start.getTokenIndex(), 
+				ctx.methodDeclaration().formalParameters().stop.getTokenIndex()
+			).keySet();
+			for(Integer pi : parTokenIndices)
+			{
+				methodInfo.parameterNames.add(sourceFile.getFormatToken(pi).characters());
+			}
+			
+			//methodInfo.parameterNames
+			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+		}
+	}
+	
+	/**
+	 * When a declaration of a constructor is exited
+	 */
+	@Override
+	public void exitConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx)
+	{
+		// 3. is done in exiting where all parameters have been built by enterFormalParameters
+		{
+			FollowingMethod methodInfo = new FollowingMethod();
+			// a constructor returns nothing
+			methodInfo.returnType = "void";
+			
+			// indices of parameters 
+			// (each parameter has an additionalTokenAttributes structure built for it,
+			// and the structure is mapped to by the index of the parameter).
+			var parTokenIndices = additionalTokenAttributes.subMap
+			(
+				ctx.formalParameters().start.getTokenIndex(), 
+				ctx.formalParameters().stop.getTokenIndex()
+			).keySet();
+			for(Integer pi : parTokenIndices)
+			{
+				methodInfo.parameterNames.add(sourceFile.getFormatToken(pi).characters());
+			}
+			
+			//methodInfo.parameterNames
+			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+		}
+	}
+	
+	/**
+	 * When a declaration of a generic constructor is exited
+	 */
+	@Override
+	public void exitGenericConstructorDeclaration(JavaParser.GenericConstructorDeclarationContext ctx)
+	{
+		// 3. is done in exiting where all parameters have been built by enterFormalParameters
+		{
+			FollowingMethod methodInfo = new FollowingMethod();
+			// a constructor returns nothing
+			methodInfo.returnType = "void";
+			
+			// indices of parameters 
+			// (each parameter has an additionalTokenAttributes structure built for it,
+			// and the structure is mapped to by the index of the parameter).
+			var parTokenIndices = additionalTokenAttributes.subMap
+			(
+				ctx.constructorDeclaration().formalParameters().start.getTokenIndex(), 
+				ctx.constructorDeclaration().formalParameters().stop.getTokenIndex()
+			).keySet();
+			for(Integer pi : parTokenIndices)
+			{
+				methodInfo.parameterNames.add(sourceFile.getFormatToken(pi).characters());
+			}
+			
+			//methodInfo.parameterNames
+			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+		}
+	}
+	
 	// On visiting every terminal
 	@Override
 	public void visitTerminal(TerminalNode t)

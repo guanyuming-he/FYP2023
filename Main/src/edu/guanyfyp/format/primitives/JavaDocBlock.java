@@ -352,7 +352,7 @@ public final class JavaDocBlock extends CommentBlock
 	{
 		// class-like syntax structures
 		// e.g. class, interface, enum, ...
-		CLASS,
+		CLASS_LIKE,
 		METHOD,
 		FIELD,
 		CONSTRUCTOR,
@@ -397,6 +397,19 @@ public final class JavaDocBlock extends CommentBlock
 	// If the method does not return void but there is not @return tag
 	private boolean returnNotProvided = false;
 	
+	/**
+	 * MUST only be called within SyntaxStructureBuilder to fill the information.
+	 * @param type
+	 * @param method if !(type = METHOD or CONSTRUCTOR), then ignored
+	 */
+	public void setFollowing(FollowingType type, FollowingMethod method)
+	{
+		this.following = type;
+		if(type == FollowingType.METHOD || type == FollowingType.CONSTRUCTOR)
+		{
+			this.followingMethod = method;
+		}
+	}
 	/** @return Which kind of code block this JavaDoc comment precedes. */
 	public FollowingType getFollowing() 
 	{
@@ -418,6 +431,10 @@ public final class JavaDocBlock extends CommentBlock
 	public List<String> getUnmatchedSyntaxObjects() 
 	{
 		return unmatchedParams;
+	}
+	public boolean getReturnNotProvided()
+	{
+		return returnNotProvided;
 	}
 	
 	@Override

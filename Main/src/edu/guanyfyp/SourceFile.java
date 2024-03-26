@@ -319,7 +319,12 @@ public class SourceFile
     	return formatTokens;
     }
     
-    /**
+    public List<JavaDocBlock> getJavaDocs() 
+    {
+		return javaDocs;
+	}
+
+	/**
      * @return The number of format tokens in the source file.
      */
     public int numFormatTokens()
