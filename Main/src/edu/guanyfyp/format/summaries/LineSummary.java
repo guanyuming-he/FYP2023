@@ -16,6 +16,8 @@ public final class LineSummary extends FormatEvalSummary<Line>
 {
 //////////////////////// Fields ////////////////////////
 	
+	private int numLines = 0;
+	
 	// The lists will be converted to immutable ones in summarize()
 	
 	// Lines that are badly indented.
@@ -44,6 +46,8 @@ public final class LineSummary extends FormatEvalSummary<Line>
 	{
 		super.include(l);
 		
+		++numLines;
+		
 		if(l.isTooLong())
 		{
 			tooLongLines.add(l);
@@ -57,11 +61,11 @@ public final class LineSummary extends FormatEvalSummary<Line>
 	@Override
 	public void summarize() 
 	{
+		super.summarize();
+		
 		// Convert the lists to immutable ones
 		badlyIndentedLines = Collections.unmodifiableList(badlyIndentedLines);
 		tooLongLines = Collections.unmodifiableList(tooLongLines);
-		
-		// TODO: some summary
 	}
 	
 //////////////////////// Observers ////////////////////////
@@ -95,6 +99,7 @@ public final class LineSummary extends FormatEvalSummary<Line>
 		return tooLongLines;
 	}
 
+	public int getNumLines() { return numLines; }
 	
 //////////////////////// Settings ////////////////////////
 	

@@ -11,7 +11,7 @@ import edu.guanyfyp.format.primitives.CommentBlock;
 public class CommentBlockSummary extends FormatEvalSummary<CommentBlock>
 {
 //////////////////////// Fields ////////////////////////
-	
+	private int numComments = 0;
 
 //////////////////////// Ctor ////////////////////////
 	/**
@@ -24,15 +24,13 @@ public class CommentBlockSummary extends FormatEvalSummary<CommentBlock>
 	
 //////////////////////// Inherited from super ////////////////////////
 	@Override
-	public void include(CommentBlock p) 
+	public void include(CommentBlock b)
 	{
-		throw new RuntimeException("Unimplemented.");	
+		super.include(b);
+		
+		++numComments;
 	}
-
-	@Override
-	public void summarize() 
-	{
-		throw new RuntimeException("Unimplemented.");
-	}
-
+	
+	public int getNumComments() { return numComments; }
+	
 }

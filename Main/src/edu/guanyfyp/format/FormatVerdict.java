@@ -27,7 +27,7 @@ import edu.guanyfyp.format.summaries.WsBlockSummary;
         - iii. cannot be called after giving a verdict
     
  */
-public final class FormatVerdict 
+public class FormatVerdict 
 {
 //////////////////////// Fields ////////////////////////
 	private boolean hasVerdict = false;
@@ -45,6 +45,21 @@ public final class FormatVerdict
 	// TODO: add summary class for Line and add a field for it
 	private LineSummary lineSummary = null;
 	
+//////////////////////// Verdict Fields ////////////////////////
+	// Each will 0.0f the default value if the source file has no such element.
+	
+	private float identifierLengthProblemFrequency = 0.0f;
+	private float identifierNamingProblemFrequency = 0.0f;
+	private float spacingProblemFrequency = 0.0f;
+	// equals min(numStyle1, numStyle2) / sum
+	private float inconsistentScopeStyleFrequency = 0.0f;
+	private float badJavaDocFrequency = 0.0f;
+	private float lineLengthProblemFrequency = 0.0f;
+	private float lineIndentationProblemFrequency = 0.0f;
+	
+	// false iff numComments = numJavaDocs = 0.
+	private boolean hasCommentsAtAll = false;
+	
 //////////////////////// Methods ////////////////////////	
 	
 	public boolean hasGivenVerdict() { return hasVerdict; }
@@ -54,7 +69,68 @@ public final class FormatVerdict
 	 */
 	public void giveVerdict()
 	{
-		throw new RuntimeException("Unimplemented.");
+		// if the source file has code
+		// (a source may only contain comments or spaces)
+		if(codeBlockSummary != null)
+		{
+			if(codeBlockSummary.numIdentifiers > 0)
+			{
+				float numIdLengthProbs = 
+						codeBlockSummary.tooShortList.size() + 
+						codeBlockSummary.tooLongList.size();
+				identifierLengthProblemFrequency = numIdLengthProbs / (float)codeBlockSummary.numIdentifiers;
+			}
+
+			if(codeBlockSummary.numIdentifiers > 0)
+			{
+				identifierNamingProblemFrequency = 
+						(float)codeBlockSummary.badlyNamedList.size() / (float)codeBlockSummary.numIdentifiers;
+			}
+			
+			if(codeBlockSummary.numOperators + codeBlockSummary.numPunctuation > 0)
+			{
+				spacingProblemFrequency = 
+						(float)codeBlockSummary.spaceProblemsList.size() / 
+						(float)codeBlockSummary.numOperators + (float)codeBlockSummary.numPunctuation;
+			}
+
+			float numScopeStyle1 = codeBlockSummary.lbraceNewLineScopes.size();
+			float numScopeStyle2 = codeBlockSummary.lbraceNoNewLineScopes.size();
+			if(numScopeStyle1 + numScopeStyle2 > 0)
+			{
+				inconsistentScopeStyleFrequency = 
+						Math.min(numScopeStyle2, numScopeStyle2) / numScopeStyle1 + numScopeStyle2;
+			}
+
+		}
+		// if the source file has javadoc
+		if(javaDocSummary != null)
+		{
+			if(javaDocSummary.getNumJavaDocs() > 0)
+			{
+				badJavaDocFrequency = 
+						(float)javaDocSummary.getBadJavaDocsList().size() / (float)javaDocSummary.getNumJavaDocs();
+			}
+		}
+		// if the source file has lines
+		if(lineSummary != null)
+		{
+			if(lineSummary.getNumLines() > 0)
+			{
+				lineLengthProblemFrequency = 
+						(float)lineSummary.getTooLongLines().size() / (float)lineSummary.getNumLines();
+				
+				lineLengthProblemFrequency = 
+						(float)lineSummary.getBadlyIndentedLines().size() / (float)lineSummary.getNumLines();
+			}
+		}
+		if(javaDocSummary != null || commentBlockSummary != null)
+		{
+			hasCommentsAtAll = true;
+		}
+		
+		
+		hasVerdict = true;
 	}
 	
 	/**
@@ -79,6 +155,14 @@ public final class FormatVerdict
 				throw new IllegalArgumentException("this kind of summary has already been given.");
 			}
 			wsBlockSummary = (WsBlockSummary)summary;
+		}
+		else if(summary instanceof CodeBlockSummary)
+		{
+			if (codeBlockSummary != null)
+			{
+				throw new IllegalArgumentException("this kind of summary has already been given.");
+			}
+			codeBlockSummary = (CodeBlockSummary)summary;
 		}
 		else if(summary instanceof JavaDocSummary)
 		{
@@ -108,7 +192,57 @@ public final class FormatVerdict
 		{
 			throw new UnsupportedOperationException("Unsupported summary type.");
 		}
-		
-		hasVerdict = true;
+	}
+
+	public boolean isHasVerdict() {
+		return hasVerdict;
+	}
+
+	public WsBlockSummary getWsBlockSummary() {
+		return wsBlockSummary;
+	}
+
+	public CommentBlockSummary getCommentBlockSummary() {
+		return commentBlockSummary;
+	}
+
+	public JavaDocSummary getJavaDocSummary() {
+		return javaDocSummary;
+	}
+
+	public CodeBlockSummary getCodeBlockSummary() {
+		return codeBlockSummary;
+	}
+
+	public LineSummary getLineSummary() {
+		return lineSummary;
+	}
+
+	public float getIdentifierLengthProblemFrequency() {
+		return identifierLengthProblemFrequency;
+	}
+
+	public float getIdentifierNamingProblemFrequency() {
+		return identifierNamingProblemFrequency;
+	}
+
+	public float getSpacingProblemFrequency() {
+		return spacingProblemFrequency;
+	}
+
+	public float getInconsistentScopeStyleFrequency() {
+		return inconsistentScopeStyleFrequency;
+	}
+
+	public float getBadJavaDocFrequency() {
+		return badJavaDocFrequency;
+	}
+
+	public float getLineLengthProblemFrequency() {
+		return lineLengthProblemFrequency;
+	}
+
+	public float getLineIndentationProblemFrequency() {
+		return lineIndentationProblemFrequency;
 	}
 }

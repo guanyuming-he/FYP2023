@@ -113,6 +113,10 @@ public class WsBlock extends FormatToken
 	@Override
 	public void evaluateFormat(SourceFile sf, PrimitiveContext context) 
 	{
-		throw new RuntimeException("Not implemented.");
+		// Nothing to evaluate on the spaces' side.
+		// Instead, in CodeBlock, they are done.
+		
+		// Just call super's to say that it's been evaluated.
+		super.evaluateFormat(sf, context);
 	}
 }

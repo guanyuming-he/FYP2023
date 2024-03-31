@@ -256,8 +256,17 @@ public final class Line extends FormatPrimitive
 		// 2.
 		// get the scope that the line is in.
 		var s = context.syntaxContext.scope;
-		// the correct indentation should be 4 * (s.level+1)
-		correctIndentation = 4 * (s.level+1);	
+		if(s == null)
+		{
+			// The line is outside of any scope.
+			// e.g. part of the definition of a root class.
+			correctIndentation = 0;
+		}
+		else
+		{
+			// the correct indentation should be 4 * (s.level+1)
+			correctIndentation = 4 * (s.level+1);	
+		}
 		
 		// handles the state
 		super.evaluateFormat(sf, context);

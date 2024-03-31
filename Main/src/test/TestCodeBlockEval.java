@@ -18,6 +18,10 @@ public class TestCodeBlockEval
 	private static SourceFile differentIdentifiersSf;
 	private static SyntaxStructure differentIdentifiersSs;
 	
+	private static final String SPACES_AROUND_CODE_SF_PATH = "test_data/spaces_around_code.java";
+	private static SourceFile spacesAroundCodeSf;
+	private static SyntaxStructure spacesAroundCodeSs;
+	
 	/**
 	 * Initialises the source files used in the tests.
 	 */
@@ -26,6 +30,9 @@ public class TestCodeBlockEval
 	{
 		differentIdentifiersSf = TestUtils.createSourceFileNoError(DIFFERENT_IDENTIFIERS_SF_PATH);
 		differentIdentifiersSs = differentIdentifiersSf.getSyntaxStructure();
+		
+		spacesAroundCodeSf = TestUtils.createSourceFileNoError(SPACES_AROUND_CODE_SF_PATH);
+		spacesAroundCodeSs = spacesAroundCodeSf.getSyntaxStructure();
 	}
 	
 	/**
@@ -195,7 +202,25 @@ public class TestCodeBlockEval
 	@Test
 	public void testEvalOperatorsSpace()
 	{
-		fail("Not implemented");
+		// has not spaces around when it should
+		var qm1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(13, 10);
+		var colon1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(13, 12);
+		
+		TestUtils.evalPrimitiveOnlyOnce(qm1, spacesAroundCodeSf, spacesAroundCodeSs);
+		TestUtils.evalPrimitiveOnlyOnce(colon1, spacesAroundCodeSf, spacesAroundCodeSs);
+		
+		assertFalse(qm1.hasSpaceAroundWhenItShould);
+		assertFalse(colon1.hasSpaceAroundWhenItShould);
+		
+		// has spaces around when it should
+		var equals1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(4, 22);
+		TestUtils.evalPrimitiveOnlyOnce(equals1, spacesAroundCodeSf, spacesAroundCodeSs);
+		assertTrue(equals1.hasSpaceAroundWhenItShould);
+		
+		// has spaces around when it should not
+		var inc1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(14, 9);
+		TestUtils.evalPrimitiveOnlyOnce(inc1, spacesAroundCodeSf, spacesAroundCodeSs);
+		assertTrue(inc1.hasSpaceAroundWhenItShouldNot);
 	}
 	
 	/**
@@ -204,7 +229,26 @@ public class TestCodeBlockEval
 	@Test
 	public void testEvalPunctuationSpace()
 	{
-		fail("Not implemented");
+		// has not spaces around when it should
+		var lBrace1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(2, 5);
+		var semi1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(4, 27);
+		var rBrace1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(4, 28);
+		var semi2 = (CodeBlock)spacesAroundCodeSf.getFormatToken(10, 8);
+		
+		TestUtils.evalPrimitiveOnlyOnce(lBrace1, spacesAroundCodeSf, spacesAroundCodeSs);
+		TestUtils.evalPrimitiveOnlyOnce(semi1, spacesAroundCodeSf, spacesAroundCodeSs);
+		TestUtils.evalPrimitiveOnlyOnce(rBrace1, spacesAroundCodeSf, spacesAroundCodeSs);
+		TestUtils.evalPrimitiveOnlyOnce(semi2, spacesAroundCodeSf, spacesAroundCodeSs);
+		
+		assertFalse(lBrace1.hasSpaceAroundWhenItShould);
+		assertFalse(semi1.hasSpaceAroundWhenItShould);
+		assertFalse(rBrace1.hasSpaceAroundWhenItShould);
+		assertFalse(semi2.hasSpaceAroundWhenItShould);
+		
+		// has spaces around when it should
+		var lBrace2 = (CodeBlock)spacesAroundCodeSf.getFormatToken(4, 16);
+		TestUtils.evalPrimitiveOnlyOnce(lBrace2, spacesAroundCodeSf, spacesAroundCodeSs);
+		assertTrue(lBrace2.hasSpaceAroundWhenItShould);
 	}
 	
 	/**
@@ -213,6 +257,13 @@ public class TestCodeBlockEval
 	@Test
 	public void testEvalScopeStype()
 	{
-		fail("Not implemented");
+		var lBrace1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(2, 5);
+		var lBrace3 = (CodeBlock)spacesAroundCodeSf.getFormatToken(17, 1);
+		
+		TestUtils.evalPrimitiveOnlyOnce(lBrace1, spacesAroundCodeSf, spacesAroundCodeSs);
+		TestUtils.evalPrimitiveOnlyOnce(lBrace3, spacesAroundCodeSf, spacesAroundCodeSs);
+		
+		assertEquals(CodeBlock.ScopeStyle.LBRACE_STAYS_IN_OLD_LINE, lBrace1.currentScopeStyle);
+		assertEquals(CodeBlock.ScopeStyle.LBRACE_STARTS_NEW_LINE, lBrace3.currentScopeStyle);
 	}
 }

@@ -32,10 +32,10 @@ public class CodeBlockSummary extends FormatEvalSummary<CodeBlock>
 	// Naming style
 	public List<CodeBlock> badlyNamedList = new ArrayList<CodeBlock>();
 	
-	// Spaces and new lines around
-	// i.e. if a codeblock should have spaces before/after or a newline before/after it, but there isn't any,
-	// then it's put in the list.
-	public List<CodeBlock> noSpaceAroundWhenItShouldList = new ArrayList<CodeBlock>();
+	// Spaces and new lines around (before and/or after)
+	// 	1. should have such around when it doesn't
+	//	2. should not have such around (e.g. ++ --) when it does.
+	public List<CodeBlock> spaceProblemsList = new ArrayList<CodeBlock>();
 	
 	// Inconsistent coding styles
 	// when a scope's { stays in the old line, the { is put here.
@@ -131,7 +131,11 @@ public class CodeBlockSummary extends FormatEvalSummary<CodeBlock>
 			
 			if(!p.hasSpaceAroundWhenItShould)
 			{
-				noSpaceAroundWhenItShouldList.add(p);
+				spaceProblemsList.add(p);
+			}
+			if(p.hasSpaceAroundWhenItShouldNot)
+			{
+				spaceProblemsList.add(p);
 			}
 			
 			if(p.characters().equals("{"))
@@ -151,11 +155,13 @@ public class CodeBlockSummary extends FormatEvalSummary<CodeBlock>
 	@Override
 	public void summarize() 
 	{
+		super.summarize();
+		
 		// turn the lists immutable
 		tooLongList = Collections.unmodifiableList(tooLongList);
 		tooShortList = Collections.unmodifiableList(tooShortList);
 		badlyNamedList = Collections.unmodifiableList(badlyNamedList);
-		noSpaceAroundWhenItShouldList = Collections.unmodifiableList(noSpaceAroundWhenItShouldList);
+		spaceProblemsList = Collections.unmodifiableList(spaceProblemsList);
 		lbraceNewLineScopes = Collections.unmodifiableList(lbraceNewLineScopes);
 		lbraceNoNewLineScopes = Collections.unmodifiableList(lbraceNoNewLineScopes);
 	}

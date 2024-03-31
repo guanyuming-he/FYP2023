@@ -528,109 +528,163 @@ public class CodeBlock extends FormatToken
 			judgeLength();
 			// ii.
 			decideCurrentNamingStyle();
+			
+			return;
 		}
 		// 2. 
 		// need to check { } , ; 
-		// 2.1. {
-		else if(antlrToken.getType() == JavaLexer.LBRACE)
+		if(settings.checkPunctuationSpacesAround)
 		{
-			var containingScope = context.syntaxContext.scope;
-			if(containingScope.oneLine)
+			// 2.1. {
+			if(antlrToken.getType() == JavaLexer.LBRACE)
 			{
-				// get the next token and see if that's wsblock
+				var containingScope = context.syntaxContext.scope;
+				if(containingScope.oneLine)
+				{
+					// get the next token and see if that's wsblock
+					var next = sf.getNextFormatToken(this);
+					// this is a oneline scope, so there must be some tokens after the {
+					assert (next != null && next.line() == this.line());
+					hasOneLineScopeSpace = next instanceof WsBlock;
+					hasSpaceAroundWhenItShould = hasOneLineScopeSpace;
+				}
+				// It's a multiline scope
+				else
+				{
+					var prev = sf.getPrevFormatToken(this);
+					// Judge space around it
+					hasSpaceAroundWhenItShould = prev == null || prev instanceof WsBlock;
+					
+					// judge its style.
+					// If it starts a new line, then there should only be one block
+					// before it in the same line, and that block must be a wsblock.
+					if(prev == null)
+					{
+						// It's the first token in the file.
+						currentScopeStyle = ScopeStyle.LBRACE_STARTS_NEW_LINE;
+					}
+					else
+					{
+						// prev is not a wsblock, which means it stays in the old line
+						if(!(prev instanceof WsBlock))
+						{
+							currentScopeStyle = ScopeStyle.LBRACE_STAYS_IN_OLD_LINE;
+						}
+						else
+						{
+							// now the prev token is a ws block
+							// check if the one before the prev is in the same line
+							var prevPrev = sf.getPrevFormatToken(prev);
+							if(prevPrev == null || prevPrev.line() < prev.line())
+							{
+								currentScopeStyle = ScopeStyle.LBRACE_STARTS_NEW_LINE;
+							}	
+						}
+					}		
+					
+				}
+				
+				return;
+			}
+			// 2.2 }
+			else if(antlrToken.getType() == JavaLexer.RBRACE)
+			{
+				// check the space if it's of a oneline scope
+				var containingScope = context.syntaxContext.scope;
+				if(containingScope.oneLine)
+				{
+					var prev = sf.getPrevFormatToken(this);
+					// this is a oneline scope, so there must be some tokens before the }
+					assert(prev != null && prev.line() == this.line());
+					
+					hasOneLineScopeSpace = prev instanceof WsBlock;
+					hasSpaceAroundWhenItShould = hasOneLineScopeSpace;
+				}
+				// check the space if it's a multiline scope.
+				else
+				{
+					// check the space 
+					var next = sf.getNextFormatToken(this);
+					// Judge space around it
+					hasSpaceAroundWhenItShould = next == null || next instanceof WsBlock;
+				}
+				
+				return;
+			}
+			// 2.3 if there is a space after ,
+			else if(antlrToken.getType() == JavaLexer.COMMA)
+			{
 				var next = sf.getNextFormatToken(this);
-				// this is a oneline scope, so there must be some tokens after the {
-				assert (next != null && next.line() == this.line());
-				hasOneLineScopeSpace = next instanceof WsBlock;
-				hasSpaceAroundWhenItShould = hasOneLineScopeSpace;
+				if(next == null)
+				{
+					hasSpaceAfterComma = true;
+				}
+				else
+				{
+					hasSpaceAfterComma = next instanceof WsBlock;
+				}
+				hasSpaceAroundWhenItShould = hasSpaceAfterComma;
+				
+				return;
 			}
-			// It's a multiline scope
-			else
+			// 2.4 if there is space after ; or if ; ends a line
+			else if(antlrToken.getType() == JavaLexer.SEMI)
 			{
-				// judge its style.
-				// If it starts a new line, then there should only be one block
-				// before it in the same line, and that block must be a wsblock.
-				var prev = sf.getPrevFormatToken(this);
-				if(prev == null)
+				var next = sf.getNextFormatToken(this);
+				if(next == null)
 				{
-					// It's the first token in the file.
-					currentScopeStyle = ScopeStyle.LBRACE_STARTS_NEW_LINE;
-					return;
+					hasSpaceOrNewLineAfterSemi = true;
 				}
-				
-				if(!(prev instanceof WsBlock))
+				else
 				{
-					currentScopeStyle = ScopeStyle.LBRACE_STAYS_IN_OLD_LINE;
-					return;
+					hasSpaceOrNewLineAfterSemi = (next instanceof WsBlock || next.line() > this.line());
 				}
+				hasSpaceAroundWhenItShould = hasSpaceOrNewLineAfterSemi;
 				
-				// now the prev token is a ws block
-				// check if the one before the prev is in the same line
-				var prevPrev = sf.getPrevFormatToken(prev);
-				if(prevPrev == null)
-				{
-					currentScopeStyle = ScopeStyle.LBRACE_STARTS_NEW_LINE;
-				}					
-				
+				return;
 			}
 		}
-		// 2.2 }
-		else if(antlrToken.getType() == JavaLexer.RBRACE)
+		// 3. check operators
+		if(settings.checkOperatorSpacesAround)
 		{
-			// only need to check the space if it's of a oneline scope
-			var containingScope = context.syntaxContext.scope;
-			if(containingScope.oneLine)
+			// 3.1 low precedence operators
+			if(additionalAttr.type == Type.OPERATOR_LOW_PRECEDENCE)
 			{
 				var prev = sf.getPrevFormatToken(this);
-				// this is a oneline scope, so there must be some tokens before the }
-				assert(prev != null && prev.line() == this.line());
+				var next = sf.getNextFormatToken(this);
 				
-				hasOneLineScopeSpace = prev instanceof WsBlock;
-				hasSpaceAroundWhenItShould = hasOneLineScopeSpace;
+				// should have space both before and after, so null->true
+				boolean prevSpace = prev == null ? true : prev instanceof WsBlock;
+				boolean nextSpace = next == null ? true : next instanceof WsBlock;
+				
+				hasSpaceAroundLowPrecOper = prevSpace && nextSpace;
+				hasSpaceAroundWhenItShould = hasSpaceAroundLowPrecOper;
+				
+				return;
+			}
+			// other operators
+			else if(additionalAttr.type == Type.OTHER_OPERATORS)
+			{
+				// 3.2 inc and dec
+				if(settings.checkSpaceAroundIncDec)
+				{
+					if(characters().equals("++") || characters().equals("--"))
+					{
+						var prev = sf.getPrevFormatToken(this);
+						var next = sf.getNextFormatToken(this);
+						
+						// should not have space both before and after, so null->false
+						boolean prevSpace = prev == null ? false : prev instanceof WsBlock;
+						boolean nextSpace = next == null ? false: next instanceof WsBlock;
+						
+						hasSpaceAroundIncDec = prevSpace && nextSpace;
+						hasSpaceAroundWhenItShouldNot = hasSpaceAroundIncDec;
+						
+						return;
+					}
+				}
 			}
 		}
-		// 2.3 if there is a space after ,
-		else if(antlrToken.getType() == JavaLexer.COMMA)
-		{
-			var next = sf.getNextFormatToken(this);
-			if(next == null)
-			{
-				hasSpaceAfterComma = true;
-			}
-			else
-			{
-				hasSpaceAfterComma = next instanceof WsBlock;
-			}
-			hasSpaceAroundWhenItShould = hasSpaceAfterComma;
-		}
-		// 2.4 if there is space after ; or if ; ends a line
-		else if(antlrToken.getType() == JavaLexer.SEMI)
-		{
-			var next = sf.getNextFormatToken(this);
-			if(next == null)
-			{
-				hasSpaceOrNewLineAfterSemi = true;
-			}
-			else
-			{
-				hasSpaceOrNewLineAfterSemi = (next instanceof WsBlock || next.line() > this.line());
-			}
-			hasSpaceAroundWhenItShould = hasSpaceOrNewLineAfterSemi;
-		}
-		// 3.1 low precedence operators
-		else if(additionalAttr.type == Type.OPERATOR_LOW_PRECEDENCE)
-		{
-			// should have spaces around
-			var prev = sf.getPrevFormatToken(this);
-			var next = sf.getNextFormatToken(this);
-			
-			boolean prevSpace = prev == null ? true : prev instanceof WsBlock;
-			boolean nextSpace = next == null ? true : next instanceof WsBlock;
-			hasSpaceAroundLowPrecOper = prevSpace && nextSpace;
-			
-			hasSpaceAroundWhenItShould = hasSpaceAroundLowPrecOper;
-		}
-		// other operators are not evaluated now.
 
 	}
 	
@@ -807,6 +861,10 @@ public class CodeBlock extends FormatToken
 	// When you don't care about which of them this is, but only whether spaces are around it when there should be,
 	// then you query this value.
 	public boolean hasSpaceAroundWhenItShould = true;
+	// Specifically for ++ and -- now.
+	// Because ++ and -- can be used either before all after,
+	// this boolean is true only if it has space both before and after it.
+	public boolean hasSpaceAroundWhenItShouldNot = false;
 	
 	// { <- space, space -> }
 	// only meaningful for { or } of one-line scopes
@@ -818,7 +876,10 @@ public class CodeBlock extends FormatToken
 	// if it's an operator of low precedence (lower than addition and subtraction)
 	// then true iff there is space before and after it.
 	public boolean hasSpaceAroundLowPrecOper = true;
-	
+	// Normally one should not put space before them.
+	// Because ++ and -- can be used either before all after,
+	// this boolean is true only if it has space both before and after it.
+	public boolean hasSpaceAroundIncDec = false;
 	
 ///////////////////////////// Format evaluation: consistent coding style /////////////////////////////
 	// Except that one-line scopes don't use a style,
@@ -847,10 +908,11 @@ public class CodeBlock extends FormatToken
 		public NamingStyle desiredConstantNamingStyle = NamingStyle.UPPERCASE_UNDERSCORE;
 		
 		// Punctuation settings
-		// currently none
+		public boolean checkPunctuationSpacesAround = true;
 		
 		// Operator settings
-		// currently none
+		public boolean checkOperatorSpacesAround = true;
+		public boolean checkSpaceAroundIncDec = true;
 	}
 	
 	public static final Settings settings = new Settings();
