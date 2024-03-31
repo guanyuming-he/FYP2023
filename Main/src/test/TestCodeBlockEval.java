@@ -28,6 +28,9 @@ public class TestCodeBlockEval
 		differentIdentifiersSs = differentIdentifiersSf.getSyntaxStructure();
 	}
 	
+	/**
+	 * Test if the evaluation gives correct result on identifier lengths
+	 */
 	@Test
 	public void testEvalIdentifierLength()
 	{
@@ -184,5 +187,32 @@ public class TestCodeBlockEval
 			assertEquals(NamingStyle.UPPERCASE_UNDERSCORE, upperUnderConstant.getCorrectNamingStyle());
 			assertTrue(upperUnderConstant.isNamingCorrect());
 		}
+	}
+
+	/**
+	 * Tests if the spaces around operators can be evaluated properly
+	 */
+	@Test
+	public void testEvalOperatorsSpace()
+	{
+		fail("Not implemented");
+	}
+	
+	/**
+	 * Tests if the spaces around punctuation can be evaluated properly
+	 */
+	@Test
+	public void testEvalPunctuationSpace()
+	{
+		fail("Not implemented");
+	}
+	
+	/**
+	 * Tests if the styles of syntax scopes can be evaluated
+	 */
+	@Test
+	public void testEvalScopeStype()
+	{
+		fail("Not implemented");
 	}
 }

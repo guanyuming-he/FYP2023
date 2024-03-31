@@ -19,7 +19,7 @@ import edu.guanyfyp.SourceFile;
  * How JavaDoc is parsed:
  * First the comment is divided into lines.
  * 1. If a line is the first line, then /** is removed from the start of it
- * 2. If a line is a middle line, then all before the first *, including it, is removed from it.
+ * 2. If a line is a middle line and there is some *, then all before the first *, including it, is removed from it.
  * 3. If a line is the last line, then star/ (can't type the star here) is removed from it.
  * 
  * All other texts are preserved. And tags are processed based on the JavaDoc rules.
@@ -86,12 +86,12 @@ public final class JavaDocBlock extends CommentBlock
 			
 			Tag t = (Tag)o;
 			return t.tagName.equals(tagName) &&
-					t.tagText.endsWith(tagText);
+					t.tagText.equals(tagText);
 		}
 		
 	}
 	/**
-	 * A tag that marks an attribute that has a name.
+
 	 * e.g. \at param name ... \at throws name ...
 	 * tt := attr_name " " attr_text
 	 */
@@ -149,19 +149,7 @@ public final class JavaDocBlock extends CommentBlock
 		public final String attrName;
 		public final String attrText;
 		
-		@Override
-		public boolean equals(Object o)
-		{
-			if (!(o instanceof AttrTag))
-			{
-				return false;
-			}
-			
-			AttrTag t = (AttrTag)o;
-			return super.equals(o) &&
-					t.attrName.equals(attrName) &&
-					t.attrText.equals(attrText);
-		}
+		// Tag's equals works for all tags, so no overriding equals
 	}
 	
 	
@@ -353,9 +341,10 @@ public final class JavaDocBlock extends CommentBlock
 		// class-like syntax structures
 		// e.g. class, interface, enum, ...
 		CLASS_LIKE,
-		METHOD,
+		// methods and constructors, whether generic or not.
+		METHOD_LIKE,
 		FIELD,
-		CONSTRUCTOR,
+		// other types of structures or none.
 		// all that having this are inappropriate.
 		OTHER 
 	}
@@ -382,18 +371,21 @@ public final class JavaDocBlock extends CommentBlock
 	// These are calculated in evaluateFormat().
 	// if the JavaDoc has @param, @return, or @throws
 	// then it can only be followed by a method/ctor.
-	// The field is true iff the structure following the java doc is not a method/ctor,
+	// The field is true iff 
+	// 	1. the structure following the java doc is not a method/ctor,
 	// but the tags suggest otherwise.
+	//	2. the following type is other. JavaDocs should not be followed by other things.
 	private boolean followingTypeUnmatched = false;
 	// Tags that are written in the comment but are not matched in the following structure.
 	// if the following is a method, then it only stores the unmatched param tags 
+	// This field is from the opposite direction of another field: unmatchedParams.
 	private List<Tag> unmatchedTags;
-	// Only @param, @return, and @throws can be unmatched 
-	// because others like @author can be applied or not to any.
-	// but I decide not check throws now as deeper methods may also throw.
-	// @return check result is stored in another variable.
-	// So: params that are in the following definition but are not matched by the comment.
-	private List<String> unmatchedParams;
+	// If what follows is METHOD_LIKE, then the list records all syntax objects
+	// that appear there but not here.
+	// A method can have a return, some params, and some throws.
+	// But throws are hard to check and return is checked in another variable
+	// So: for not this only means params that are in the following structure but are not matched by the tags
+	private List<String> unmatchedSyntaxObjs;
 	// If the method does not return void but there is not @return tag
 	private boolean returnNotProvided = false;
 	
@@ -405,18 +397,18 @@ public final class JavaDocBlock extends CommentBlock
 	public void setFollowing(FollowingType type, FollowingMethod method)
 	{
 		this.following = type;
-		if(type == FollowingType.METHOD || type == FollowingType.CONSTRUCTOR)
+		if(type == FollowingType.METHOD_LIKE)
 		{
 			this.followingMethod = method;
 		}
 	}
 	/** @return Which kind of code block this JavaDoc comment precedes. */
-	public FollowingType getFollowing() 
+	public FollowingType getFollowingType() 
 	{
 		return following;
 	}
 	/** @return If a method/ctor definition follows the java doc, then returns information about that. */
-	public FollowingMethod getFollowingMethod() 
+	public FollowingMethod getFollowingMethodInfo() 
 	{
 		return followingMethod;
 	}
@@ -424,13 +416,23 @@ public final class JavaDocBlock extends CommentBlock
 	{
 		return followingTypeUnmatched;
 	}
+	
+	/**
+	 * @return Tags that are written in the comment but are not matched in the following structure.
+	 if the following is a method, then it only stores the unmatched param tags 
+	 */
 	public List<Tag> getUnmatchedCommentTags() 
 	{
 		return unmatchedTags;
 	}
+	/**
+	 * Only meaningful if the following is METHOD_LIKE
+	 * @return the syntax objects in the following but are not matched
+	 * by the tags. For now, this means only parameters.
+	 */
 	public List<String> getUnmatchedSyntaxObjects() 
 	{
-		return unmatchedParams;
+		return unmatchedSyntaxObjs;
 	}
 	public boolean getReturnNotProvided()
 	{
@@ -442,11 +444,17 @@ public final class JavaDocBlock extends CommentBlock
 	{
 		super.evaluateFormat(sf, context);
 		
+		unmatchedSyntaxObjs = new ArrayList<>();
 		unmatchedTags = new ArrayList<>();
+		
+		if(following == FollowingType.OTHER)
+		{
+			followingTypeUnmatched = true;
+		}
 		
 		// If it's not followed by a method,
 		// then any tag except return, param, and throws is allowed
-		if(following != FollowingType.METHOD || following != FollowingType.CONSTRUCTOR)
+		if(following != FollowingType.METHOD_LIKE)
 		{
 			// any method tag becomes unmatched.
 			for(var tag: tags)
@@ -490,7 +498,7 @@ public final class JavaDocBlock extends CommentBlock
 					}
 				}
 			}
-			unmatchedParams = list1;
+			unmatchedSyntaxObjs = list1;
 			
 			if(!followingMethod.returnType.equals("void")) 
 			{

@@ -574,7 +574,7 @@ public class SourceFile
      * Analyzes the source code in the file and give a result.
      * @return the result given
      */
-    FormatVerdict analyze()
+    public FormatVerdict analyze()
     {
 		FormatVerdict verdict = new FormatVerdict();
 		

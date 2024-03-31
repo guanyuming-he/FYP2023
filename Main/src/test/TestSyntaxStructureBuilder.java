@@ -5,18 +5,22 @@ package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import edu.guanyfyp.SourceFile;
 import edu.guanyfyp.format.primitives.CodeBlock;
+import edu.guanyfyp.format.primitives.JavaDocBlock;
 import edu.guanyfyp.syntax.SyntaxStructure;
 import edu.guanyfyp.syntax.SyntaxStructureBuilder;
 
 /**
  * 
  */
-class TestSyntaxStructureBuilder {
+class TestSyntaxStructureBuilder 
+{
 
 	private static final String DIFFERENT_SCOPES_SF_PATH = "test_data/different_scopes.txt";
 	private static SourceFile differentScopesSf;
@@ -29,6 +33,9 @@ class TestSyntaxStructureBuilder {
 	
 	private static final String MIXTURE2_SF_PATH = "test_data/mixture2.txt";
 	private static SourceFile mixture2Sf;
+	
+	private static final String DIFFERENT_JAVADOCS_SF_PATH = "test_data/different_java_docs.java";
+	private static SourceFile differentJavaDocsSf;
 	
 	/**
 	 * Initialises the source files used in the tests.
@@ -44,6 +51,8 @@ class TestSyntaxStructureBuilder {
 		manyDeclsSs = manyDeclsSf.getSyntaxStructure();
 		
 		mixture2Sf = TestUtils.createSourceFileNoError(MIXTURE2_SF_PATH);
+		
+		differentJavaDocsSf = TestUtils.createSourceFileNoError(DIFFERENT_JAVADOCS_SF_PATH);
 	}
 	
 	/**
@@ -145,7 +154,7 @@ class TestSyntaxStructureBuilder {
 	}
 
 	/**
-	 * Tests if the builder can correct build the tree structure of the syntax scopes.
+	 * Tests if the builder can correctly build the tree structure of the syntax scopes.
 	 */
 	@Test
 	void testBuildSyntaxScope()
@@ -198,5 +207,52 @@ class TestSyntaxStructureBuilder {
 		var r2c0 = r2.children.get(0);
 		TestUtils.assertSyntaxScopeLocation(src, r2c0, 41, 1, 43, 1);
 		assertTrue(r2c0.isLeaf());
+	}
+
+	/**
+	 * Tests if the builder can correctly append the information about 
+	 * the syntax structure that follows a JavaDoc to that JavaDoc.
+	 */
+	@Test
+	void testBuildJavaDocs()
+	{
+		// After construction, the build is already complete.
+		var javaDocs = differentJavaDocsSf.getJavaDocs();
+		
+		// There are this many JavaDocs
+		assertEquals(10, javaDocs.size(), "There are this many JavaDocs");
+		
+		// First, the type of what follows each should be correct.
+		{
+			assertEquals(JavaDocBlock.FollowingType.CLASS_LIKE, javaDocs.get(0).getFollowingType());
+			assertEquals(JavaDocBlock.FollowingType.FIELD, javaDocs.get(1).getFollowingType());
+			assertEquals(JavaDocBlock.FollowingType.METHOD_LIKE, javaDocs.get(2).getFollowingType());
+			assertEquals(JavaDocBlock.FollowingType.OTHER, javaDocs.get(3).getFollowingType(), "followed by something that shouldn't follow it");
+			assertEquals(JavaDocBlock.FollowingType.OTHER, javaDocs.get(4).getFollowingType(), "followed by nothing");
+			assertEquals(JavaDocBlock.FollowingType.METHOD_LIKE, javaDocs.get(5).getFollowingType());
+			assertEquals(JavaDocBlock.FollowingType.CLASS_LIKE, javaDocs.get(6).getFollowingType());
+			assertEquals(JavaDocBlock.FollowingType.METHOD_LIKE, javaDocs.get(7).getFollowingType());
+			assertEquals(JavaDocBlock.FollowingType.FIELD, javaDocs.get(8).getFollowingType());
+			assertEquals(JavaDocBlock.FollowingType.OTHER, javaDocs.get(9).getFollowingType(), "followed by nothing");
+		}
+		
+		// Second, if the following is a method-like construct,
+		// then check if the parameters and return type is recorded correctly.
+		{
+			// 2, 5, 7 are method-like
+			var methodInfo2 = javaDocs.get(2).getFollowingMethodInfo();
+			var methodInfo5 = javaDocs.get(5).getFollowingMethodInfo();
+			var methodInfo7 = javaDocs.get(7).getFollowingMethodInfo();
+			
+			// return types
+			assertEquals("void", methodInfo2.returnType);
+			assertEquals("void", methodInfo5.returnType);
+			assertEquals("int", methodInfo7.returnType);
+			
+			// parameters
+			assertEquals(List.of("i"), methodInfo2.parameterNames);
+			assertEquals(List.of("i", "abc"), methodInfo5.parameterNames);
+			assertEquals(List.of("x", "y"), methodInfo7.parameterNames);
+		}
 	}
 }

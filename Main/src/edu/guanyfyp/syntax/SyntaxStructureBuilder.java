@@ -464,9 +464,12 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	 * 	iii. methods
 	 * 		methodDeclaration
 	 * 		genericMethodDeclaration
+	 * 		interfaceMethodDeclaration
+	 * 		genericInterfaceMethodDeclaration
 	 * 	iv. constructors
 	 * 		constructorDeclaration
 	 * 		genericConstructorDeclaration
+	 * NOTE: For iii and iv, the methods should be exit... so that the parameters can be available.
 	 * 	
 	 */
 	
@@ -923,18 +926,21 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 	@Override
 	public void enterInterfaceMethodDeclaration(JavaParser.InterfaceMethodDeclarationContext ctx)
 	{
-		// Strangely, there can be some additional modifiers here
-		var modifiersList = ctx.interfaceMethodModifier();
-		for(var modifier : modifiersList)
+		// 1.
 		{
-			addPendingModifier(modifier);
-		}
+			// Strangely, there can be some additional modifiers here
+			var modifiersList = ctx.interfaceMethodModifier();
+			for(var modifier : modifiersList)
+			{
+				addPendingModifier(modifier);
+			}
+			
+			// the method name token.
+			Token token = ctx.interfaceCommonBodyDeclaration().identifier().getStart();
 		
-		// the method name token.
-		Token token = ctx.interfaceCommonBodyDeclaration().identifier().getStart();
-	
-		// additional attributes
-		setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+			// additional attributes
+			setAdditionalTokenAttributesForTheCode(CodeBlock.Type.METHOD_NAME, token.getTokenIndex());
+		}
 	}
 	
 	/**
@@ -1064,7 +1070,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			}
 			
 			//methodInfo.parameterNames
-			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+			examineJavaDoc(ctx, FollowingType.METHOD_LIKE, methodInfo);
 		}
 	}
 	
@@ -1093,9 +1099,70 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			}
 			
 			//methodInfo.parameterNames
-			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+			examineJavaDoc(ctx, FollowingType.METHOD_LIKE, methodInfo);
 		}
 	}
+	
+	/**
+	 * When a declaration of an interface method is exited
+	 */
+	@Override
+	public void exitInterfaceMethodDeclaration(JavaParser.InterfaceMethodDeclarationContext ctx)
+	{
+		// 3.
+		{
+			FollowingMethod methodInfo = new FollowingMethod();
+			var methodCtx = ctx.interfaceCommonBodyDeclaration();
+			methodInfo.returnType = methodCtx.typeTypeOrVoid().getText();
+			
+			// indices of parameters 
+			// (each parameter has an additionalTokenAttributes structure built for it,
+			// and the structure is mapped to by the index of the parameter).
+			var parTokenIndices = additionalTokenAttributes.subMap
+			(
+				methodCtx.formalParameters().start.getTokenIndex(), 
+				methodCtx.formalParameters().stop.getTokenIndex()
+			).keySet();
+			for(Integer pi : parTokenIndices)
+			{
+				methodInfo.parameterNames.add(sourceFile.getFormatToken(pi).characters());
+			}
+			
+			//methodInfo.parameterNames
+			examineJavaDoc(ctx, FollowingType.METHOD_LIKE, methodInfo);
+		}
+	}
+	
+	/**
+	 * When a declaration of a generic interface method is exited
+	 */
+	@Override
+	public void exitGenericInterfaceMethodDeclaration(JavaParser.GenericInterfaceMethodDeclarationContext ctx)
+	{
+		// 3.
+		{
+			FollowingMethod methodInfo = new FollowingMethod();
+			var methodCtx = ctx.interfaceCommonBodyDeclaration();
+			methodInfo.returnType = methodCtx.typeTypeOrVoid().getText();
+			
+			// indices of parameters 
+			// (each parameter has an additionalTokenAttributes structure built for it,
+			// and the structure is mapped to by the index of the parameter).
+			var parTokenIndices = additionalTokenAttributes.subMap
+			(
+				methodCtx.formalParameters().start.getTokenIndex(), 
+				methodCtx.formalParameters().stop.getTokenIndex()
+			).keySet();
+			for(Integer pi : parTokenIndices)
+			{
+				methodInfo.parameterNames.add(sourceFile.getFormatToken(pi).characters());
+			}
+			
+			//methodInfo.parameterNames
+			examineJavaDoc(ctx, FollowingType.METHOD_LIKE, methodInfo);
+		}
+	}
+
 	
 	/**
 	 * When a declaration of a constructor is exited
@@ -1123,7 +1190,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			}
 			
 			//methodInfo.parameterNames
-			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+			examineJavaDoc(ctx, FollowingType.METHOD_LIKE, methodInfo);
 		}
 	}
 	
@@ -1153,7 +1220,7 @@ public class SyntaxStructureBuilder extends JavaParserBaseListener {
 			}
 			
 			//methodInfo.parameterNames
-			examineJavaDoc(ctx, FollowingType.METHOD, methodInfo);
+			examineJavaDoc(ctx, FollowingType.METHOD_LIKE, methodInfo);
 		}
 	}
 	

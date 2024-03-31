@@ -15,9 +15,9 @@ import edu.guanyfyp.format.primitives.JavaDocBlock.AttrTag;
 import edu.guanyfyp.format.primitives.JavaDocBlock.Tag;
 
 /**
- * Tests how this class handles JavaDoc
+ * Tests how this class parses JavaDoc
  */
-class TestJavaDocCommentBlock 
+class TestJavaDocBlock 
 {
 
 	/**
