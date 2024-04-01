@@ -553,7 +553,7 @@ public class CodeBlock extends FormatToken
 				{
 					var prev = sf.getPrevFormatToken(this);
 					// Judge space around it
-					hasSpaceAroundWhenItShould = prev == null || prev instanceof WsBlock;
+					hasSpaceAroundWhenItShould = prevSpaceOrNewLine(prev);
 					
 					// judge its style.
 					// If it starts a new line, then there should only be one block
@@ -606,7 +606,7 @@ public class CodeBlock extends FormatToken
 					// check the space 
 					var next = sf.getNextFormatToken(this);
 					// Judge space around it
-					hasSpaceAroundWhenItShould = next == null || next instanceof WsBlock;
+					hasSpaceAroundWhenItShould = nextSpaceOrNewLine(next);
 				}
 				
 				return;
@@ -615,14 +615,7 @@ public class CodeBlock extends FormatToken
 			else if(antlrToken.getType() == JavaLexer.COMMA)
 			{
 				var next = sf.getNextFormatToken(this);
-				if(next == null)
-				{
-					hasSpaceAfterComma = true;
-				}
-				else
-				{
-					hasSpaceAfterComma = next instanceof WsBlock;
-				}
+				hasSpaceAfterComma = nextSpaceOrNewLine(next);
 				hasSpaceAroundWhenItShould = hasSpaceAfterComma;
 				
 				return;
@@ -631,14 +624,7 @@ public class CodeBlock extends FormatToken
 			else if(antlrToken.getType() == JavaLexer.SEMI)
 			{
 				var next = sf.getNextFormatToken(this);
-				if(next == null)
-				{
-					hasSpaceOrNewLineAfterSemi = true;
-				}
-				else
-				{
-					hasSpaceOrNewLineAfterSemi = (next instanceof WsBlock || next.line() > this.line());
-				}
+				hasSpaceOrNewLineAfterSemi = nextSpaceOrNewLine(next);
 				hasSpaceAroundWhenItShould = hasSpaceOrNewLineAfterSemi;
 				
 				return;
@@ -654,8 +640,8 @@ public class CodeBlock extends FormatToken
 				var next = sf.getNextFormatToken(this);
 				
 				// should have space both before and after, so null->true
-				boolean prevSpace = prev == null ? true : prev instanceof WsBlock;
-				boolean nextSpace = next == null ? true : next instanceof WsBlock;
+				boolean prevSpace = prevSpaceOrNewLine(prev);
+				boolean nextSpace = nextSpaceOrNewLine(next);
 				
 				hasSpaceAroundLowPrecOper = prevSpace && nextSpace;
 				hasSpaceAroundWhenItShould = hasSpaceAroundLowPrecOper;
@@ -674,8 +660,8 @@ public class CodeBlock extends FormatToken
 						var next = sf.getNextFormatToken(this);
 						
 						// should not have space both before and after, so null->false
-						boolean prevSpace = prev == null ? false : prev instanceof WsBlock;
-						boolean nextSpace = next == null ? false: next instanceof WsBlock;
+						boolean prevSpace = !prevNotSpaceOrNewLine(prev);
+						boolean nextSpace = !nextNotSpaceOrNewLine(next);
 						
 						hasSpaceAroundIncDec = prevSpace && nextSpace;
 						hasSpaceAroundWhenItShouldNot = hasSpaceAroundIncDec;
@@ -881,6 +867,30 @@ public class CodeBlock extends FormatToken
 	// this boolean is true only if it has space both before and after it.
 	public boolean hasSpaceAroundIncDec = false;
 	
+	/** @return true iff the previous is space or new line or null */
+	private boolean prevSpaceOrNewLine(FormatToken prev)
+	{
+		return prev == null || prev instanceof WsBlock || this.line() > prev.line();
+	}
+	/** @return true iff the next is space or new line or null */
+	private boolean nextSpaceOrNewLine(FormatToken next)
+	{
+		return next == null || next instanceof WsBlock || this.line() < next.line();
+	}
+	/** @return true iff the previous is not space and new line, or if it's null */
+	private boolean prevNotSpaceOrNewLine(FormatToken prev)
+	{
+		return prev == null || 
+				!(prev instanceof WsBlock || this.line() > prev.line());
+	}
+	/** @return true iff the next is not space and new line, or if it's null */
+	private boolean nextNotSpaceOrNewLine(FormatToken next)
+	{
+		return next == null || 
+				!(next instanceof WsBlock || this.line() < next.line());
+	}
+	
+	
 ///////////////////////////// Format evaluation: consistent coding style /////////////////////////////
 	// Except that one-line scopes don't use a style,
 	// whether a { occupies its own line is a matter of choice.
@@ -901,7 +911,7 @@ public class CodeBlock extends FormatToken
 		
 		// Identifier settings
 		public int longestIdentifierLength = 15;
-		public int shortestIdentifierLength = 4;
+		public int shortestIdentifierLength = 2;
 		public NamingStyle desiredClassNamingStyle = NamingStyle.PASCAL_CASE;
 		public NamingStyle desiredMethodNamingStyle = NamingStyle.CAMEL_CASE;
 		public NamingStyle desiredVariableNamingStyle = NamingStyle.CAMEL_CASE;

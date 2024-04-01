@@ -254,18 +254,26 @@ public final class Line extends FormatPrimitive
 		}
 		
 		// 2.
-		// get the scope that the line is in.
-		var s = context.syntaxContext.scope;
-		if(s == null)
 		{
-			// The line is outside of any scope.
-			// e.g. part of the definition of a root class.
-			correctIndentation = 0;
-		}
-		else
-		{
-			// the correct indentation should be 4 * (s.level+1)
-			correctIndentation = 4 * (s.level+1);	
+			// get the scope that the line is in.
+			var s = context.syntaxContext.scope;
+			if(s == null)
+			{
+				// The line is outside of any scope.
+				// e.g. part of the definition of a root class.
+				correctIndentation = 0;
+			}
+			else
+			{
+				// the correct indentation should be 4 * (s.level+1)
+				correctIndentation = 4 * (s.level+1);	
+			}
+			
+			// only if the line is visible is the indentation meaningful
+			if(hasVisibleToken())
+			{
+				indentationCorrect = correctIndentation == indentationLevel;
+			}
 		}
 		
 		// handles the state
@@ -278,10 +286,11 @@ public final class Line extends FormatPrimitive
 	public boolean isTooLong() { return tooLong; }
 	// How far the line should be indented.
 	private int correctIndentation = 0;
+	private boolean indentationCorrect = true;
 	/**
 	 * @return if the current indentation is correct. i.e. if current == correct.
 	 */
-	public boolean isIndentationCorrect() { return correctIndentation == indentationLevel; }
+	public boolean isIndentationCorrect() { return indentationCorrect; }
 	
 //////////////////////// Format evaluation Settings ////////////////////////
 	

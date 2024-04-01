@@ -39,17 +39,21 @@ public final class JavaDocSummary extends FormatEvalSummary<JavaDocBlock>
 		// 2. if the type matches, but the tags do not
 		else
 		{
+			// return after each add to only add them once.
 			if(!b.getUnmatchedCommentTags().isEmpty())
 			{
 				badJavaDocsList.add(b);
+				return;
 			}
 			if(!b.getUnmatchedSyntaxObjects().isEmpty())
 			{
 				badJavaDocsList.add(b);
+				return;
 			}		
 			if(b.getReturnNotProvided())
 			{
 				badJavaDocsList.add(b);
+				return;
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 // {
 public class SomeClass{
-    // , }
+    // , ; }
     private void abc(int a,int b) { int c = a+b;}
 
     // ;
