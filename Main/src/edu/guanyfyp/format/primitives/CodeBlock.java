@@ -765,8 +765,8 @@ public class CodeBlock extends FormatToken
 		case CLASS_NAME:
 		case INTERFACE_NAME:
 		case ENUM_NAME:
-			return settings.desiredClassNamingStyle;
 		case CONSTRUCTOR_NAME:
+			return settings.desiredClassNamingStyle;
 		case METHOD_NAME:
 			return settings.desiredMethodNamingStyle;
 		case FIELD_NAME:

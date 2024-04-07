@@ -91,7 +91,7 @@ public class FormatVerdict
 			{
 				spacingProblemFrequency = 
 						(float)codeBlockSummary.spaceProblemsList.size() / 
-						(float)codeBlockSummary.numOperators + (float)codeBlockSummary.numPunctuation;
+						((float)codeBlockSummary.numOperators + (float)codeBlockSummary.numPunctuation);
 			}
 
 			float numScopeStyle1 = codeBlockSummary.lbraceNewLineScopes.size();
@@ -120,7 +120,7 @@ public class FormatVerdict
 				lineLengthProblemFrequency = 
 						(float)lineSummary.getTooLongLines().size() / (float)lineSummary.getNumLines();
 				
-				lineLengthProblemFrequency = 
+				lineIndentationProblemFrequency = 
 						(float)lineSummary.getBadlyIndentedLines().size() / (float)lineSummary.getNumLines();
 			}
 		}
@@ -244,5 +244,26 @@ public class FormatVerdict
 
 	public float getLineIndentationProblemFrequency() {
 		return lineIndentationProblemFrequency;
+	}
+	
+	@Override
+	public String toString() {
+		String ret = "";
+		ret += "identifierLengthProblemFrequency = " + identifierLengthProblemFrequency + "\n";
+		ret += "identifierNamingProblemFrequency = " + identifierNamingProblemFrequency + "\n";
+		ret += "spacingProblemFrequency = " + spacingProblemFrequency + "\n";
+		ret += "inconsistentScopeStyleFrequency = " + inconsistentScopeStyleFrequency + "\n";
+		ret += "badJavaDocFrequency = " + badJavaDocFrequency + "\n";
+		ret += "lineLengthProblemFrequency = " + lineLengthProblemFrequency + "\n";
+		ret += "lineIndentationProblemFrequency = " + lineIndentationProblemFrequency + "\n";
+		ret += "hasCommentsAtAll = " + hasCommentsAtAll + "\n";
+
+		ret += 	wsBlockSummary.toString();
+		ret += commentBlockSummary.toString();
+		ret += javaDocSummary.toString();
+		ret += codeBlockSummary.toString();
+		ret += lineSummary.toString();
+		
+		return ret;
 	}
 }
