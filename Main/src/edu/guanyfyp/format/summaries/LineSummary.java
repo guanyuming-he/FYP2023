@@ -76,7 +76,7 @@ public final class LineSummary extends FormatEvalSummary<Line>
 	 */
 	public List<Line> getBadlyIndentedLines() 
 	{
-		if(isSummaryDone())
+		if(!isSummaryDone())
 		{
 			throw new IllegalStateException("the summary is not done.");
 		}
@@ -91,7 +91,7 @@ public final class LineSummary extends FormatEvalSummary<Line>
 	 */
 	public List<Line> getTooLongLines() 
 	{
-		if(isSummaryDone())
+		if(!isSummaryDone())
 		{
 			throw new IllegalStateException("the summary is not done.");
 		}
@@ -104,5 +104,27 @@ public final class LineSummary extends FormatEvalSummary<Line>
 //////////////////////// Settings ////////////////////////
 	
 	// To be added. Not used now.
-
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("Too long lines:\n");
+		for(var l : tooLongLines)
+		{
+			builder.append('\t');
+			builder.append(l.toString());
+			builder.append('\n');
+		}
+		builder.append("Badly indented lines:\n");
+		for(var l : badlyIndentedLines)
+		{
+			builder.append('\t');
+			builder.append(l.toString());
+			builder.append('\n');
+		}
+		
+		return builder.toString();
+	}
 }

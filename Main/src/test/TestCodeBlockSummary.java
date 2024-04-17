@@ -25,6 +25,10 @@ public class TestCodeBlockSummary
 	private static SourceFile spacesAroundCodeSf;
 	private static CodeBlockSummary spacesAroundCodeSum;
 	
+	private static final String BAD1_SF_PATH = "demo_data/bad1.java";
+	private static SourceFile bad1Sf;
+	private static CodeBlockSummary bad1Sum;
+	
 	/**
 	 * Initialises the source files used in the tests.
 	 */
@@ -40,6 +44,11 @@ public class TestCodeBlockSummary
 		// This will complete the summaries
 		var verdict2 = spacesAroundCodeSf.analyze();
 		spacesAroundCodeSum = verdict2.getCodeBlockSummary(); 
+		
+		bad1Sf = TestUtils.createSourceFileNoError(BAD1_SF_PATH);
+		// This will complete the summaries
+		var verdict3 = bad1Sf.analyze();
+		bad1Sum = verdict3.getCodeBlockSummary(); 
 	}
 	
 	/**
@@ -90,7 +99,7 @@ public class TestCodeBlockSummary
 	 * Test if the spacing problem list is correctly populated
 	 */
 	@Test 
-	void testSpacingProblemList()
+	public void testSpacingProblemList()
 	{
 		var lBrace1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(2, 5);
 		var comma1 = (CodeBlock)spacesAroundCodeSf.getFormatToken(4, 10);
@@ -112,6 +121,16 @@ public class TestCodeBlockSummary
 		// so I don't simply assert the two lists are equal
 		assertEquals(expectedSpacingProblemList.size(), spacesAroundCodeSum.spaceProblemsList.size());
 		assertTrue(expectedSpacingProblemList.containsAll(spacesAroundCodeSum.spaceProblemsList));
+	}
+
+	/**
+	 * See if the { of each scope is put in the correct list.
+	 */
+	@Test
+	public void testScopeLists()
+	{
+		assertEquals(List.of(bad1Sf.getFormatToken(7, 6)), bad1Sum.lbraceNoNewLineScopes);
+		assertEquals(List.of(bad1Sf.getFormatToken(19, 1)), bad1Sum.lbraceNewLineScopes);
 	}
 	
 }

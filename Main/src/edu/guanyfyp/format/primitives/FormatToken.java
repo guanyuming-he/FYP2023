@@ -147,7 +147,7 @@ public abstract class FormatToken extends FormatPrimitive
 	@Override
 	public String toString()
 	{
-		return "Token: " + characters() + "\nof length " + Integer.toString(visualLength) +
+		return '\"' + characters() + '\"' +
 				" at " + Integer.toString(visualPos) +
 				", line " + Integer.toString(line());
 	}

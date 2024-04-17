@@ -547,6 +547,8 @@ public class CodeBlock extends FormatToken
 					assert (next != null && next.line() == this.line());
 					hasOneLineScopeSpace = next instanceof WsBlock;
 					hasSpaceAroundWhenItShould = hasOneLineScopeSpace;
+					
+					currentScopeStyle = ScopeStyle.ONELINE;
 				}
 				// It's a multiline scope
 				else
@@ -578,7 +580,11 @@ public class CodeBlock extends FormatToken
 							if(prevPrev == null || prevPrev.line() < prev.line())
 							{
 								currentScopeStyle = ScopeStyle.LBRACE_STARTS_NEW_LINE;
-							}	
+							}
+							else
+							{
+								currentScopeStyle = ScopeStyle.LBRACE_STAYS_IN_OLD_LINE;
+							}
 						}
 					}		
 					
@@ -892,15 +898,15 @@ public class CodeBlock extends FormatToken
 	
 	
 ///////////////////////////// Format evaluation: consistent coding style /////////////////////////////
-	// Except that one-line scopes don't use a style,
+	// Except that one-line scopes only have one style,
 	// whether a { occupies its own line is a matter of choice.
 	// But you need to be consistent.
 	public static enum ScopeStyle
 	{
+		ONELINE,
 		LBRACE_STARTS_NEW_LINE,
 		LBRACE_STAYS_IN_OLD_LINE
 	}
-	// only meaningful for { of multiline scopes.
 	public ScopeStyle currentScopeStyle;
 	
 //////////////////////// Settings ////////////////////////
@@ -926,5 +932,10 @@ public class CodeBlock extends FormatToken
 	}
 	
 	public static final Settings settings = new Settings();
-	
+
+	@Override
+	public String toString()
+	{
+		return "CodeBlock " + super.toString();
+	}
 }

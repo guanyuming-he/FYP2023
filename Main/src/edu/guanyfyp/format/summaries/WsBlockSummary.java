@@ -26,10 +26,5 @@ public class WsBlockSummary extends FormatEvalSummary<WsBlock>
 		super();
 	}
 
-	@Override
-	public void summarize() 
-	{
-		throw new RuntimeException("Unimplemented.");	
-	}
 
 }

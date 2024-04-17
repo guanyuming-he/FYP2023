@@ -329,4 +329,10 @@ public final class Line extends FormatPrimitive
 	}
 	
 	public static final Settings settings = new Settings();
+	
+	@Override
+	public String toString()
+	{
+		return "Line " + lineNumber;
+	}
 }

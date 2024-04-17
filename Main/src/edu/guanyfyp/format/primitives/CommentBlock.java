@@ -43,7 +43,7 @@ public class CommentBlock extends FormatToken
 	@Override
 	public int calculateVisualLength(String str)
 	{
-		// we have //, /**/, or /***/
+		// we have //, /*...*/, or /**...*/
 		assert(str.length() >= 2);
 		
 		if(str.substring(0, 2).equals("//"))
@@ -94,5 +94,18 @@ public class CommentBlock extends FormatToken
 	{
 		// Non-javaDoc comments need nothing.
 		super.evaluateFormat(sf, context);
+	}
+	
+	@Override
+	public String toString()
+	{
+		if(characters().substring(0, 2).equals("//"))
+		{
+			return "One-line comment at " + actualPos() + ", line " + line();
+		}
+		else
+		{
+			return "Comment at " + actualPos() + ", line " + line();
+		}
 	}
 }

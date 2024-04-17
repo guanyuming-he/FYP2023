@@ -140,6 +140,8 @@ public class CodeBlockSummary extends FormatEvalSummary<CodeBlock>
 			
 			if(p.characters().equals("{"))
 			{
+				assert(p.currentScopeStyle != null);
+				
 				if(p.currentScopeStyle == ScopeStyle.LBRACE_STARTS_NEW_LINE)
 				{
 					lbraceNewLineScopes.add(p);
@@ -173,4 +175,61 @@ public class CodeBlockSummary extends FormatEvalSummary<CodeBlock>
 	}
 	
 	public static final Settings settings = new Settings();
+
+	@Override
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("Identifier length problems:\n");
+		for(var c : tooLongList)
+		{
+			builder.append('\t');
+			builder.append(c.toString());
+			builder.append('\n');
+		}
+		for(var c : tooShortList)
+		{
+			builder.append('\t');
+			builder.append(c.toString());
+			builder.append('\n');
+		}
+		
+		builder.append("Badly named identifiers:\n");
+		for(var c : badlyNamedList)
+		{
+			builder.append('\t');
+			builder.append(c.toString());
+			builder.append('\n');
+		}
+		
+		builder.append("Space and newlines around problems:\n");
+		for(var c : spaceProblemsList)
+		{
+			builder.append('\t');
+			builder.append(c.toString());
+			builder.append('\n');
+		}
+		
+		if(!lbraceNewLineScopes.isEmpty() && !lbraceNoNewLineScopes.isEmpty())
+		{
+			builder.append("Inconsistent scope styles found.\n");
+			builder.append("Scopes in new line style:\n");
+			for(var c : lbraceNewLineScopes)
+			{
+				builder.append('\t');
+				builder.append(c.toString());
+				builder.append('\n');
+			}
+			builder.append("Scopes in old line style:\n");
+			for(var c : lbraceNoNewLineScopes)
+			{
+				builder.append('\t');
+				builder.append(c.toString());
+				builder.append('\n');
+			}
+		}
+		
+		return builder.toString();
+	}
 }

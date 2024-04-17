@@ -508,4 +508,10 @@ public final class JavaDocBlock extends CommentBlock
 		
 	}
 
+	
+	@Override
+	public String toString()
+	{
+		return "JavaDoc " + super.toString();
+	}
 }

@@ -619,6 +619,11 @@ public class SourceFile
 		    	}
 			}
 			
+			cbSummary.summarize();
+			wsBlockSummary.summarize();
+			commentBlockSummary.summarize();
+			javaDocSummary.summarize();
+			
 			// Include the summaries in the verdict
 			verdict.include(wsBlockSummary);
 			verdict.include(commentBlockSummary);
@@ -640,6 +645,8 @@ public class SourceFile
 		    	
 		    	lineSummary.include(line);
 			}
+			
+			lineSummary.summarize();
 			
 			// Include the summary in the verdict
 			verdict.include(lineSummary);

@@ -65,5 +65,21 @@ public final class JavaDocSummary extends FormatEvalSummary<JavaDocBlock>
 	public List<JavaDocBlock> getBadJavaDocsList() {
 		return badJavaDocsList;
 	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("Bad JavaDocs:\n");
+		for(var jd : badJavaDocsList)
+		{
+			builder.append('\t');
+			builder.append(jd.toString());
+			builder.append('\n');
+		}
+		
+		return builder.toString();
+	}
 
 }

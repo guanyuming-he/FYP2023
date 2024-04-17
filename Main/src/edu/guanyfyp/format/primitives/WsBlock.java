@@ -119,4 +119,10 @@ public class WsBlock extends FormatToken
 		// Just call super's to say that it's been evaluated.
 		super.evaluateFormat(sf, context);
 	}
+	
+	@Override
+	public String toString()
+	{
+		return "Whitespace " + super.toString();
+	}
 }

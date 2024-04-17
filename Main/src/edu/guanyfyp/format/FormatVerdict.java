@@ -98,8 +98,10 @@ public class FormatVerdict
 			float numScopeStyle2 = codeBlockSummary.lbraceNoNewLineScopes.size();
 			if(numScopeStyle1 + numScopeStyle2 > 0)
 			{
+				// without the 2.f multiplier,
+				// the maximum value is .5f when half is one style and the other half is another style
 				inconsistentScopeStyleFrequency = 
-						Math.min(numScopeStyle2, numScopeStyle2) / numScopeStyle1 + numScopeStyle2;
+						2.f * Math.min(numScopeStyle1, numScopeStyle2) / (numScopeStyle1 + numScopeStyle2);
 			}
 
 		}
@@ -147,6 +149,8 @@ public class FormatVerdict
 		{
 			throw new IllegalStateException("Already has a verdict.");
 		}
+		
+		assert(summary.isSummaryDone());
 		
 		if(summary instanceof WsBlockSummary)
 		{
@@ -246,24 +250,32 @@ public class FormatVerdict
 		return lineIndentationProblemFrequency;
 	}
 	
+	public boolean getHasCommentAtAll() {
+		return hasCommentsAtAll;
+	}
+	
 	@Override
 	public String toString() {
-		String ret = "";
-		ret += "identifierLengthProblemFrequency = " + identifierLengthProblemFrequency + "\n";
-		ret += "identifierNamingProblemFrequency = " + identifierNamingProblemFrequency + "\n";
-		ret += "spacingProblemFrequency = " + spacingProblemFrequency + "\n";
-		ret += "inconsistentScopeStyleFrequency = " + inconsistentScopeStyleFrequency + "\n";
-		ret += "badJavaDocFrequency = " + badJavaDocFrequency + "\n";
-		ret += "lineLengthProblemFrequency = " + lineLengthProblemFrequency + "\n";
-		ret += "lineIndentationProblemFrequency = " + lineIndentationProblemFrequency + "\n";
-		ret += "hasCommentsAtAll = " + hasCommentsAtAll + "\n";
+		StringBuilder ret = new StringBuilder();
+		ret.append("identifierLengthProblemFrequency = " + identifierLengthProblemFrequency + "\n");
+		ret.append("identifierNamingProblemFrequency = " + identifierNamingProblemFrequency + "\n");
+		ret.append("spacingProblemFrequency = " + spacingProblemFrequency + "\n");
+		ret.append("inconsistentScopeStyleFrequency = " + inconsistentScopeStyleFrequency + "\n");
+		ret.append("badJavaDocFrequency = " + badJavaDocFrequency + "\n");
+		ret.append("lineLengthProblemFrequency = " + lineLengthProblemFrequency + "\n");
+		ret.append("lineIndentationProblemFrequency = " + lineIndentationProblemFrequency + "\n");
+		ret.append("hasCommentsAtAll = " + hasCommentsAtAll + "\n");
 
-		ret += 	wsBlockSummary.toString();
-		ret += commentBlockSummary.toString();
-		ret += javaDocSummary.toString();
-		ret += codeBlockSummary.toString();
-		ret += lineSummary.toString();
+		ret.append('\n');
+		ret.append("CodeBlocks summary:\n");
+		ret.append(codeBlockSummary.toString());
+		ret.append('\n');
+		ret.append("Lines summary:\n");
+		ret.append(lineSummary.toString());
+		ret.append('\n');
+		ret.append("JavaDocs summary:\n");
+		ret.append(javaDocSummary.toString());
 		
-		return ret;
+		return ret.toString();
 	}
 }
