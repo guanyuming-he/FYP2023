@@ -72,4 +72,10 @@ public abstract class FormatEvalSummary<T extends FormatPrimitive>
 		
 		summaryDone = true;
 	}
+	
+	@Override
+	public String toString()
+	{
+		return "Summary toString() is not implemented yet.\n";
+	}
 }
